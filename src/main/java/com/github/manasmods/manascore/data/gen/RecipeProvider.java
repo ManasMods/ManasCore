@@ -36,7 +36,7 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
         for (ItemStack itemStack : ingredient.getItems()) {
             SimpleCookingRecipeBuilder.smelting(ingredient, result, exp, cookingTicks)
                 .unlockedBy("has_" + Objects.requireNonNull(itemStack.getItem().getRegistryName()).getPath(), has(itemStack.getItem()))
-                .save(pFinishedRecipeConsumer);
+                .save(pFinishedRecipeConsumer, getSmeltingRecipeName(result));
         }
     }
 
