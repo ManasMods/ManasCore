@@ -229,7 +229,7 @@ if (System.getenv().getOrDefault("CF_TOKEN", null) != null) {
             releaseType = 'release'
             changelog = file('changelog.html')
             addGameVersion minecraftVersion
-            changelogType 'html'
+            changelogType = 'html'
         }
 
         options {
