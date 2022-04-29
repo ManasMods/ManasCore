@@ -1,17 +1,16 @@
 package com.github.manasmods.manascore.data.gen;
 
-import net.minecraft.data.DataGenerator;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.client.model.generators.ModelFile;
-import net.minecraftforge.common.data.ExistingFileHelper;
+import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
 
 import java.util.Objects;
 
 @SuppressWarnings("unused")
 public abstract class ItemModelProvider extends net.minecraftforge.client.model.generators.ItemModelProvider {
-    public ItemModelProvider(DataGenerator generator, ExistingFileHelper existingFileHelper, String modId) {
-        super(generator, modId, existingFileHelper);
+    public ItemModelProvider(final GatherDataEvent gatherDataEvent, String modId) {
+        super(gatherDataEvent.getGenerator(), modId, gatherDataEvent.getExistingFileHelper());
     }
 
     protected abstract void generate();
