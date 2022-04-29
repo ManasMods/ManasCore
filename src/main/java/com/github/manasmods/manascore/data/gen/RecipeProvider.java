@@ -1,6 +1,5 @@
 package com.github.manasmods.manascore.data.gen;
 
-import net.minecraft.data.DataGenerator;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
 import net.minecraft.world.item.ItemStack;
@@ -8,6 +7,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.crafting.conditions.IConditionBuilder;
+import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -15,8 +15,8 @@ import java.util.function.Consumer;
 
 @SuppressWarnings("unused")
 public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipeProvider implements IConditionBuilder {
-    public RecipeProvider(DataGenerator pGenerator) {
-        super(pGenerator);
+    public RecipeProvider(final GatherDataEvent gatherDataEvent) {
+        super(gatherDataEvent.getGenerator());
     }
 
     protected abstract void generate();
