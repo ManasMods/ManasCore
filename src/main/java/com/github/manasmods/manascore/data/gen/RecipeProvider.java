@@ -26,13 +26,13 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
         generate();
     }
 
-    private void allSmeltingRecipes(Consumer<FinishedRecipe> pFinishedRecipeConsumer, Ingredient ingredient, ItemLike result, float exp, int smeltingTicks, int campfireTicks, int smokingTicks) {
+    protected void allSmeltingRecipes(Consumer<FinishedRecipe> pFinishedRecipeConsumer, Ingredient ingredient, ItemLike result, float exp, int smeltingTicks, int campfireTicks, int smokingTicks) {
         smeltingRecipe(pFinishedRecipeConsumer, ingredient, result, exp, smeltingTicks);
         campfireRecipe(pFinishedRecipeConsumer, ingredient, result, exp, campfireTicks);
         smokingRecipe(pFinishedRecipeConsumer, ingredient, result, exp, smokingTicks);
     }
 
-    private void smeltingRecipe(Consumer<FinishedRecipe> pFinishedRecipeConsumer, Ingredient ingredient, ItemLike result, float exp, int cookingTicks) {
+    protected void smeltingRecipe(Consumer<FinishedRecipe> pFinishedRecipeConsumer, Ingredient ingredient, ItemLike result, float exp, int cookingTicks) {
         for (ItemStack itemStack : ingredient.getItems()) {
             SimpleCookingRecipeBuilder.smelting(ingredient, result, exp, cookingTicks)
                 .unlockedBy("has_" + Objects.requireNonNull(itemStack.getItem().getRegistryName()).getPath(), has(itemStack.getItem()))
@@ -40,13 +40,13 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
         }
     }
 
-    private void campfireRecipe(Consumer<FinishedRecipe> pFinishedRecipeConsumer, Ingredient ingredient, ItemLike result, float exp, int cookingTicks) {
+    protected void campfireRecipe(Consumer<FinishedRecipe> pFinishedRecipeConsumer, Ingredient ingredient, ItemLike result, float exp, int cookingTicks) {
         for (ItemStack itemStack : ingredient.getItems()) {
             simpleCookingRecipe(pFinishedRecipeConsumer, "campfire_cooking", RecipeSerializer.CAMPFIRE_COOKING_RECIPE, cookingTicks, itemStack.getItem(), result, exp);
         }
     }
 
-    private void smokingRecipe(Consumer<FinishedRecipe> pFinishedRecipeConsumer, Ingredient ingredient, ItemLike result, float exp, int cookingTicks) {
+    protected void smokingRecipe(Consumer<FinishedRecipe> pFinishedRecipeConsumer, Ingredient ingredient, ItemLike result, float exp, int cookingTicks) {
         for (ItemStack itemStack : ingredient.getItems()) {
             simpleCookingRecipe(pFinishedRecipeConsumer, "smoking", RecipeSerializer.SMOKING_RECIPE, cookingTicks, itemStack.getItem(), result, exp);
         }
