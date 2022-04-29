@@ -19,11 +19,11 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
         super(gatherDataEvent.getGenerator());
     }
 
-    protected abstract void generate();
+    protected abstract void generate(Consumer<FinishedRecipe> pFinishedRecipeConsumer);
 
     @Override
     protected void buildCraftingRecipes(@NotNull Consumer<FinishedRecipe> pFinishedRecipeConsumer) {
-        generate();
+        generate(pFinishedRecipeConsumer);
     }
 
     protected void allSmeltingRecipes(Consumer<FinishedRecipe> pFinishedRecipeConsumer, Ingredient ingredient, ItemLike result, float exp, int smeltingTicks, int campfireTicks, int smokingTicks) {
