@@ -1,6 +1,5 @@
 package com.github.manasmods.manascore.data.gen;
 
-import net.minecraft.data.DataGenerator;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RotatedPillarBlock;
@@ -8,15 +7,15 @@ import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraftforge.client.model.generators.ConfiguredModel;
 import net.minecraftforge.client.model.generators.ModelFile;
-import net.minecraftforge.common.data.ExistingFileHelper;
+import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
 
 import java.util.Objects;
 
 @SuppressWarnings("unused")
 public abstract class BlockStateProvider extends net.minecraftforge.client.model.generators.BlockStateProvider {
 
-    public BlockStateProvider(DataGenerator gen, ExistingFileHelper exFileHelper, String modId) {
-        super(gen, modId, exFileHelper);
+    public BlockStateProvider(final GatherDataEvent gatherDataEvent, String modId) {
+        super(gatherDataEvent.getGenerator(), modId, gatherDataEvent.getExistingFileHelper());
     }
 
     protected abstract void generate();
@@ -53,7 +52,7 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
      * @param stairBlock   the {@link StairBlock} Object
      * @param textureBlock the {@link Block} you want to use as texture
      */
-    protected void stairsBlock(Block stairBlock, Block textureBlock) {
+    protected void stairs(Block stairBlock, Block textureBlock) {
         if (!(stairBlock instanceof StairBlock block)) {
             throw new IllegalArgumentException(Objects.requireNonNull(stairBlock.getRegistryName()) + " is not a instance of StairBlock.");
         } else {
@@ -69,7 +68,7 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
      * @param slabBlock    the {@link SlabBlock} Object
      * @param textureBlock the {@link Block} you want to use as texture
      */
-    protected void slabBlock(Block slabBlock, Block textureBlock) {
+    protected void slab(Block slabBlock, Block textureBlock) {
         if (!(slabBlock instanceof SlabBlock block)) {
             throw new IllegalArgumentException(Objects.requireNonNull(slabBlock.getRegistryName()) + " is not a instance of StairBlock.");
         } else {
