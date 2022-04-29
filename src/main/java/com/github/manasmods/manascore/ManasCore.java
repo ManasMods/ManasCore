@@ -22,7 +22,6 @@ public class ManasCore {
     public ManasCore() {
         proxy = DistExecutor.safeRunForDist(() -> ManasClientProxy::new, () -> ManasServerProxy::new);
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-        getLogger().info("ModEventBus: {}", modEventBus.getClass());
         proxy.preInit(modEventBus);
     }
 
