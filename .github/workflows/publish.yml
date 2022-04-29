@@ -22,7 +22,7 @@ jobs:
       - name: Set Gradle Permissions
         run: chmod +x gradlew
       - name: install git
-        run: apt-get install git -y
+        run: sudo apt-get install git -y
       - name: Build Mod
         uses: gradle/gradle-build-action@0d13054264b0bb894ded474f08ebb30921341cee
         with:
