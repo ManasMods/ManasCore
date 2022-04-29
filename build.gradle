@@ -10,12 +10,16 @@ buildscript {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
         classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
         classpath 'org.parchmentmc:librarian:1.+'
+        classpath "gradle.plugin.se.bjurr.gitchangelog:git-changelog-gradle-plugin:1.72.0"
+        classpath "gradle.plugin.com.matthewprenger:CurseGradle:1.4.0"
     }
 }
 
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.parchmentmc.librarian.forgegradle'
 apply plugin: 'org.spongepowered.mixin'
+apply plugin: "se.bjurr.gitchangelog.git-changelog-gradle-plugin"
+apply plugin: "com.matthewprenger.cursegradle"
 
 group = 'com.github.manasmods'
 version = "${minecraftVersion}-${modVersion}"
@@ -185,7 +189,7 @@ def replaceResources = tasks.register("replaceResources", Copy) {
 
         include "META-INF/mods.toml"
         expand 'modVersion': "${modVersion}", 'forgeLoaderVersion': "[${forgeLoaderVersion},)", 'minecraftVersionCheck':
-                "${minecraftVersionCheck}", 'modId' : "${modId}"
+                "${minecraftVersionCheck}", 'modId': "${modId}"
     }
     it.into "$buildDir/resources/main/"
 }
@@ -202,4 +206,33 @@ classes.configure {
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
+}
+
+task makeChangelog(type: se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask) {
+    fromRepo = file("$projectDir")
+    file = file('changelog.html')
+    untaggedName = "Current release ${project.version}"
+    fromCommit = 'a195be1f0c92c0247c1ab0007ab3b5adef3e64c2'
+    toRef = 'HEAD'
+    templateContent = file('changelog.mustache').getText('UTF-8')
+}
+
+if (System.getenv().getOrDefault("CF_TOKEN", null) != null) {
+    afterEvaluate {
+        tasks.curseforge.dependsOn makeChangelog
+    }
+
+    curseforge {
+        apiKey = System.getenv("CF_TOKEN");
+        project {
+            id = '619025'
+            releaseType = 'release'
+            changelog = file('changelog.html')
+            addGameVersion minecraftVersion
+        }
+
+        options {
+            detectNewerJava = true
+        }
+    }
 }
