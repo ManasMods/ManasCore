@@ -92,5 +92,23 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
                 .parent(new ModelFile.UncheckedModelFile(modLoc("block/" + block.getRegistryName().getPath())));
         }
     }
+
+    /**
+     * Generates blockstate, block and item model json file.
+     *
+     * @param block         the {@link RotatedPillarBlock} Object.
+     * @param textureTopBot the path to the texture file for the top or bottom of the Block
+     * @param textureSides  the path to the texture file for the sides of the block
+     */
+    protected void nonRotatablePillar(Block block, ResourceLocation textureTopBot, ResourceLocation textureSides) {
+        getVariantBuilder(block)
+            .forAllStates(blockState -> ConfiguredModel.builder().modelFile(models().cubeColumn(name(block),textureSides,textureTopBot)).build());
+        itemModels().getBuilder(Objects.requireNonNull(block.getRegistryName()).getPath())
+            .parent(new ModelFile.UncheckedModelFile(modLoc("block/" + block.getRegistryName().getPath())));
+    }
+
+    protected String name(Block block) {
+        return block.getRegistryName().getPath();
+    }
 }
 
