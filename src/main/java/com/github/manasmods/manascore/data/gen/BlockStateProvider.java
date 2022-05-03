@@ -107,6 +107,7 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
             .parent(new ModelFile.UncheckedModelFile(modLoc("block/" + block.getRegistryName().getPath())));
     }
 
+    @SuppressWarnings("ConstantConditions")
     protected String name(Block block) {
         return block.getRegistryName().getPath();
     }
