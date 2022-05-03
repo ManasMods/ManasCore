@@ -13,7 +13,5 @@ public abstract class BlockTagProvider extends BlockTagsProvider {
         generate();
     }
 
-    protected void generate(){
-
-    }
+    protected abstract void generate();
 }
