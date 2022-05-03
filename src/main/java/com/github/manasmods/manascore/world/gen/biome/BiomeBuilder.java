@@ -9,6 +9,7 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeSpecialEffects;
 
 import java.awt.Color;
+import java.util.Optional;
 
 @SuppressWarnings("unused")
 @RequiredArgsConstructor
@@ -25,6 +26,18 @@ public class BiomeBuilder {
     private int waterFogColor = 329011;
     private int fogColor = 12638463;
     private Music backgroundMusic = null;
+    private Optional<Integer> grassColorOverride = Optional.empty();
+    private BiomeSpecialEffects.GrassColorModifier grassColorModifier = BiomeSpecialEffects.GrassColorModifier.NONE;
+
+    public BiomeBuilder grassColor(Color color) {
+        grassColorOverride = Optional.of(color.getRGB());
+        return this;
+    }
+
+    public BiomeBuilder grassModifier(BiomeSpecialEffects.GrassColorModifier grassColorModifier) {
+        this.grassColorModifier = grassColorModifier;
+        return this;
+    }
 
     public BiomeBuilder downfall(float downfall) {
         this.downfall = downfall;
@@ -68,7 +81,10 @@ public class BiomeBuilder {
             .fogColor(fogColor)
             .skyColor(calculateSkyColor(temperature))
             .ambientMoodSound(AmbientMoodSettings.LEGACY_CAVE_SETTINGS)
-            .backgroundMusic(backgroundMusic);
+            .backgroundMusic(backgroundMusic)
+            .grassColorModifier(grassColorModifier);
+
+        this.grassColorOverride.ifPresent(specialEffects::grassColorOverride);
 
         return biomeBuilder
             .biomeCategory(biomeCategory)
