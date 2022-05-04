@@ -1,10 +1,15 @@
 package com.github.manasmods.manascore.data.gen;
 
+import com.github.manasmods.manascore.ManasCore;
+import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.state.properties.Half;
+import net.minecraft.world.level.block.state.properties.StairsShape;
+import net.minecraftforge.client.model.generators.BlockModelBuilder;
 import net.minecraftforge.client.model.generators.ConfiguredModel;
 import net.minecraftforge.client.model.generators.ModelFile;
 import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
@@ -110,6 +115,65 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
     @SuppressWarnings("ConstantConditions")
     protected String name(Block block) {
         return block.getRegistryName().getPath();
+    }
+
+    protected void stairs(Block stairBlock, ResourceLocation top, ResourceLocation bottom, ResourceLocation side, ResourceLocation overlay) {
+        if (stairBlock instanceof StairBlock block) {
+            String baseName = block.getRegistryName().toString();
+            ModelFile stairs = overlayStair(baseName, top, bottom, side, overlay);
+            ModelFile stairsInner = overlayInnerStair(baseName + "_inner", top, bottom, side, overlay);
+            ModelFile stairsOuter = overlayOuterStair(baseName + "_outer", top, bottom, side, overlay);
+
+            getVariantBuilder(block)
+                .forAllStatesExcept(state -> {
+                    Direction facing = state.getValue(StairBlock.FACING);
+                    Half half = state.getValue(StairBlock.HALF);
+                    StairsShape shape = state.getValue(StairBlock.SHAPE);
+                    int yRot = (int) facing.getClockWise().toYRot(); // Stairs model is rotated 90 degrees clockwise for some reason
+                    if (shape == StairsShape.INNER_LEFT || shape == StairsShape.OUTER_LEFT) {
+                        yRot += 270; // Left facing stairs are rotated 90 degrees clockwise
+                    }
+                    if (shape != StairsShape.STRAIGHT && half == Half.TOP) {
+                        yRot += 90; // Top stairs are rotated 90 degrees clockwise
+                    }
+                    yRot %= 360;
+                    boolean uvlock = yRot != 0 || half == Half.TOP; // Don't set uvlock for states that have no rotation
+                    return ConfiguredModel.builder()
+                        .modelFile(shape == StairsShape.STRAIGHT ? stairs : shape == StairsShape.INNER_LEFT || shape == StairsShape.INNER_RIGHT ? stairsInner : stairsOuter)
+                        .rotationX(half == Half.BOTTOM ? 0 : 180)
+                        .rotationY(yRot)
+                        .uvLock(uvlock)
+                        .build();
+                }, StairBlock.WATERLOGGED);
+
+            this.itemModels().getBuilder(Objects.requireNonNull(block.getRegistryName()).getPath()).parent(new ModelFile.UncheckedModelFile(this.modLoc("block/" + block.getRegistryName().getPath())));
+        } else {
+            throw new IllegalArgumentException(Objects.requireNonNull(stairBlock.getRegistryName()) + " is not a instance of StairBlock.");
+        }
+    }
+
+    private BlockModelBuilder overlayStair(String baseName, ResourceLocation top, ResourceLocation bottom, ResourceLocation side, ResourceLocation overlay) {
+        return models().withExistingParent(baseName, new ResourceLocation(ManasCore.MOD_ID, "block/overlay_stairs"))
+            .texture("side", side)
+            .texture("bottom", bottom)
+            .texture("top", top)
+            .texture("overlay", overlay);
+    }
+
+    private BlockModelBuilder overlayInnerStair(String baseName, ResourceLocation top, ResourceLocation bottom, ResourceLocation side, ResourceLocation overlay) {
+        return models().withExistingParent(baseName, new ResourceLocation(ManasCore.MOD_ID, "block/overlay_inner_stairs"))
+            .texture("side", side)
+            .texture("bottom", bottom)
+            .texture("top", top)
+            .texture("overlay", overlay);
+    }
+
+    private BlockModelBuilder overlayOuterStair(String baseName, ResourceLocation top, ResourceLocation bottom, ResourceLocation side, ResourceLocation overlay) {
+        return models().withExistingParent(baseName, new ResourceLocation(ManasCore.MOD_ID, "block/overlay_outer_stairs"))
+            .texture("side", side)
+            .texture("bottom", bottom)
+            .texture("top", top)
+            .texture("overlay", overlay);
     }
 }
 
