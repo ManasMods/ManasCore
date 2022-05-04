@@ -112,7 +112,7 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
         }
     }
 
-    private void stairs(Block stairBlock, ResourceLocation side, ResourceLocation top) {
+    protected void stairs(Block stairBlock, ResourceLocation side, ResourceLocation top) {
         stairs(stairBlock, side, top, top);
     }
 
@@ -158,7 +158,7 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
         }
     }
 
-    private void slab(Block stairBlock, Block fullBlock, ResourceLocation side, ResourceLocation top) {
+    protected void slab(Block stairBlock, Block fullBlock, ResourceLocation side, ResourceLocation top) {
         slab(stairBlock, fullBlock, side, top, top);
     }
 
