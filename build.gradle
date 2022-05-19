@@ -20,6 +20,8 @@ apply plugin: 'org.parchmentmc.librarian.forgegradle'
 apply plugin: 'org.spongepowered.mixin'
 apply plugin: "se.bjurr.gitchangelog.git-changelog-gradle-plugin"
 apply plugin: "com.matthewprenger.cursegradle"
+apply plugin: 'maven-publish'
+
 
 group = 'com.github.manasmods'
 version = "${minecraftVersion}-${modVersion}"
@@ -234,6 +236,24 @@ if (System.getenv().getOrDefault("CF_TOKEN", null) != null) {
 
         options {
             detectNewerJava = true
+        }
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact jar
+        }
+    }
+    repositories {
+        maven {
+            name = "manasmods"
+            credentials {
+                username System.getenv().getOrDefault("MANAS_REPO_USER", manasmodsUsername)
+                password System.getenv().getOrDefault("MANAS_REPO_USER_PASSWORD", manasmodsPassword)
+            }
+            url "https://manasmods.bytesafe.dev/maven/manasmods"
         }
     }
 }

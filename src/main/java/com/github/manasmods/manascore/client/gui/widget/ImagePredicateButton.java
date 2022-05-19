@@ -10,11 +10,16 @@ import net.minecraft.resources.ResourceLocation;
 public class ImagePredicateButton extends Button {
     private final ResourceLocation texture;
     private final RenderCheck renderCheck;
+    private boolean showToolTip = true;
 
     public ImagePredicateButton(int pX, int pY, int pWidth, int pHeight, ResourceLocation texture, OnPress pOnPress, OnTooltip pOnToolTip, RenderCheck renderCheck) {
         super(pX, pY, pWidth, pHeight, new TextComponent(""), pOnPress, pOnToolTip);
         this.texture = texture;
         this.renderCheck = renderCheck;
+    }
+
+    public void hideToolTip() {
+        showToolTip = false;
     }
 
     @Override
@@ -29,13 +34,11 @@ public class ImagePredicateButton extends Button {
         RenderSystem.enableDepthTest();
         if (active) {
             blit(pPoseStack, x, y, 0, isHoveredOrFocused() ? height : 0, width, height, width, height * 2);
+            if (this.isHoveredOrFocused() && showToolTip) {
+                this.renderToolTip(pPoseStack, pMouseX, pMouseY);
+            }
         } else {
             blit(pPoseStack, x, y, 0, height, width, height, width, height * 2);
         }
-    }
-
-    @Override
-    protected boolean clicked(double pMouseX, double pMouseY) {
-        return super.clicked(pMouseX, pMouseY);
     }
 }
