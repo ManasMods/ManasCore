@@ -1,5 +1,8 @@
 package com.github.manasmods.manascore;
 
+import com.github.manasmods.manascore.example.Example;
+import com.github.manasmods.manascore.tab.VanillaInventoryTab;
+import com.github.manasmods.manascore.tab.InventoryTabRegistry;
 import lombok.Getter;
 import net.minecraftforge.fml.common.Mod;
 import org.apache.logging.log4j.LogManager;
@@ -12,5 +15,9 @@ public class ManasCore {
     private static final Logger logger = LogManager.getLogger();
 
     public ManasCore() {
+        InventoryTabRegistry.register(new VanillaInventoryTab());
+        for (int i = 0; i < 15; i++) {
+            InventoryTabRegistry.register(new Example());
+        }
     }
 }
