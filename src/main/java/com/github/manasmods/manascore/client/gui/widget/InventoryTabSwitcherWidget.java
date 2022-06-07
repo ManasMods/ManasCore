@@ -76,13 +76,18 @@ public class InventoryTabSwitcherWidget extends GuiComponent implements Widget, 
                     widget.y = parent.getGuiTop() - widget.getHeight() + yOffset;
                     widget.setPosition(TabPosition.LEFT_TOP);
                 }
-                case 2, 3, 4, 5 -> {
-                    widget.x = parent.getGuiLeft() + widget.getWidth() * (tabScreenIndex - 1) + (xOffset * tabScreenIndex - 1);
+                case 2, 3 -> {
+                    widget.x = parent.getGuiLeft() + widget.getWidth() * (tabScreenIndex - 1) + (xOffset * tabScreenIndex - 1) + 1;
+                    widget.y = parent.getGuiTop() - widget.getHeight() + yOffset;
+                    widget.setPosition(TabPosition.TOP);
+                }
+                case 4, 5 -> {
+                    widget.x = parent.getGuiLeft() + widget.getWidth() * (tabScreenIndex - 1) + (xOffset * tabScreenIndex - 1) + 2;
                     widget.y = parent.getGuiTop() - widget.getHeight() + yOffset;
                     widget.setPosition(TabPosition.TOP);
                 }
                 case 6 -> {
-                    widget.x = parent.getGuiLeft() + widget.getWidth() * (tabScreenIndex - 1) + (xOffset * tabScreenIndex - 1);
+                    widget.x = parent.getGuiLeft() + widget.getWidth() * (tabScreenIndex - 1) + (xOffset * tabScreenIndex - 1) + 3;
                     widget.y = parent.getGuiTop() - widget.getHeight() + yOffset;
                     widget.setPosition(TabPosition.RIGHT_TOP);
                 }
@@ -91,13 +96,18 @@ public class InventoryTabSwitcherWidget extends GuiComponent implements Widget, 
                     widget.y = parent.getGuiTop() + ((AbstractContainerScreenAccessor) parent).getImageWidth() - yOffset - 11;
                     widget.setPosition(TabPosition.LEFT_BOT);
                 }
-                case 8, 9, 10, 11 -> {
-                    widget.x = parent.getGuiLeft() + widget.getWidth() * (tabScreenIndex - 7) + (xOffset * tabScreenIndex - 7);
+                case 8, 9 -> {
+                    widget.x = parent.getGuiLeft() + widget.getWidth() * (tabScreenIndex - 7) + (xOffset * tabScreenIndex - 7) + 1;
+                    widget.y = parent.getGuiTop() + ((AbstractContainerScreenAccessor) parent).getImageWidth() - yOffset - 11;
+                    widget.setPosition(TabPosition.BOT);
+                }
+                case 10, 11 -> {
+                    widget.x = parent.getGuiLeft() + widget.getWidth() * (tabScreenIndex - 7) + (xOffset * tabScreenIndex - 7) + 2;
                     widget.y = parent.getGuiTop() + ((AbstractContainerScreenAccessor) parent).getImageWidth() - yOffset - 11;
                     widget.setPosition(TabPosition.BOT);
                 }
                 case 12 -> {
-                    widget.x = parent.getGuiLeft() + widget.getWidth() * (tabScreenIndex - 7) + (xOffset * tabScreenIndex - 7);
+                    widget.x = parent.getGuiLeft() + widget.getWidth() * (tabScreenIndex - 7) + (xOffset * tabScreenIndex - 7) + 3;
                     widget.y = parent.getGuiTop() + ((AbstractContainerScreenAccessor) parent).getImageWidth() - yOffset - 11;
                     widget.setPosition(TabPosition.RIGHT_BOT);
                 }

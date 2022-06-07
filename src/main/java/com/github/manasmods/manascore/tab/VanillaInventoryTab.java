@@ -35,6 +35,6 @@ public class VanillaInventoryTab extends AbstractInventoryTab {
 
     @Override
     public Predicate<Screen> isCurrentScreen() {
-        return screen -> screen instanceof InventoryScreen && false;
+        return screen -> screen instanceof InventoryScreen;
     }
 }
