@@ -3,6 +3,7 @@ package com.github.manasmods.manascore.data.gen;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.RecipeBuilder;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -40,8 +41,8 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
     protected void smeltingRecipe(Consumer<FinishedRecipe> pFinishedRecipeConsumer, Ingredient ingredient, ItemLike result, float exp, int cookingTicks) {
         for (ItemStack itemStack : ingredient.getItems()) {
             SimpleCookingRecipeBuilder.smelting(ingredient, result, exp, cookingTicks)
-                .unlockedBy("has_" + Objects.requireNonNull(itemStack.getItem().getRegistryName()).getPath(), has(itemStack.getItem()))
-                .save(pFinishedRecipeConsumer, getSmeltingRecipeName(result));
+                    .unlockedBy("has_" + Objects.requireNonNull(itemStack.getItem().getRegistryName()).getPath(), has(itemStack.getItem()))
+                    .save(pFinishedRecipeConsumer, getSmeltingRecipeName(result));
         }
     }
 
@@ -100,9 +101,25 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
 
     protected static RecipeBuilder betterStairBuilder(ItemLike pStairs, Ingredient pMaterial) {
         return ShapedRecipeBuilder.shaped(pStairs, 8)
-            .define('#', pMaterial)
-            .pattern("#  ")
-            .pattern("## ")
-            .pattern("###");
+                .define('#', pMaterial)
+                .pattern("#  ")
+                .pattern("## ")
+                .pattern("###");
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    protected void stairsToBlock(Consumer<FinishedRecipe> finishedRecipeConsumer, Block stair, Block block) {
+        ShapelessRecipeBuilder.shapeless(block, 3)
+                .requires(stair, 4)
+                .unlockedBy("has_" + stair.getRegistryName().getNamespace(), has(stair))
+                .save(finishedRecipeConsumer);
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    protected void slabsToBlock(Consumer<FinishedRecipe> finishedRecipeConsumer, Block slab, Block block){
+        ShapelessRecipeBuilder.shapeless(block, 1)
+                .requires(slab, 2)
+                .unlockedBy("has_" + slab.getRegistryName().getNamespace(), has(slab))
+                .save(finishedRecipeConsumer);
     }
 }
