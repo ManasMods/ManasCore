@@ -5,6 +5,7 @@ import net.minecraft.data.recipes.RecipeBuilder;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -112,14 +113,14 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
         ShapelessRecipeBuilder.shapeless(block, 3)
                 .requires(stair, 4)
                 .unlockedBy("has_" + stair.getRegistryName().getNamespace(), has(stair))
-                .save(finishedRecipeConsumer);
+                .save(finishedRecipeConsumer, new ResourceLocation(block.getRegistryName().getNamespace(), "stairs_to_block_" + block.getRegistryName().getPath()));
     }
 
     @SuppressWarnings("ConstantConditions")
-    protected void slabsToBlock(Consumer<FinishedRecipe> finishedRecipeConsumer, Block slab, Block block){
+    protected void slabsToBlock(Consumer<FinishedRecipe> finishedRecipeConsumer, Block slab, Block block) {
         ShapelessRecipeBuilder.shapeless(block, 1)
                 .requires(slab, 2)
                 .unlockedBy("has_" + slab.getRegistryName().getNamespace(), has(slab))
-                .save(finishedRecipeConsumer);
+                .save(finishedRecipeConsumer, new ResourceLocation(block.getRegistryName().getNamespace(),"slabs_to_block_" + block.getRegistryName().getPath()));
     }
 }
