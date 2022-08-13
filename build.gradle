@@ -166,6 +166,14 @@ repositories {
     // flatDir {
     //     dir 'libs'
     // }
+    maven {
+        name = "manasmods"
+        credentials {
+            username System.getenv().getOrDefault("MANAS_REPO_USER", manasmodsUsername)
+            password System.getenv().getOrDefault("MANAS_REPO_USER_PASSWORD", manasmodsPassword)
+        }
+        url "https://manasmods.bytesafe.dev/maven/manasmods"
+    }
 }
 
 dependencies {
@@ -178,6 +186,8 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.22'
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+
+    runtimeOnly fg.deobf('com.github.manasmods:unordinary-basics:1.18.2-1.0.1.2')
 }
 
 // Example for how to get properties into the manifest for reading at runtime.
