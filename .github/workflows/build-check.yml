@@ -13,7 +13,9 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
+    env:
+      MANAS_REPO_USER: ${{ secrets.MANAS_REPO_USER }}
+      MANAS_REPO_USER_PASSWORD: ${{ secrets.MANAS_REPO_USER_PASSWORD }}
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 17
