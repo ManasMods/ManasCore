@@ -11,6 +11,9 @@ public interface IInventoryTab {
 
     @OnlyIn(Dist.CLIENT)
     default Predicate<Screen> isCurrentScreen() {
-        return screen -> InventoryTabRegistry.findByScreen(screen) == this;
+        return screen -> {
+            AbstractInventoryTab tab = InventoryTabRegistry.findByScreen(screen);
+            return tab != null && tab.equals(this);
+        };
     }
 }
