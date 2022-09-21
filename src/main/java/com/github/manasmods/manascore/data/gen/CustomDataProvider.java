@@ -21,10 +21,12 @@ public abstract class CustomDataProvider implements DataProvider {
     private static final Gson GSON = new GsonBuilder()
         .setPrettyPrinting()
         .create();
-    private final Path outputPath;
+    private final String outputPath;
+    private final DataGenerator generator;
 
     public CustomDataProvider(String path, DataGenerator generator) {
-        this.outputPath = generator.getOutputFolder().resolve("data").resolve(path);
+        this.outputPath = "data/" + path;
+        this.generator = generator;
     }
 
     protected abstract void run(BiConsumer<ResourceLocation, Supplier<JsonElement>> consumer);
@@ -42,7 +44,11 @@ public abstract class CustomDataProvider implements DataProvider {
         run(consumer);
 
         map.forEach((location, jsonElementSupplier) -> {
-            Path path = this.outputPath.resolve(location.getNamespace()).resolve(location.getPath() + ".json");
+            Path path = this.generator.getOutputFolder()
+                .resolve("data")
+                .resolve(location.getNamespace())
+                .resolve(this.outputPath)
+                .resolve(location.getPath() + ".json");
             try {
                 DataProvider.save(GSON, pCache, jsonElementSupplier.get(), path);
             } catch (IOException e) {
