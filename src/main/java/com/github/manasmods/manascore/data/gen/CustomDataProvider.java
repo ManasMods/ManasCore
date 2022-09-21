@@ -25,7 +25,7 @@ public abstract class CustomDataProvider implements DataProvider {
     private final DataGenerator generator;
 
     public CustomDataProvider(String path, DataGenerator generator) {
-        this.outputPath = "data/" + path;
+        this.outputPath = path;
         this.generator = generator;
     }
 
