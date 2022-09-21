@@ -42,7 +42,7 @@ public abstract class CustomDataProvider implements DataProvider {
         run(consumer);
 
         map.forEach((location, jsonElementSupplier) -> {
-            Path path = this.outputPath.resolve(location.getPath());
+            Path path = this.outputPath.resolve(location.getNamespace()).resolve(location.getPath());
             try {
                 DataProvider.save(GSON, pCache, jsonElementSupplier.get(), path);
             } catch (IOException e) {
