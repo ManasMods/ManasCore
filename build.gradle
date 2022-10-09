@@ -74,7 +74,7 @@ minecraft {
         }
 
         server {
-            workingDirectory project.file('run')
+            workingDirectory project.file('runServer')
 
             // Recommended logging data for a userdev environment
             // The markers can be added/removed as needed separated by commas.

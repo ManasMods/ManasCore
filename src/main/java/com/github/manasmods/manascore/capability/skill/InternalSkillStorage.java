@@ -26,6 +26,9 @@ public interface InternalSkillStorage extends SkillStorage {
     Entity getOwner();
 
     default void sync(SyncSkillsPacket.SyncType syncType) {
+        if (getOwner() == null) return;
+        if (getOwner().level.isClientSide()) return;
+
         if (getOwner() instanceof ServerPlayer) {
             ManasCoreNetwork.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(this::getOwner), new SyncSkillsPacket(getOwner(), this, syncType));
         } else {

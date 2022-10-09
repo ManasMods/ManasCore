@@ -8,6 +8,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.util.INBTSerializable;
 import org.jetbrains.annotations.ApiStatus;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,7 +22,7 @@ public interface SkillStorage extends INBTSerializable<CompoundTag> {
     /**
      * Returns a list of all learned {@link ManasSkill}s as {@link ManasSkillInstance}.
      */
-    List<ManasSkillInstance> getLearnedSkills();
+    Collection<ManasSkillInstance> getLearnedSkills();
 
     /**
      * Replaces (or adds) {@link ManasSkillInstance}s based on their {@link ManasSkill#getRegistryName()}.
