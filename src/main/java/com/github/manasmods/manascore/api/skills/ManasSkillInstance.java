@@ -4,7 +4,7 @@ import com.github.manasmods.manascore.network.toclient.SyncSkillsPacket;
 import lombok.Getter;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.Entity;
 import net.minecraftforge.registries.IRegistryDelegate;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -12,7 +12,7 @@ import java.util.Objects;
 
 /**
  * Mutable instance of a {@link ManasSkill}.
- * This instances will be stored in the {@link Player} capability.
+ * This instances will be stored in the {@link Entity} capability.
  * <p>
  * Instances are created though the {@link ManasSkill#createDefaultInstance()} method.
  */
@@ -26,10 +26,16 @@ public class ManasSkillInstance implements Cloneable {
         this.delegate = skill.delegate;
     }
 
+    /**
+     * Used to get the {@link ManasSkill} type of this Instance.
+     */
     public ManasSkill getSkill() {
         return delegate.get();
     }
 
+    /**
+     * Used to create an exact copy of the current instance.
+     */
     @Override
     public ManasSkillInstance clone() {
         ManasSkillInstance clone = new ManasSkillInstance(getSkill());
