@@ -1,4 +1,4 @@
-package com.github.manasmods.manascore.capability.skill;
+package com.github.manasmods.manascore.capability;
 
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
