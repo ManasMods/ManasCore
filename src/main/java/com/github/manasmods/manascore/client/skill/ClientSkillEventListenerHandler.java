@@ -6,7 +6,6 @@ import com.github.manasmods.manascore.api.skills.SkillAPI;
 import com.github.manasmods.manascore.api.skills.listener.KeyInputListener;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -24,10 +23,5 @@ class ClientSkillEventListenerHandler {
                 listener.onKeyInput(instance, e);
             }
         }
-    }
-
-    @SubscribeEvent
-    public static void onRenderEntity(final EntityViewRenderEvent.CameraSetup e){
-
     }
 }
