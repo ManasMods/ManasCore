@@ -75,8 +75,8 @@ public interface InternalSkillStorage extends SkillStorage {
     }
 
     @Override
-    default void learnSkill(ManasSkill skill) {
-        learnSkill(skill.createDefaultInstance());
+    default boolean learnSkill(ManasSkill skill) {
+        return learnSkill(skill.createDefaultInstance());
     }
 
     @Override

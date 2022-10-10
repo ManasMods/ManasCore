@@ -28,9 +28,10 @@ public class HealSkill extends ManasSkill implements LivingHurtListener {
 
     private void unlock(final LivingEntityUseItemEvent.Finish e) {
         if (e.getEntity() instanceof ServerPlayer player) {
-            if(e.getItem().is(Items.APPLE)){
-                SkillAPI.getSkillsFrom(player).learnSkill(this);
-                log.debug("Unlocked example Heal skill for player {}", player.getName().getString());
+            if (e.getItem().is(Items.APPLE)) {
+                if (SkillAPI.getSkillsFrom(player).learnSkill(this)) {
+                    log.debug("Unlocked example Heal skill for player {}", player.getName().getString());
+                }
             }
         }
     }

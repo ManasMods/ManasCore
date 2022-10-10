@@ -41,18 +41,21 @@ public class EntitySkillCapabilityStorage implements InternalSkillStorage {
     }
 
     @Override
-    public void learnSkill(ManasSkillInstance instance) {
-        if (this.owner == null) return;
+    public boolean learnSkill(ManasSkillInstance instance) {
+        if (this.owner == null) return false;
         if (this.skillInstances.containsKey(instance.getSkill().getRegistryName())) {
             log.debug("Tried to register a deduplicate of {} to {}.", instance.getSkill().getRegistryName(), this.owner.getName().getString());
-            return;
+            return false;
         }
 
         if (!MinecraftForge.EVENT_BUS.post(new UnlockSkillEvent(instance, this.owner))) {
             instance.markDirty();
             this.skillInstances.put(instance.getSkill().getRegistryName(), instance);
             syncChanges();
+            return true;
         }
+
+        return false;
     }
 
     @Override

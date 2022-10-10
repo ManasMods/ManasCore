@@ -53,13 +53,17 @@ public interface SkillStorage extends INBTSerializable<CompoundTag> {
     /**
      * Creates a new {@link ManasSkillInstance} by calling {@link ManasSkill#createDefaultInstance()} and stores it in the {@link Player} Skill Storage.
      * Use this Method to add new Skills to a Player.
+     *
+     * @return true if the skill has been learned or false if it hasn't
      */
-    void learnSkill(ManasSkill skill);
+    boolean learnSkill(ManasSkill skill);
 
     /**
      * Stores the given {@link ManasSkillInstance} as new Skill in the Skill {@link SkillStorage}.
+     *
+     * @return true if the skill has been learned or false if it hasn't
      */
-    void learnSkill(ManasSkillInstance instance);
+    boolean learnSkill(ManasSkillInstance instance);
 
     /**
      * Removes a skill from the Player.
