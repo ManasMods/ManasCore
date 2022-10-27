@@ -178,8 +178,38 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
     protected void axe(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, Ingredient stick, ItemLike sword) {
         ShapedRecipeBuilder.shaped(sword)
             .pattern("XX")
-            .pattern("X#")
-            .pattern(" #")
+            .pattern("XS")
+            .pattern(" S")
+            .define('X', material)
+            .define('S', stick)
+            .save(finishedRecipeConsumer);
+    }
+
+    protected void hoe(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike sword) {
+        sword(finishedRecipeConsumer, Ingredient.of(material), sword);
+    }
+
+    protected void hoe(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, ItemLike sword) {
+        sword(finishedRecipeConsumer, Ingredient.of(material), sword);
+    }
+
+    protected void hoe(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, ItemLike sword) {
+        sword(finishedRecipeConsumer, material, Ingredient.of(Tags.Items.RODS_WOODEN), sword);
+    }
+
+    protected void hoe(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike stick, ItemLike sword) {
+        sword(finishedRecipeConsumer, Ingredient.of(material), Ingredient.of(stick), sword);
+    }
+
+    protected void hoe(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, TagKey<Item> stick, ItemLike sword) {
+        sword(finishedRecipeConsumer, Ingredient.of(material), Ingredient.of(stick), sword);
+    }
+
+    protected void hoe(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, Ingredient stick, ItemLike sword) {
+        ShapedRecipeBuilder.shaped(sword)
+            .pattern("XX")
+            .pattern(" S")
+            .pattern(" S")
             .define('X', material)
             .define('S', stick)
             .save(finishedRecipeConsumer);
