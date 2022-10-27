@@ -151,6 +151,37 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
             .pattern("X")
             .pattern("S")
             .define('X', material)
-            .define('S', stick);
+            .define('S', stick)
+            .save(finishedRecipeConsumer);
+    }
+
+    protected void axe(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike sword) {
+        sword(finishedRecipeConsumer, Ingredient.of(material), sword);
+    }
+
+    protected void axe(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, ItemLike sword) {
+        sword(finishedRecipeConsumer, Ingredient.of(material), sword);
+    }
+
+    protected void axe(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, ItemLike sword) {
+        sword(finishedRecipeConsumer, material, Ingredient.of(Tags.Items.RODS_WOODEN), sword);
+    }
+
+    protected void axe(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike stick, ItemLike sword) {
+        sword(finishedRecipeConsumer, Ingredient.of(material), Ingredient.of(stick), sword);
+    }
+
+    protected void axe(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, TagKey<Item> stick, ItemLike sword) {
+        sword(finishedRecipeConsumer, Ingredient.of(material), Ingredient.of(stick), sword);
+    }
+
+    protected void axe(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, Ingredient stick, ItemLike sword) {
+        ShapedRecipeBuilder.shaped(sword)
+            .pattern("XX")
+            .pattern("X#")
+            .pattern(" #")
+            .define('X', material)
+            .define('S', stick)
+            .save(finishedRecipeConsumer);
     }
 }
