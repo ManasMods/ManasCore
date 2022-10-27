@@ -244,4 +244,34 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
             .define('S', stick)
             .save(finishedRecipeConsumer);
     }
+
+    protected void shovel(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike shovel) {
+        shovel(finishedRecipeConsumer, Ingredient.of(material), shovel);
+    }
+
+    protected void shovel(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, ItemLike shovel) {
+        shovel(finishedRecipeConsumer, Ingredient.of(material), shovel);
+    }
+
+    protected void shovel(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, ItemLike shovel) {
+        shovel(finishedRecipeConsumer, material, Ingredient.of(Tags.Items.RODS_WOODEN), shovel);
+    }
+
+    protected void shovel(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike stick, ItemLike shovel) {
+        shovel(finishedRecipeConsumer, Ingredient.of(material), Ingredient.of(stick), shovel);
+    }
+
+    protected void shovel(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, TagKey<Item> stick, ItemLike shovel) {
+        shovel(finishedRecipeConsumer, Ingredient.of(material), Ingredient.of(stick), shovel);
+    }
+
+    protected void shovel(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, Ingredient stick, ItemLike shovel) {
+        ShapedRecipeBuilder.shaped(shovel)
+            .pattern("X")
+            .pattern("S")
+            .pattern("S")
+            .define('X', material)
+            .define('S', stick)
+            .save(finishedRecipeConsumer);
+    }
 }
