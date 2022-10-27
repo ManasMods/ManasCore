@@ -274,4 +274,32 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
             .define('S', stick)
             .save(finishedRecipeConsumer);
     }
+
+    protected void tools(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike axe, ItemLike hoe, ItemLike pickaxe, ItemLike shovel, ItemLike sword) {
+        tools(finishedRecipeConsumer, Ingredient.of(material), axe, hoe, pickaxe, shovel, sword);
+    }
+
+    protected void tools(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, ItemLike axe, ItemLike hoe, ItemLike pickaxe, ItemLike shovel, ItemLike sword) {
+        tools(finishedRecipeConsumer, Ingredient.of(material), axe, hoe, pickaxe, shovel, sword);
+    }
+
+    protected void tools(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, ItemLike axe, ItemLike hoe, ItemLike pickaxe, ItemLike shovel, ItemLike sword) {
+        tools(finishedRecipeConsumer, material, Ingredient.of(Tags.Items.RODS_WOODEN), axe, hoe, pickaxe, shovel, sword);
+    }
+
+    protected void tools(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike stick, ItemLike axe, ItemLike hoe, ItemLike pickaxe, ItemLike shovel, ItemLike sword) {
+        tools(finishedRecipeConsumer, Ingredient.of(material), Ingredient.of(stick), axe, hoe, pickaxe, shovel, sword);
+    }
+
+    protected void tools(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, TagKey<Item> stick, ItemLike axe, ItemLike hoe, ItemLike pickaxe, ItemLike shovel, ItemLike sword) {
+        tools(finishedRecipeConsumer, Ingredient.of(material), Ingredient.of(stick), axe, hoe, pickaxe, shovel, sword);
+    }
+
+    protected void tools(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, Ingredient stick, ItemLike axe, ItemLike hoe, ItemLike pickaxe, ItemLike shovel, ItemLike sword) {
+        axe(finishedRecipeConsumer, material, stick, axe);
+        hoe(finishedRecipeConsumer, material, stick, hoe);
+        pickaxe(finishedRecipeConsumer, material, stick, pickaxe);
+        shovel(finishedRecipeConsumer, material, stick, shovel);
+        sword(finishedRecipeConsumer, material, stick, sword);
+    }
 }
