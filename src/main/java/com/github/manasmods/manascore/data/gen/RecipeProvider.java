@@ -13,6 +13,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
+import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.crafting.conditions.IConditionBuilder;
 import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
 import org.jetbrains.annotations.NotNull;
@@ -42,8 +43,8 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
     protected void smeltingRecipe(Consumer<FinishedRecipe> pFinishedRecipeConsumer, Ingredient ingredient, ItemLike result, float exp, int cookingTicks) {
         for (ItemStack itemStack : ingredient.getItems()) {
             SimpleCookingRecipeBuilder.smelting(ingredient, result, exp, cookingTicks)
-                    .unlockedBy("has_" + Objects.requireNonNull(itemStack.getItem().getRegistryName()).getPath(), has(itemStack.getItem()))
-                    .save(pFinishedRecipeConsumer, getSmeltingRecipeName(result));
+                .unlockedBy("has_" + Objects.requireNonNull(itemStack.getItem().getRegistryName()).getPath(), has(itemStack.getItem()))
+                .save(pFinishedRecipeConsumer, getSmeltingRecipeName(result));
         }
     }
 
@@ -102,25 +103,203 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
 
     protected static RecipeBuilder betterStairBuilder(ItemLike pStairs, Ingredient pMaterial) {
         return ShapedRecipeBuilder.shaped(pStairs, 8)
-                .define('#', pMaterial)
-                .pattern("#  ")
-                .pattern("## ")
-                .pattern("###");
+            .define('#', pMaterial)
+            .pattern("#  ")
+            .pattern("## ")
+            .pattern("###");
     }
 
     @SuppressWarnings("ConstantConditions")
     protected void stairsToBlock(Consumer<FinishedRecipe> finishedRecipeConsumer, Block stair, Block block) {
         ShapelessRecipeBuilder.shapeless(block, 3)
-                .requires(stair, 4)
-                .unlockedBy("has_" + stair.getRegistryName().getNamespace(), has(stair))
-                .save(finishedRecipeConsumer, new ResourceLocation(block.getRegistryName().getNamespace(), "stairs_to_block_" + block.getRegistryName().getPath()));
+            .requires(stair, 4)
+            .unlockedBy("has_" + stair.getRegistryName().getNamespace(), has(stair))
+            .save(finishedRecipeConsumer, new ResourceLocation(block.getRegistryName().getNamespace(), "stairs_to_block_" + block.getRegistryName().getPath()));
     }
 
     @SuppressWarnings("ConstantConditions")
     protected void slabsToBlock(Consumer<FinishedRecipe> finishedRecipeConsumer, Block slab, Block block) {
         ShapelessRecipeBuilder.shapeless(block, 1)
-                .requires(slab, 2)
-                .unlockedBy("has_" + slab.getRegistryName().getNamespace(), has(slab))
-                .save(finishedRecipeConsumer, new ResourceLocation(block.getRegistryName().getNamespace(),"slabs_to_block_" + block.getRegistryName().getPath()));
+            .requires(slab, 2)
+            .unlockedBy("has_" + slab.getRegistryName().getNamespace(), has(slab))
+            .save(finishedRecipeConsumer, new ResourceLocation(block.getRegistryName().getNamespace(), "slabs_to_block_" + block.getRegistryName().getPath()));
+    }
+
+    protected void sword(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike sword) {
+        sword(finishedRecipeConsumer, Ingredient.of(material), sword);
+    }
+
+    protected void sword(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, ItemLike sword) {
+        sword(finishedRecipeConsumer, Ingredient.of(material), sword);
+    }
+
+    protected void sword(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, ItemLike sword) {
+        sword(finishedRecipeConsumer, material, Ingredient.of(Tags.Items.RODS_WOODEN), sword);
+    }
+
+    protected void sword(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike stick, ItemLike sword) {
+        sword(finishedRecipeConsumer, Ingredient.of(material), Ingredient.of(stick), sword);
+    }
+
+    protected void sword(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, TagKey<Item> stick, ItemLike sword) {
+        sword(finishedRecipeConsumer, Ingredient.of(material), Ingredient.of(stick), sword);
+    }
+
+    protected void sword(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, Ingredient stick, ItemLike sword) {
+        ShapedRecipeBuilder.shaped(sword)
+            .pattern("X")
+            .pattern("X")
+            .pattern("S")
+            .define('X', material)
+            .define('S', stick)
+            .save(finishedRecipeConsumer);
+    }
+
+    protected void axe(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike axe) {
+        axe(finishedRecipeConsumer, Ingredient.of(material), axe);
+    }
+
+    protected void axe(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, ItemLike axe) {
+        axe(finishedRecipeConsumer, Ingredient.of(material), axe);
+    }
+
+    protected void axe(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, ItemLike axe) {
+        axe(finishedRecipeConsumer, material, Ingredient.of(Tags.Items.RODS_WOODEN), axe);
+    }
+
+    protected void axe(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike stick, ItemLike axe) {
+        axe(finishedRecipeConsumer, Ingredient.of(material), Ingredient.of(stick), axe);
+    }
+
+    protected void axe(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, TagKey<Item> stick, ItemLike axe) {
+        axe(finishedRecipeConsumer, Ingredient.of(material), Ingredient.of(stick), axe);
+    }
+
+    protected void axe(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, Ingredient stick, ItemLike axe) {
+        ShapedRecipeBuilder.shaped(axe)
+            .pattern("XX")
+            .pattern("XS")
+            .pattern(" S")
+            .define('X', material)
+            .define('S', stick)
+            .save(finishedRecipeConsumer);
+    }
+
+    protected void hoe(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike hoe) {
+        hoe(finishedRecipeConsumer, Ingredient.of(material), hoe);
+    }
+
+    protected void hoe(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, ItemLike hoe) {
+        hoe(finishedRecipeConsumer, Ingredient.of(material), hoe);
+    }
+
+    protected void hoe(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, ItemLike hoe) {
+        hoe(finishedRecipeConsumer, material, Ingredient.of(Tags.Items.RODS_WOODEN), hoe);
+    }
+
+    protected void hoe(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike stick, ItemLike hoe) {
+        hoe(finishedRecipeConsumer, Ingredient.of(material), Ingredient.of(stick), hoe);
+    }
+
+    protected void hoe(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, TagKey<Item> stick, ItemLike hoe) {
+        hoe(finishedRecipeConsumer, Ingredient.of(material), Ingredient.of(stick), hoe);
+    }
+
+    protected void hoe(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, Ingredient stick, ItemLike hoe) {
+        ShapedRecipeBuilder.shaped(hoe)
+            .pattern("XX")
+            .pattern(" S")
+            .pattern(" S")
+            .define('X', material)
+            .define('S', stick)
+            .save(finishedRecipeConsumer);
+    }
+
+    protected void pickaxe(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike pickaxe) {
+        pickaxe(finishedRecipeConsumer, Ingredient.of(material), pickaxe);
+    }
+
+    protected void pickaxe(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, ItemLike pickaxe) {
+        pickaxe(finishedRecipeConsumer, Ingredient.of(material), pickaxe);
+    }
+
+    protected void pickaxe(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, ItemLike pickaxe) {
+        pickaxe(finishedRecipeConsumer, material, Ingredient.of(Tags.Items.RODS_WOODEN), pickaxe);
+    }
+
+    protected void pickaxe(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike stick, ItemLike pickaxe) {
+        pickaxe(finishedRecipeConsumer, Ingredient.of(material), Ingredient.of(stick), pickaxe);
+    }
+
+    protected void pickaxe(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, TagKey<Item> stick, ItemLike pickaxe) {
+        pickaxe(finishedRecipeConsumer, Ingredient.of(material), Ingredient.of(stick), pickaxe);
+    }
+
+    protected void pickaxe(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, Ingredient stick, ItemLike pickaxe) {
+        ShapedRecipeBuilder.shaped(pickaxe)
+            .pattern("XXX")
+            .pattern(" S")
+            .pattern(" S")
+            .define('X', material)
+            .define('S', stick)
+            .save(finishedRecipeConsumer);
+    }
+
+    protected void shovel(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike shovel) {
+        shovel(finishedRecipeConsumer, Ingredient.of(material), shovel);
+    }
+
+    protected void shovel(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, ItemLike shovel) {
+        shovel(finishedRecipeConsumer, Ingredient.of(material), shovel);
+    }
+
+    protected void shovel(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, ItemLike shovel) {
+        shovel(finishedRecipeConsumer, material, Ingredient.of(Tags.Items.RODS_WOODEN), shovel);
+    }
+
+    protected void shovel(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike stick, ItemLike shovel) {
+        shovel(finishedRecipeConsumer, Ingredient.of(material), Ingredient.of(stick), shovel);
+    }
+
+    protected void shovel(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, TagKey<Item> stick, ItemLike shovel) {
+        shovel(finishedRecipeConsumer, Ingredient.of(material), Ingredient.of(stick), shovel);
+    }
+
+    protected void shovel(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, Ingredient stick, ItemLike shovel) {
+        ShapedRecipeBuilder.shaped(shovel)
+            .pattern("X")
+            .pattern("S")
+            .pattern("S")
+            .define('X', material)
+            .define('S', stick)
+            .save(finishedRecipeConsumer);
+    }
+
+    protected void tools(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike axe, ItemLike hoe, ItemLike pickaxe, ItemLike shovel, ItemLike sword) {
+        tools(finishedRecipeConsumer, Ingredient.of(material), axe, hoe, pickaxe, shovel, sword);
+    }
+
+    protected void tools(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, ItemLike axe, ItemLike hoe, ItemLike pickaxe, ItemLike shovel, ItemLike sword) {
+        tools(finishedRecipeConsumer, Ingredient.of(material), axe, hoe, pickaxe, shovel, sword);
+    }
+
+    protected void tools(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, ItemLike axe, ItemLike hoe, ItemLike pickaxe, ItemLike shovel, ItemLike sword) {
+        tools(finishedRecipeConsumer, material, Ingredient.of(Tags.Items.RODS_WOODEN), axe, hoe, pickaxe, shovel, sword);
+    }
+
+    protected void tools(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike stick, ItemLike axe, ItemLike hoe, ItemLike pickaxe, ItemLike shovel, ItemLike sword) {
+        tools(finishedRecipeConsumer, Ingredient.of(material), Ingredient.of(stick), axe, hoe, pickaxe, shovel, sword);
+    }
+
+    protected void tools(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, TagKey<Item> stick, ItemLike axe, ItemLike hoe, ItemLike pickaxe, ItemLike shovel, ItemLike sword) {
+        tools(finishedRecipeConsumer, Ingredient.of(material), Ingredient.of(stick), axe, hoe, pickaxe, shovel, sword);
+    }
+
+    protected void tools(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, Ingredient stick, ItemLike axe, ItemLike hoe, ItemLike pickaxe, ItemLike shovel, ItemLike sword) {
+        axe(finishedRecipeConsumer, material, stick, axe);
+        hoe(finishedRecipeConsumer, material, stick, hoe);
+        pickaxe(finishedRecipeConsumer, material, stick, pickaxe);
+        shovel(finishedRecipeConsumer, material, stick, shovel);
+        sword(finishedRecipeConsumer, material, stick, sword);
     }
 }
