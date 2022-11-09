@@ -305,28 +305,142 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
         sword(finishedRecipeConsumer, material, stick, sword);
     }
 
+
     protected void saveWithAutoUnlock(Consumer<FinishedRecipe> finishedRecipeConsumer, ShapedRecipeBuilder builder, Ingredient material) {
+        saveWithAutoUnlock(finishedRecipeConsumer, builder, material, "");
+    }
+
+    protected void saveWithAutoUnlock(Consumer<FinishedRecipe> finishedRecipeConsumer, ShapedRecipeBuilder builder, Ingredient material, String filePath) {
         if (material.getItems().length > 1) {
             ((ShapedRecipeBuilderAccessor) builder).getAdvancement().requirements(RequirementsStrategy.OR);
         }
 
         for (ItemStack stack : material.getItems()) {
-            builder.unlockedBy(criterionNameOf(stack), has(stack.getItem()));
+            builder.unlockedBy(getHasName(stack.getItem()), has(stack.getItem()));
         }
 
-        builder.save(finishedRecipeConsumer);
+        ResourceLocation recipeResourceLocation = RecipeBuilder.getDefaultRecipeId(builder.getResult());
+        builder.save(finishedRecipeConsumer, new ResourceLocation(recipeResourceLocation.getNamespace(), filePath + recipeResourceLocation.getPath()));
     }
 
-    protected String criterionNameOf(Item item) {
-        String criterionName = "has_" + item.getRegistryName().toString();
-        // Enforce
-        criterionName = criterionName.replace(':', '_');
-        criterionName = criterionName.replace('/', '_');
-        criterionName = criterionName.toLowerCase();
-        return criterionName;
+    protected String getHasName(ItemStack stack) {
+        return getHasName(stack.getItem());
     }
 
-    protected String criterionNameOf(ItemStack stack) {
-        return criterionNameOf(stack.getItem());
+    protected void nineStorage(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike packedMaterial) {
+        nineStorage(finishedRecipeConsumer, Ingredient.of(material), packedMaterial);
+    }
+
+    protected void nineStorage(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, ItemLike packedMaterial) {
+        nineStorage(finishedRecipeConsumer, Ingredient.of(material), packedMaterial);
+    }
+
+    protected void nineStorage(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, ItemLike packedMaterial) {
+        if (material.getItems().length == 0) {
+            throw new IllegalStateException("No Item in material ingredient of recipe: " + packedMaterial.asItem().getRegistryName());
+        }
+        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(packedMaterial)
+            .pattern("XXX")
+            .pattern("XXX")
+            .pattern("XXX")
+            .define('X', material);
+        saveWithAutoUnlock(finishedRecipeConsumer, builder, material, "storage/pack/");
+    }
+
+    protected void helmet(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike helmet) {
+        helmet(finishedRecipeConsumer, Ingredient.of(material), helmet);
+    }
+
+    protected void helmet(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, ItemLike helmet) {
+        helmet(finishedRecipeConsumer, Ingredient.of(material), helmet);
+    }
+
+    protected void helmet(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, ItemLike helmet) {
+        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(helmet)
+            .pattern("XXX")
+            .pattern("X X")
+            .define('X', material);
+
+        saveWithAutoUnlock(finishedRecipeConsumer, builder, material);
+    }
+
+    protected void chestplate(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike chestplate) {
+        chestplate(finishedRecipeConsumer, Ingredient.of(material), chestplate);
+    }
+
+    protected void chestplate(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, ItemLike chestplate) {
+        chestplate(finishedRecipeConsumer, Ingredient.of(material), chestplate);
+    }
+
+    protected void chestplate(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, ItemLike chestplate) {
+        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(chestplate)
+            .pattern("X X")
+            .pattern("XXX")
+            .pattern("XXX")
+            .define('X', material);
+
+        saveWithAutoUnlock(finishedRecipeConsumer, builder, material);
+    }
+
+    protected void leggings(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike leggings) {
+        leggings(finishedRecipeConsumer, Ingredient.of(material), leggings);
+    }
+
+    protected void leggings(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, ItemLike leggings) {
+        leggings(finishedRecipeConsumer, Ingredient.of(material), leggings);
+    }
+
+    protected void leggings(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, ItemLike leggings) {
+        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(leggings)
+            .pattern("XXX")
+            .pattern("X X")
+            .pattern("X X")
+            .define('X', material);
+
+        saveWithAutoUnlock(finishedRecipeConsumer, builder, material);
+    }
+
+    protected void boots(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike boots) {
+        boots(finishedRecipeConsumer, Ingredient.of(material), boots);
+    }
+
+    protected void boots(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, ItemLike boots) {
+        boots(finishedRecipeConsumer, Ingredient.of(material), boots);
+    }
+
+    protected void boots(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, ItemLike boots) {
+        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(boots)
+            .pattern("X X")
+            .pattern("X X")
+            .define('X', material);
+
+        saveWithAutoUnlock(finishedRecipeConsumer, builder, material);
+    }
+
+    protected void armour(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike helmet, ItemLike chestplate, ItemLike leggings, ItemLike boots) {
+        armour(finishedRecipeConsumer, Ingredient.of(material), helmet, chestplate, leggings, boots);
+    }
+
+    protected void armour(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, ItemLike helmet, ItemLike chestplate, ItemLike leggings, ItemLike boots) {
+        armour(finishedRecipeConsumer, Ingredient.of(material), helmet, chestplate, leggings, boots);
+    }
+
+    protected void armour(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, ItemLike helmet, ItemLike chestplate, ItemLike leggings, ItemLike boots) {
+        helmet(finishedRecipeConsumer, material, helmet);
+        chestplate(finishedRecipeConsumer, material, chestplate);
+        leggings(finishedRecipeConsumer, material, leggings);
+        boots(finishedRecipeConsumer, material, boots);
+    }
+
+    protected void armor(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike helmet, ItemLike chestplate, ItemLike leggings, ItemLike boots) {
+        armour(finishedRecipeConsumer, Ingredient.of(material), helmet, chestplate, leggings, boots);
+    }
+
+    protected void armor(Consumer<FinishedRecipe> finishedRecipeConsumer, TagKey<Item> material, ItemLike helmet, ItemLike chestplate, ItemLike leggings, ItemLike boots) {
+        armour(finishedRecipeConsumer, Ingredient.of(material), helmet, chestplate, leggings, boots);
+    }
+
+    protected void armor(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, ItemLike helmet, ItemLike chestplate, ItemLike leggings, ItemLike boots) {
+        armour(finishedRecipeConsumer, material, helmet, chestplate, leggings, boots);
     }
 }
