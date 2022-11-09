@@ -1,5 +1,7 @@
 package com.github.manasmods.manascore.data.gen;
 
+import com.github.manasmods.manascore.core.ShapedRecipeBuilderAccessor;
+import net.minecraft.advancements.RequirementsStrategy;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.RecipeBuilder;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
@@ -146,13 +148,13 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
     }
 
     protected void sword(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, Ingredient stick, ItemLike sword) {
-        ShapedRecipeBuilder.shaped(sword)
+        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(sword)
             .pattern("X")
             .pattern("X")
             .pattern("S")
             .define('X', material)
-            .define('S', stick)
-            .save(finishedRecipeConsumer);
+            .define('S', stick);
+        saveWithAutoUnlock(finishedRecipeConsumer, builder, material);
     }
 
     protected void axe(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike axe) {
@@ -176,13 +178,13 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
     }
 
     protected void axe(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, Ingredient stick, ItemLike axe) {
-        ShapedRecipeBuilder.shaped(axe)
+        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(axe)
             .pattern("XX")
             .pattern("XS")
             .pattern(" S")
             .define('X', material)
-            .define('S', stick)
-            .save(finishedRecipeConsumer);
+            .define('S', stick);
+        saveWithAutoUnlock(finishedRecipeConsumer, builder, material);
     }
 
     protected void hoe(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike hoe) {
@@ -206,13 +208,13 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
     }
 
     protected void hoe(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, Ingredient stick, ItemLike hoe) {
-        ShapedRecipeBuilder.shaped(hoe)
+        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(hoe)
             .pattern("XX")
             .pattern(" S")
             .pattern(" S")
             .define('X', material)
-            .define('S', stick)
-            .save(finishedRecipeConsumer);
+            .define('S', stick);
+        saveWithAutoUnlock(finishedRecipeConsumer, builder, material);
     }
 
     protected void pickaxe(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike pickaxe) {
@@ -236,13 +238,13 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
     }
 
     protected void pickaxe(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, Ingredient stick, ItemLike pickaxe) {
-        ShapedRecipeBuilder.shaped(pickaxe)
+        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(pickaxe)
             .pattern("XXX")
             .pattern(" S")
             .pattern(" S")
             .define('X', material)
-            .define('S', stick)
-            .save(finishedRecipeConsumer);
+            .define('S', stick);
+        saveWithAutoUnlock(finishedRecipeConsumer, builder, material);
     }
 
     protected void shovel(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike shovel) {
@@ -266,13 +268,13 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
     }
 
     protected void shovel(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, Ingredient stick, ItemLike shovel) {
-        ShapedRecipeBuilder.shaped(shovel)
+        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(shovel)
             .pattern("X")
             .pattern("S")
             .pattern("S")
             .define('X', material)
-            .define('S', stick)
-            .save(finishedRecipeConsumer);
+            .define('S', stick);
+        saveWithAutoUnlock(finishedRecipeConsumer, builder, material);
     }
 
     protected void tools(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike axe, ItemLike hoe, ItemLike pickaxe, ItemLike shovel, ItemLike sword) {
@@ -301,5 +303,30 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
         pickaxe(finishedRecipeConsumer, material, stick, pickaxe);
         shovel(finishedRecipeConsumer, material, stick, shovel);
         sword(finishedRecipeConsumer, material, stick, sword);
+    }
+
+    protected void saveWithAutoUnlock(Consumer<FinishedRecipe> finishedRecipeConsumer, ShapedRecipeBuilder builder, Ingredient material) {
+        if (material.getItems().length > 1) {
+            ((ShapedRecipeBuilderAccessor) builder).getAdvancement().requirements(RequirementsStrategy.OR);
+        }
+
+        for (ItemStack stack : material.getItems()) {
+            builder.unlockedBy(criterionNameOf(stack), has(stack.getItem()));
+        }
+
+        builder.save(finishedRecipeConsumer);
+    }
+
+    protected String criterionNameOf(Item item) {
+        String criterionName = "has_" + item.getRegistryName().toString();
+        // Enforce
+        criterionName = criterionName.replace(':', '_');
+        criterionName = criterionName.replace('/', '_');
+        criterionName = criterionName.toLowerCase();
+        return criterionName;
+    }
+
+    protected String criterionNameOf(ItemStack stack) {
+        return criterionNameOf(stack.getItem());
     }
 }
