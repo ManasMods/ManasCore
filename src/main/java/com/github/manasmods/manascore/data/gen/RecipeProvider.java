@@ -240,8 +240,8 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
     protected void pickaxe(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, Ingredient stick, ItemLike pickaxe) {
         ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(pickaxe)
             .pattern("XXX")
-            .pattern(" S")
-            .pattern(" S")
+            .pattern(" S ")
+            .pattern(" S ")
             .define('X', material)
             .define('S', stick);
         saveWithAutoUnlock(finishedRecipeConsumer, builder, material);
