@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2022. ManasMods
  */
-package com.github.manasmods.manascore.data.gen;
+package com.github.manasmods.manascore.api.data.gen;
 
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
@@ -12,6 +12,7 @@ import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.HashCache;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.ApiStatus.AvailableSince;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
+@AvailableSince("1.0.0.0")
 @Log4j2
 public abstract class CustomDataProvider implements DataProvider {
     private static final Gson GSON = new GsonBuilder()

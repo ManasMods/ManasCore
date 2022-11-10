@@ -2,7 +2,7 @@
  * Copyright (c) 2022. ManasMods
  */
 
-package com.github.manasmods.manascore.data.gen;
+package com.github.manasmods.manascore.api.data.gen;
 
 import com.github.manasmods.manascore.core.ShapedRecipeBuilderAccessor;
 import net.minecraft.advancements.RequirementsStrategy;
@@ -22,11 +22,13 @@ import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.crafting.conditions.IConditionBuilder;
 import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
+import org.jetbrains.annotations.ApiStatus.AvailableSince;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.function.Consumer;
 
+@AvailableSince("1.0.0.0")
 @SuppressWarnings({"unused", "SameParameterValue"})
 public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipeProvider implements IConditionBuilder {
     public RecipeProvider(final GatherDataEvent gatherDataEvent) {

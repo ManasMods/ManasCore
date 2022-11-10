@@ -1,11 +1,17 @@
-package com.github.manasmods.manascore.client.keybinding;
+/*
+ * Copyright (c) 2022. ManasMods
+ */
+
+package com.github.manasmods.manascore.api.client.keybinding;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import lombok.Getter;
 import net.minecraft.client.KeyMapping;
 import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.fml.common.Mod;
+import org.jetbrains.annotations.ApiStatus.AvailableSince;
 
+@AvailableSince("1.0.0.0")
 public class ManasKeybinding extends KeyMapping {
     @Getter
     private final KeyBindingAction action;

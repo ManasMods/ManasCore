@@ -2,7 +2,7 @@
  * Copyright (c) 2022. ManasMods
  */
 
-package com.github.manasmods.manascore.data.gen;
+package com.github.manasmods.manascore.api.data.gen;
 
 import com.github.manasmods.manascore.ManasCore;
 import net.minecraft.core.Direction;
@@ -18,9 +18,11 @@ import net.minecraftforge.client.model.generators.BlockModelBuilder;
 import net.minecraftforge.client.model.generators.ConfiguredModel;
 import net.minecraftforge.client.model.generators.ModelFile;
 import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
+import org.jetbrains.annotations.ApiStatus.AvailableSince;
 
 import java.util.Objects;
 
+@AvailableSince("1.0.0.0")
 @SuppressWarnings("unused")
 public abstract class BlockStateProvider extends net.minecraftforge.client.model.generators.BlockStateProvider {
 

@@ -2,15 +2,17 @@
  * Copyright (c) 2022. ManasMods
  */
 
-package com.github.manasmods.manascore.data.gen;
+package com.github.manasmods.manascore.api.data.gen;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.client.model.generators.ModelFile;
 import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
+import org.jetbrains.annotations.ApiStatus.AvailableSince;
 
 import java.util.Objects;
 
+@AvailableSince("1.0.0.0")
 @SuppressWarnings("unused")
 public abstract class ItemModelProvider extends net.minecraftforge.client.model.generators.ItemModelProvider {
     public ItemModelProvider(final GatherDataEvent gatherDataEvent, String modId) {
