@@ -5,7 +5,7 @@
 package com.github.manasmods.manascore.client.gui.widget;
 
 import com.github.manasmods.manascore.core.AbstractContainerScreenAccessor;
-import com.github.manasmods.manascore.tab.AbstractInventoryTab;
+import com.github.manasmods.manascore.api.tab.AbstractInventoryTab;
 import com.github.manasmods.manascore.tab.TabPosition;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;

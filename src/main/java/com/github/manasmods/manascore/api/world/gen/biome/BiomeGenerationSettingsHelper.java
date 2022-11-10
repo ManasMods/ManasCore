@@ -2,7 +2,7 @@
  * Copyright (c) 2022. ManasMods
  */
 
-package com.github.manasmods.manascore.world.gen.biome;
+package com.github.manasmods.manascore.api.world.gen.biome;
 
 import lombok.RequiredArgsConstructor;
 import net.minecraft.core.Holder;
@@ -10,7 +10,9 @@ import net.minecraft.world.level.biome.BiomeGenerationSettings;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.carver.ConfiguredWorldCarver;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
+import org.jetbrains.annotations.ApiStatus.AvailableSince;
 
+@AvailableSince("1.0.0.0")
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 @RequiredArgsConstructor
 public class BiomeGenerationSettingsHelper {

@@ -9,7 +9,9 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import org.jetbrains.annotations.ApiStatus.Internal;
 
+@Internal
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, modid = ManasCore.MOD_ID, value = Dist.CLIENT)
 public class ManasCoreInventoryTabs {
     @SubscribeEvent

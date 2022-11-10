@@ -2,7 +2,7 @@
  * Copyright (c) 2022. ManasMods
  */
 
-package com.github.manasmods.manascore.permission;
+package com.github.manasmods.manascore.api.permission;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +10,9 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraftforge.server.permission.PermissionAPI;
 import net.minecraftforge.server.permission.nodes.PermissionNode;
 import net.minecraftforge.server.permission.nodes.PermissionTypes;
+import org.jetbrains.annotations.ApiStatus.AvailableSince;
 
+@AvailableSince("1.0.0.0")
 @RequiredArgsConstructor
 public class PermissionHelper {
     private final String modId;

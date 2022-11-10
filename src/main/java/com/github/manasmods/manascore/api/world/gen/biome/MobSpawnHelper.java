@@ -2,13 +2,15 @@
  * Copyright (c) 2022. ManasMods
  */
 
-package com.github.manasmods.manascore.world.gen.biome;
+package com.github.manasmods.manascore.api.world.gen.biome;
 
 import lombok.RequiredArgsConstructor;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.biome.MobSpawnSettings;
+import org.jetbrains.annotations.ApiStatus.AvailableSince;
 
+@AvailableSince("1.0.0.0")
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 @RequiredArgsConstructor
 public class MobSpawnHelper {

@@ -9,7 +9,9 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.ApiStatus.Internal;
 
+@Internal
 @AllArgsConstructor
 public enum TabPosition {
     LEFT_TOP(new ResourceLocation(ManasCore.MOD_ID, "textures/gui/tabs/top-left.png"), false),

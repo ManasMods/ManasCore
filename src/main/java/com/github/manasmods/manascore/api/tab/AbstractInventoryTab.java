@@ -2,8 +2,10 @@
  * Copyright (c) 2022. ManasMods
  */
 
-package com.github.manasmods.manascore.tab;
+package com.github.manasmods.manascore.api.tab;
 
+import com.github.manasmods.manascore.tab.IInventoryTab;
+import com.github.manasmods.manascore.tab.TabPosition;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import lombok.Getter;
@@ -16,11 +18,13 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.util.FormattedCharSequence;
+import org.jetbrains.annotations.ApiStatus.AvailableSince;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
+@AvailableSince("1.0.0.0")
 public abstract class AbstractInventoryTab extends Button implements IInventoryTab {
     protected static final int TAB_WIDTH = 28;
     protected static final int TAB_HEIGHT = 32;

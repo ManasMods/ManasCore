@@ -2,7 +2,7 @@
  * Copyright (c) 2022. ManasMods
  */
 
-package com.github.manasmods.manascore.datapack;
+package com.github.manasmods.manascore.api.datapack;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
@@ -21,6 +21,7 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.ApiStatus.AvailableSince;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -42,6 +43,7 @@ import java.util.function.Function;
  * @param <RAW>  The type of the objects that the codec is parsing jsons as
  * @param <FINE> The type of the object we get after merging the parsed objects. Can be the same as RAW
  */
+@AvailableSince("1.0.0.0")
 public class MergeableCodecDataManager<RAW, FINE> extends SimplePreparableReloadListener<Map<ResourceLocation, FINE>> {
     private static final Logger LOGGER = LogManager.getLogger();
 

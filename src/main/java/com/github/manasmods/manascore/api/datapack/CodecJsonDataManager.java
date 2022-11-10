@@ -2,13 +2,12 @@
  * Copyright (c) 2022. ManasMods
  */
 
-package com.github.manasmods.manascore.datapack;
+package com.github.manasmods.manascore.api.datapack;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
-import lombok.extern.log4j.Log4j2;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -20,18 +19,19 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.ApiStatus.AvailableSince;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-@Log4j2
+@AvailableSince("1.0.0.0")
 public class CodecJsonDataManager<T> extends SimpleJsonResourceReloadListener {
     private static final Gson STANDARD_GSON = new Gson();
     private static final Logger LOGGER = LogManager.getLogger();
 
-    /** The codec we use to convert jsonelements to Ts **/
+    /** The codec we use to convert json-elements to T objects **/
     private final Codec<T> codec;
 
     private final String folderName;
