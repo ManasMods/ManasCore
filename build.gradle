@@ -259,12 +259,12 @@ publishing {
     }
     repositories {
         maven {
-            name = "manasmods"
+            name = "ManasCore"
+            url "https://api-g.cloudsmith.io/maven/manasmods/manascore/"
             credentials {
-                username System.getenv().getOrDefault("MANAS_REPO_USER", manasmodsUsername)
-                password System.getenv().getOrDefault("MANAS_REPO_USER_PASSWORD", manasmodsPassword)
+                username = project.findProperty("cloudsmith_user") ?: System.getenv("CLOUDSMITH_USER")
+                password = project.findProperty("cloudsmith_password") ?: System.getenv("CLOUDSMITH_PASSWORD")
             }
-            url "https://manasmods.bytesafe.dev/maven/manasmods"
         }
     }
 }
