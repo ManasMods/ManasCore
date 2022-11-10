@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2022. ManasMods
+ */
+
 package com.github.manasmods.manascore.client.gui.widget;
 
 @FunctionalInterface

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2022. ManasMods
+ */
+
 package com.github.manasmods.manascore.tab.annotation;
 
 import com.github.manasmods.manascore.tab.AbstractInventoryTab;

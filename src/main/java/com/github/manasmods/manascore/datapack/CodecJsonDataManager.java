@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2022. ManasMods
+ */
+
 package com.github.manasmods.manascore.datapack;
 
 import com.google.gson.Gson;

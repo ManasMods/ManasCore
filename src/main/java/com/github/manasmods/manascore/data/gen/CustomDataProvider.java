@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2022. ManasMods
+ */
 package com.github.manasmods.manascore.data.gen;
 
 import com.google.common.collect.Maps;

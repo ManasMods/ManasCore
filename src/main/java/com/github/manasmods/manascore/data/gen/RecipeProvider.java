@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2022. ManasMods
+ */
+
 package com.github.manasmods.manascore.data.gen;
 
 import com.github.manasmods.manascore.core.ShapedRecipeBuilderAccessor;

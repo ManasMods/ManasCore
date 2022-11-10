@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2022. ManasMods
+ */
 package com.github.manasmods.manascore.client.gui.widget;
 
 import com.mojang.blaze3d.systems.RenderSystem;

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2022. ManasMods
+ */
+
 package com.github.manasmods.manascore.tab;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -40,8 +44,8 @@ public abstract class AbstractInventoryTab extends Button implements IInventoryT
 
         this.minecraft = Minecraft.getInstance();
         this.tooltip = Stream.concat(Stream.of(tooltip), Arrays.stream(tooltips))
-                .map(Component::getVisualOrderText)
-                .toList();
+            .map(Component::getVisualOrderText)
+            .toList();
     }
 
     @Override

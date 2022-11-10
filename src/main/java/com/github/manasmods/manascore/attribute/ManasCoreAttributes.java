@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2022. ManasMods
+ */
+
 package com.github.manasmods.manascore.attribute;
 
 import com.github.manasmods.manascore.ManasCore;

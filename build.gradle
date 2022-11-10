@@ -234,20 +234,7 @@ tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
 
-task makeChangelog(type: se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask) {
-    fromRepo = file("$projectDir")
-    file = file('changelog.html')
-    untaggedName = "Current release ${project.version}"
-    fromCommit = lastCommit
-    toRef = 'HEAD'
-    templateContent = file('changelog.mustache').getText('UTF-8')
-}
-
 if (System.getenv().getOrDefault("CF_TOKEN", null) != null) {
-    afterEvaluate {
-        tasks.curseforge.dependsOn makeChangelog
-    }
-
     curseforge {
         apiKey = System.getenv("CF_TOKEN");
         project {

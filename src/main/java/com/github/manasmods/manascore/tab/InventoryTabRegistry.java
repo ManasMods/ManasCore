@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2022. ManasMods
+ */
+
 package com.github.manasmods.manascore.tab;
 
 import com.github.manasmods.manascore.tab.annotation.ScreenForTab;
@@ -32,8 +36,8 @@ public class InventoryTabRegistry {
         if (!screen.getClass().isAnnotationPresent(ScreenForTab.class)) return null;
         ScreenForTab annotation = screen.getClass().getAnnotation(ScreenForTab.class);
         Optional<AbstractInventoryTab> result = getValues().stream()
-                .filter(abstractInventoryTab -> annotation.value().isInstance(abstractInventoryTab))
-                .findFirst();
+            .filter(abstractInventoryTab -> annotation.value().isInstance(abstractInventoryTab))
+            .findFirst();
 
         return result.orElse(null);
     }

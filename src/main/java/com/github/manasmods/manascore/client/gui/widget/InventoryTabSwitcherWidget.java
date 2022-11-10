@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2022. ManasMods
+ */
+
 package com.github.manasmods.manascore.client.gui.widget;
 
 import com.github.manasmods.manascore.core.AbstractContainerScreenAccessor;
@@ -15,8 +19,6 @@ import net.minecraft.network.chat.TextComponent;
 
 import java.awt.*;
 import java.util.TreeMap;
-
-;
 
 public class InventoryTabSwitcherWidget extends GuiComponent implements Widget, GuiEventListener {
     private int page = 1;
@@ -55,9 +57,9 @@ public class InventoryTabSwitcherWidget extends GuiComponent implements Widget, 
         }
 
         this.tabs.values()
-                .stream()
-                .filter(AbstractInventoryTab::isActive)
-                .forEach(abstractInventoryTab -> abstractInventoryTab.render(poseStack, mouseX, mouseY, partialTicks));
+            .stream()
+            .filter(AbstractInventoryTab::isActive)
+            .forEach(abstractInventoryTab -> abstractInventoryTab.render(poseStack, mouseX, mouseY, partialTicks));
     }
 
     public void updateTabs() {
@@ -127,9 +129,9 @@ public class InventoryTabSwitcherWidget extends GuiComponent implements Widget, 
     public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
         if (pButton == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
             this.tabs.values()
-                    .stream()
-                    .filter(AbstractInventoryTab::isActive)
-                    .forEach(abstractInventoryTab -> abstractInventoryTab.mouseClicked(pMouseX, pMouseY, pButton));
+                .stream()
+                .filter(AbstractInventoryTab::isActive)
+                .forEach(abstractInventoryTab -> abstractInventoryTab.mouseClicked(pMouseX, pMouseY, pButton));
             if (this.prevButton.isMouseOver(pMouseX, pMouseY)) this.prevButton.mouseClicked(pMouseX, pMouseY, pButton);
             if (this.nextButton.isMouseOver(pMouseX, pMouseY)) this.nextButton.mouseClicked(pMouseX, pMouseY, pButton);
         }
