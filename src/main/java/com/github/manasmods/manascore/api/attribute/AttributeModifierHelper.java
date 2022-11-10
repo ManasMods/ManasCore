@@ -2,7 +2,7 @@
  * Copyright (c) 2022. ManasMods
  */
 
-package com.github.manasmods.manascore.attribute;
+package com.github.manasmods.manascore.api.attribute;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
@@ -11,13 +11,15 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import org.jetbrains.annotations.ApiStatus.AvailableSince;
 
 import java.util.Optional;
 import java.util.UUID;
 
+@AvailableSince("1.0.0.0")
 @UtilityClass
 @Log4j2
-public class AttributeModifierHelper {
+public final class AttributeModifierHelper {
     /**
      * Safe way to apply {@link AttributeModifier} to an {@link LivingEntity}
      *

@@ -4,8 +4,8 @@
 
 package com.github.manasmods.manascore.client.gui.widget;
 
-import com.github.manasmods.manascore.core.AbstractContainerScreenAccessor;
 import com.github.manasmods.manascore.api.tab.AbstractInventoryTab;
+import com.github.manasmods.manascore.core.AbstractContainerScreenAccessor;
 import com.github.manasmods.manascore.tab.TabPosition;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
@@ -14,12 +14,14 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import org.lwjgl.glfw.GLFW;
 import net.minecraft.network.chat.TextComponent;
+import org.jetbrains.annotations.ApiStatus.Internal;
+import org.lwjgl.glfw.GLFW;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.TreeMap;
 
+@Internal
 public class InventoryTabSwitcherWidget extends GuiComponent implements Widget, GuiEventListener {
     private int page = 1;
     private final int maxPages;

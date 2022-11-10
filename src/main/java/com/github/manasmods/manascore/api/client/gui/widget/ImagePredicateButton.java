@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2022. ManasMods
  */
-package com.github.manasmods.manascore.client.gui.widget;
+package com.github.manasmods.manascore.api.client.gui.widget;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -9,7 +9,9 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.ApiStatus.AvailableSince;
 
+@AvailableSince("1.0.0.0")
 public class ImagePredicateButton extends Button {
     private final ResourceLocation texture;
     private final RenderCheck renderCheck;
