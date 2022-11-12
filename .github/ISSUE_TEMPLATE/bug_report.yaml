@@ -1,0 +1,68 @@
+name: Bug Report
+description: File a bug report
+title: "[Bug]: "
+labels: ["bug", "triage"]
+assignees:
+  - Charismara
+body:
+  - type: input
+    id: MinecraftVersion
+    attributes:
+      label: Minecraft Version
+      description: What Minecraft version are you using?
+      placeholder: 1.18.2
+    validations:
+      required: true
+  - type: input
+    id: ForgeVersion
+    attributes:
+      label: Forge Version
+      description: What Forge version are you using?
+      placeholder: 40.1.0
+    validations:
+      required: true
+  - type: input
+    id: ManasCoreVersion
+    attributes:
+      label: ManasCore Version
+      description: What ManasCore version are you using?
+      placeholder: 1.0.0.0
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug description
+      description: A clear and concise description of what the bug is.
+      placeholder:
+    validations:
+      required: true
+  - type: textarea
+    id: reproductionSteps
+    attributes:
+      label: To Reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: true
+  - type: input
+    id: CrashReportLink
+    attributes:
+      label: Crash Report Link
+      description: Crash Report Link. upload here https://mclo.gs/
+      placeholder: https://mclo.gs/
+    validations:
+      required: false
+  - type: textarea
+    id: extraNotes
+    attributes:
+      label: Extra Notes
+      description: notes
+      placeholder: |
+        Other installed Mods, or other notes
+    validations:
+      required: false
