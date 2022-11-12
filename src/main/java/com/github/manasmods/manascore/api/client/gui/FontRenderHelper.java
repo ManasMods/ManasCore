@@ -5,13 +5,17 @@
 package com.github.manasmods.manascore.api.client.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.awt.Color;
 import java.util.List;
 
+@OnlyIn(Dist.CLIENT)
 public class FontRenderHelper {
 
     public static void renderScaledTextInArea(final PoseStack poseStack, final Font font, final FormattedText text, final float x, float y, final float width, final float height, final Color color) {
@@ -79,7 +83,7 @@ public class FontRenderHelper {
         float scaling = 1F;
 
         while (true) {
-            List<FormattedCharSequence> sequences = font.split(text, Math.round(width / scaling));
+            List<FormattedCharSequence> sequences = font.split(text, Minecraft.getInstance().getWindow().getScreenWidth());
             float currentScaling = scaling;
             int maxWidth = sequences.stream()
                 .map(seq -> font.width(seq) * currentScaling)
