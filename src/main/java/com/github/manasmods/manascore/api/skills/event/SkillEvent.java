@@ -11,7 +11,7 @@ import org.jetbrains.annotations.ApiStatus;
  *
  * @see UnlockSkillEvent
  */
-@ApiStatus.AvailableSince("0.0.0.26")
+@ApiStatus.AvailableSince("1.0.2.0")
 public class SkillEvent extends Event {
     @Getter
     private final ManasSkillInstance skillInstance;

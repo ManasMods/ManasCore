@@ -12,7 +12,7 @@ import org.jetbrains.annotations.ApiStatus;
  * You can prevent an {@link Entity} from learning that {@link ManasSkill} by canceling the {@link UnlockSkillEvent}.
  * <p>
  */
-@ApiStatus.AvailableSince("0.0.0.26")
+@ApiStatus.AvailableSince("1.0.2.0")
 @Cancelable
 public class UnlockSkillEvent extends SkillEvent {
     @Getter

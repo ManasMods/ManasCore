@@ -1,6 +1,7 @@
 package com.github.manasmods.manascore.api.skills;
 
 import com.github.manasmods.manascore.api.skills.capability.SkillStorage;
+import com.google.common.base.Objects;
 import net.minecraft.world.entity.Entity;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.registries.ForgeRegistryEntry;
@@ -21,7 +22,7 @@ import org.jetbrains.annotations.ApiStatus;
  * of a {@link ManasSkillInstance}. This is required if you want to attach additional data to the {@link ManasSkill}
  * (for example to allow to disable a skill or make the skill gain exp on usage).
  */
-@ApiStatus.AvailableSince("0.0.0.26")
+@ApiStatus.AvailableSince("1.0.2.0")
 public class ManasSkill extends ForgeRegistryEntry<ManasSkill> {
     /**
      * Used to create a {@link ManasSkillInstance} of this Skill.
@@ -38,5 +39,10 @@ public class ManasSkill extends ForgeRegistryEntry<ManasSkill> {
         if (o == null || getClass() != o.getClass()) return false;
         ManasSkill that = (ManasSkill) o;
         return this.getRegistryName().equals(that.getRegistryName());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(this.getRegistryName());
     }
 }

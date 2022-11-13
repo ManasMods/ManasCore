@@ -16,7 +16,7 @@ import java.util.Objects;
  * <p>
  * Instances are created though the {@link ManasSkill#createDefaultInstance()} method.
  */
-@ApiStatus.AvailableSince("0.0.0.26")
+@ApiStatus.AvailableSince("1.0.2.0")
 public class ManasSkillInstance implements Cloneable {
     private final IRegistryDelegate<ManasSkill> delegate;
     @Getter

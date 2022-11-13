@@ -11,7 +11,7 @@ import org.jetbrains.annotations.ApiStatus;
  * This listener subscribes to the <strong>server side</strong> of the {@link LivingHurtEvent}.
  * To use this Listener, just implement it in your {@link ManasSkill} class.
  */
-@ApiStatus.AvailableSince("0.0.0.26")
+@ApiStatus.AvailableSince("1.0.2.0")
 public interface LivingHurtListener {
     void onLivingHurt(final ManasSkillInstance instance, final LivingHurtEvent event);
 }

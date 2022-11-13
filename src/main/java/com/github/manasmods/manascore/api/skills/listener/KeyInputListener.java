@@ -13,7 +13,7 @@ import org.jetbrains.annotations.ApiStatus;
  * <p>
  * Keep in mind that you're not allowed to use client side only classes in Registry Objects!
  */
-@ApiStatus.AvailableSince("0.0.0.26")
+@ApiStatus.AvailableSince("1.0.2.0")
 public interface KeyInputListener {
     void onKeyInput(final ManasSkillInstance instance, final InputEvent.KeyInputEvent event);
 }

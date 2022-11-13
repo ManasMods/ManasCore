@@ -17,7 +17,7 @@ import java.util.Optional;
  * This allows you to modify the Skill data of the selected Player (including skills you don't own).
  */
 @ApiStatus.NonExtendable
-@ApiStatus.AvailableSince("0.0.0.26")
+@ApiStatus.AvailableSince("1.0.2.0")
 public interface SkillStorage extends INBTSerializable<CompoundTag> {
     /**
      * Returns a list of all learned {@link ManasSkill}s as {@link ManasSkillInstance}.

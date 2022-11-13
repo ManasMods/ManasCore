@@ -10,7 +10,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 @ApiStatus.NonExtendable
-@ApiStatus.AvailableSince("0.0.0.26")
+@ApiStatus.AvailableSince("1.0.2.0")
 public final class SkillAPI {
     /**
      * This Method returns the {@link ManasSkill} Registry.
