@@ -1,8 +1,14 @@
+/*
+ * Copyright (c) 2022. ManasMods
+ */
+
 package com.github.manasmods.manascore.tab;
 
-import com.github.manasmods.manascore.tab.annotation.ScreenForTab;
+import com.github.manasmods.manascore.api.tab.AbstractInventoryTab;
+import com.github.manasmods.manascore.api.tab.annotation.ScreenForTab;
 import lombok.Getter;
 import net.minecraft.client.gui.screens.Screen;
+import org.jetbrains.annotations.ApiStatus.Internal;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -10,6 +16,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 
+@Internal
 public class InventoryTabRegistry {
     @Getter
     private static int nextEntryId = 1;
@@ -32,8 +39,8 @@ public class InventoryTabRegistry {
         if (!screen.getClass().isAnnotationPresent(ScreenForTab.class)) return null;
         ScreenForTab annotation = screen.getClass().getAnnotation(ScreenForTab.class);
         Optional<AbstractInventoryTab> result = getValues().stream()
-                .filter(abstractInventoryTab -> annotation.value().isInstance(abstractInventoryTab))
-                .findFirst();
+            .filter(abstractInventoryTab -> annotation.value().isInstance(abstractInventoryTab))
+            .findFirst();
 
         return result.orElse(null);
     }

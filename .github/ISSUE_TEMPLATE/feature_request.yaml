@@ -1,0 +1,16 @@
+name: Feature Request
+description: Request a new Feature
+title: "[Feature Request]: "
+labels: ["enhancement ", "triage"]
+assignees:
+  - Charismara
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of what the bug is.
+      placeholder: |
+        Please describe the feature as detailed as possible.
+    validations:
+      required: true

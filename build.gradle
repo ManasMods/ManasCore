@@ -234,20 +234,7 @@ tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
 
-task makeChangelog(type: se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask) {
-    fromRepo = file("$projectDir")
-    file = file('changelog.html')
-    untaggedName = "Current release ${project.version}"
-    fromCommit = lastCommit
-    toRef = 'HEAD'
-    templateContent = file('changelog.mustache').getText('UTF-8')
-}
-
 if (System.getenv().getOrDefault("CF_TOKEN", null) != null) {
-    afterEvaluate {
-        tasks.curseforge.dependsOn makeChangelog
-    }
-
     curseforge {
         apiKey = System.getenv("CF_TOKEN");
         project {
@@ -272,12 +259,12 @@ publishing {
     }
     repositories {
         maven {
-            name = "manasmods"
+            name = "ManasCore"
+            url "https://api-g.cloudsmith.io/maven/manasmods/manascore/"
             credentials {
-                username System.getenv().getOrDefault("MANAS_REPO_USER", manasmodsUsername)
-                password System.getenv().getOrDefault("MANAS_REPO_USER_PASSWORD", manasmodsPassword)
+                username = project.findProperty("cloudsmith_user") ?: System.getenv("CLOUDSMITH_USER")
+                password = project.findProperty("cloudsmith_password") ?: System.getenv("CLOUDSMITH_PASSWORD")
             }
-            url "https://manasmods.bytesafe.dev/maven/manasmods"
         }
     }
 }

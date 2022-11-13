@@ -1,16 +1,22 @@
+/*
+ * Copyright (c) 2022. ManasMods
+ */
+
 package com.github.manasmods.manascore.tab;
 
 import com.github.manasmods.manascore.ManasCore;
+import com.github.manasmods.manascore.api.tab.AbstractInventoryTab;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
+import org.jetbrains.annotations.ApiStatus.Internal;
 
 import java.util.function.Predicate;
 
-
+@Internal
 public class VanillaInventoryTab extends AbstractInventoryTab {
     private final ItemStack iconStack = new ItemStack(Blocks.GRASS_BLOCK);
 
