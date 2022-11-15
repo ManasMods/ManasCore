@@ -1,47 +1,28 @@
 buildscript {
     repositories {
         // These repositories are only for Gradle plugins, put any other repositories in the repository block further below
-        maven { url = 'https://maven.minecraftforge.net' }
         maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
-        maven { url = 'https://maven.parchmentmc.org' }
         mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
         classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
-        classpath 'org.parchmentmc:librarian:1.+'
-        classpath "gradle.plugin.se.bjurr.gitchangelog:git-changelog-gradle-plugin:1.72.0"
-        classpath "gradle.plugin.com.matthewprenger:CurseGradle:1.4.0"
     }
 }
 
-apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'org.parchmentmc.librarian.forgegradle'
-apply plugin: 'org.spongepowered.mixin'
-apply plugin: "se.bjurr.gitchangelog.git-changelog-gradle-plugin"
-apply plugin: "com.matthewprenger.cursegradle"
-apply plugin: 'maven-publish'
+plugins {
+    id 'net.minecraftforge.gradle' version '5.1.+'
+    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
+    id 'net.darkhax.curseforgegradle' version '1.0.11'
+    id 'maven-publish'
+}
 
+apply plugin: 'org.spongepowered.mixin'
 
 group = 'com.github.manasmods'
 version = "${minecraftVersion}-${modVersion}"
 archivesBaseName = modId
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
-
-ext {
-    if (!project.hasProperty('manasmodsUsername')) {
-        System.out.println("No ManasMods Repo User found.")
-        //DO NOT WRITE ANYTHING INTO THIS FIELD! ANYONE CEN SEE THIS FIELD!!
-        manasmodsUsername = ""
-    }
-
-    if (!project.hasProperty('manasmodsPassword')) {
-        System.out.println("No ManasMods Repo User password found.")
-        //DO NOT WRITE ANYTHING INTO THIS FIELD! ANYONE CEN SEE THIS FIELD!!
-        manasmodsPassword = ""
-    }
-}
 
 minecraft {
     mappings channel: 'parchment', version: "${parchmentVersion}-${minecraftVersion}"
@@ -159,9 +140,6 @@ mixin {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
-    // Put repositories for dependencies here
-    // ForgeGradle automatically adds the Forge maven and Maven Central for you
-
     // If you have mod jar dependencies in ./libs, you can declare them as a repository like so:
     // flatDir {
     //     dir 'libs'
@@ -169,8 +147,8 @@ repositories {
     maven {
         name = "manasmods"
         credentials {
-            username System.getenv().getOrDefault("MANAS_REPO_USER", manasmodsUsername)
-            password System.getenv().getOrDefault("MANAS_REPO_USER_PASSWORD", manasmodsPassword)
+            username project.findProperty('manasmodsUsername') ?: System.getenv(MANAS_REPO_USER)
+            password project.findProperty('manasmodsPassword') ?: System.getenv(MANAS_REPO_USER_PASSWORD)
         }
         url "https://manasmods.bytesafe.dev/maven/manasmods"
     }
@@ -234,21 +212,17 @@ tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
 
-if (System.getenv().getOrDefault("CF_TOKEN", null) != null) {
-    curseforge {
-        apiKey = System.getenv("CF_TOKEN");
-        project {
-            id = '619025'
-            releaseType = 'release'
-            changelog = file('changelog.html')
-            addGameVersion minecraftVersion
-            changelogType = 'html'
-        }
+task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+    dependsOn build
 
-        options {
-            detectNewerJava = true
-        }
-    }
+    apiToken = project.findProperty('curseforge_apikey') ?: System.getenv('CF_TOKEN')
+    def mainFile = upload(619025, jar)
+    mainFile.releaseType = 'release'
+    mainFile.displayName = "${minecraftVersion}-${modVersion}"
+    mainFile.changelog = file('CHANGELOG.md')
+    mainFile.changelogType = 'markdown'
+    mainFile.addModLoader('Forge')
+    mainFile.addGameVersion(minecraftVersion)
 }
 
 publishing {
