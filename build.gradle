@@ -13,6 +13,7 @@ plugins {
     id 'net.minecraftforge.gradle' version '5.1.+'
     id 'org.parchmentmc.librarian.forgegradle' version '1.+'
     id 'net.darkhax.curseforgegradle' version '1.0.11'
+    id "com.modrinth.minotaur" version "2.+"
     id 'maven-publish'
 }
 
@@ -223,6 +224,17 @@ task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge)
     mainFile.changelogType = 'markdown'
     mainFile.addModLoader('Forge')
     mainFile.addGameVersion(minecraftVersion)
+}
+
+modrinth {
+    token = project.findProperty('modrinth_apikey') ?: System.getenv('MODRINTH_TOKEN')
+    projectId = "wRRSWpd1"
+    versionType = "release"
+    versionName = "${minecraftVersion}-${modVersion}"
+    uploadFile = tasks.jar
+    gameVersions = [project.minecraftVersion]
+    loaders = ["forge"]
+    changelog = file('CHANGELOG.md').text
 }
 
 publishing {
