@@ -17,6 +17,20 @@ This Mod doesn't provide any new functionality for Minecraft itself. It is requi
 - DataManager for custom datapack file creation
 - Builder for custom Biome creation
 
+## Development Setup
+You only need to add our maven repository and dependency to your build.gradle file
+```groovy
+repositories {
+    //...
+    maven { url "https://dl.cloudsmith.io/public/manasmods/manascore/maven/" }
+}
+
+dependencies {
+    //...
+    implementation fg.deobf("com.github.manasmods:ManasCore:${minecraftVersion}-${manasCoreVersion}")
+}
+```
+
 # Notes
 See [LICENCE](https://github.com/ManasMods/ManasCore/blob/master/LICENSE) for ManasCore license.
 
