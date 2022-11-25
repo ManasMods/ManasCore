@@ -148,8 +148,8 @@ repositories {
     maven {
         name = "manasmods"
         credentials {
-            username project.findProperty('manasmodsUsername') ?: System.getenv(MANAS_REPO_USER)
-            password project.findProperty('manasmodsPassword') ?: System.getenv(MANAS_REPO_USER_PASSWORD)
+            username project.findProperty('manasmodsUsername') ?: System.getenv().getOrDefault('MANAS_REPO_USER', '')
+            password project.findProperty('manasmodsPassword') ?: System.getenv().getOrDefault('MANAS_REPO_USER_PASSWORD', '')
         }
         url "https://manasmods.bytesafe.dev/maven/manasmods"
     }
