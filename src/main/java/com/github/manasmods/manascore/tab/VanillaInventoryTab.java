@@ -9,7 +9,7 @@ import com.github.manasmods.manascore.api.tab.AbstractInventoryTab;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import org.jetbrains.annotations.ApiStatus.Internal;
@@ -21,7 +21,7 @@ public class VanillaInventoryTab extends AbstractInventoryTab {
     private final ItemStack iconStack = new ItemStack(Blocks.GRASS_BLOCK);
 
     public VanillaInventoryTab() {
-        super(new TranslatableComponent("key.categories.inventory"));
+        super(Component.translatable("key.categories.inventory"));
     }
 
     @Override

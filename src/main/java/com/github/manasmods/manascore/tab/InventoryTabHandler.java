@@ -24,7 +24,7 @@ import java.util.Map;
 public class InventoryTabHandler {
 
     @SubscribeEvent
-    public static void onOpenTabMenu(final ScreenEvent.InitScreenEvent e) {
+    public static void onOpenTabMenu(final ScreenEvent.Init e) {
         if (!isValidTabScreen(e.getScreen())) return;
         if (!(e.getScreen() instanceof AbstractContainerScreen<?> containerScreen)) return;
 

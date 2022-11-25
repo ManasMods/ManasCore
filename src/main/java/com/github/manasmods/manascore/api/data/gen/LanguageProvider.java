@@ -4,8 +4,10 @@
 
 package com.github.manasmods.manascore.api.data.gen;
 
-import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
+
+import net.minecraftforge.data.event.GatherDataEvent;
 import org.jetbrains.annotations.ApiStatus.AvailableSince;
+import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 
 @AvailableSince("1.0.0.0")
 public abstract class LanguageProvider extends net.minecraftforge.common.data.LanguageProvider {
@@ -17,6 +19,7 @@ public abstract class LanguageProvider extends net.minecraftforge.common.data.La
         super(gatherDataEvent.getGenerator(), modid, localeCode);
     }
 
+    @OverrideOnly
     protected abstract void generate();
 
     @Override

@@ -7,8 +7,9 @@ package com.github.manasmods.manascore.api.data.gen;
 import net.minecraft.data.tags.BlockTagsProvider;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
+import net.minecraftforge.data.event.GatherDataEvent;
 import org.jetbrains.annotations.ApiStatus.AvailableSince;
+import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 
 @AvailableSince("1.0.0.0")
 public abstract class BlockTagProvider extends BlockTagsProvider {
@@ -21,6 +22,7 @@ public abstract class BlockTagProvider extends BlockTagsProvider {
         generate();
     }
 
+    @OverrideOnly
     protected abstract void generate();
 
     protected void mineableWithAxe(Block... blocks) {

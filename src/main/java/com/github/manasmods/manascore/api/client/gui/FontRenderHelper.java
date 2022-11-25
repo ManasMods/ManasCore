@@ -5,18 +5,22 @@
 package com.github.manasmods.manascore.api.client.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import lombok.experimental.UtilityClass;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.ApiStatus.AvailableSince;
 
 import java.awt.Color;
 import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
-public class FontRenderHelper {
+@AvailableSince("1.0.1.0")
+@UtilityClass
+public final class FontRenderHelper {
 
     public static void renderScaledTextInArea(final PoseStack poseStack, final Font font, final FormattedText text, final float x, float y, final float width, final float height, final Color color) {
         renderScaledTextInArea(poseStack, font, text, x, y, width, height, color, 0F);

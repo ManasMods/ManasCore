@@ -11,7 +11,7 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 @Mod.EventBusSubscriber(modid = ManasCore.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class ManasKeybindingHandler {
     @SubscribeEvent
-    public static void onKeyInput(final InputEvent.KeyInputEvent e) {
+    public static void onKeyInput(final InputEvent.Key e) {
         KeybindingRegistry.checkKeybindings(e);
     }
 }

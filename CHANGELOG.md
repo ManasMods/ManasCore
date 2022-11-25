@@ -1,3 +1,5 @@
+# 2.0.0.0
+- port to 1.19.2
 # 1.0.2.0
 - add `ItemComparator` and `ItemComparator.Builder` to sort Items based on an easy-to-use rule set 
 # 1.0.1.1

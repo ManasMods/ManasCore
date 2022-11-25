@@ -14,7 +14,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.lwjgl.glfw.GLFW;
 
@@ -33,12 +33,12 @@ public class InventoryTabSwitcherWidget extends GuiComponent implements Widget, 
         this.parent = parent;
         this.maxPages = maxPages;
 
-        this.prevButton = new Button(this.parent.getGuiLeft() - 20 - 2, this.parent.getGuiTop() - 20 - 2, 20, 20, new TextComponent("<"), b -> {
+        this.prevButton = new Button(this.parent.getGuiLeft() - 20 - 2, this.parent.getGuiTop() - 20 - 2, 20, 20, Component.literal("<"),b -> {
             page = Math.max(page - 1, 1);
             updateTabs();
         });
 
-        this.nextButton = new Button(parent.getGuiLeft() + ((AbstractContainerScreenAccessor) parent).getImageWidth() + 2, this.parent.getGuiTop() - 20 - 2, 20, 20, new TextComponent(">"), b -> {
+        this.nextButton = new Button(parent.getGuiLeft() + ((AbstractContainerScreenAccessor) parent).getImageWidth() + 2, this.parent.getGuiTop() - 20 - 2, 20, 20, Component.literal(">"), b -> {
             page = Math.min(page + 1, this.maxPages);
             updateTabs();
         });

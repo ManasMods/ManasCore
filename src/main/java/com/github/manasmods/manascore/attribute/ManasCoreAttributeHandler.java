@@ -11,7 +11,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.EntityAttributeModificationEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.entity.living.LivingEvent.LivingJumpEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.ApiStatus.Internal;
@@ -26,10 +26,10 @@ public class ManasCoreAttributeHandler {
     }
 
     @SubscribeEvent
-    public static void modifyJumpPower(final LivingEvent.LivingJumpEvent e) {
-        if (e.getEntityLiving().getAttribute(ManasCoreAttributes.JUMP_POWER.get()) == null) return;
+    public static void modifyJumpPower(final LivingJumpEvent e) {
+        if (e.getEntity().getAttribute(ManasCoreAttributes.JUMP_POWER.get()) == null) return;
 
-        final LivingEntity entity = e.getEntityLiving();
+        final LivingEntity entity = e.getEntity();
         final BlockPos entityPos = entity.blockPosition();
         //Calculation
         double baseJumpPower = entity.getAttribute(ManasCoreAttributes.JUMP_POWER.get()).getValue();

@@ -17,8 +17,12 @@ import net.minecraft.world.level.block.state.properties.StairsShape;
 import net.minecraftforge.client.model.generators.BlockModelBuilder;
 import net.minecraftforge.client.model.generators.ConfiguredModel;
 import net.minecraftforge.client.model.generators.ModelFile;
-import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
+import net.minecraftforge.client.model.generators.ModelFile.UncheckedModelFile;
+import net.minecraftforge.data.event.GatherDataEvent;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.ApiStatus.AvailableSince;
+import org.jetbrains.annotations.ApiStatus.NonExtendable;
+import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 
 import java.util.Objects;
 
@@ -30,11 +34,24 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
         super(gatherDataEvent.getGenerator(), modId, gatherDataEvent.getExistingFileHelper());
     }
 
+    @OverrideOnly
     protected abstract void generate();
 
+
     @Override
-    protected void registerStatesAndModels() {
+    protected final void registerStatesAndModels() {
         generate();
+    }
+
+    @AvailableSince("2.0.0.0")
+    @NonExtendable
+    protected final ResourceLocation rl(Block block) {
+        return Objects.requireNonNull(ForgeRegistries.BLOCKS.getKey(block));
+    }
+
+    @NonExtendable
+    protected final String name(Block block) {
+        return rl(block).getPath();
     }
 
     /**
@@ -54,8 +71,8 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
      */
     protected void defaultBlock(Block block, Block textureBlock) {
         getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder().modelFile(cubeAll(textureBlock)).build());
-        itemModels().getBuilder(Objects.requireNonNull(block.getRegistryName()).getPath())
-            .parent(new ModelFile.UncheckedModelFile(modLoc("block/" + block.getRegistryName().getPath())));
+        itemModels().getBuilder(Objects.requireNonNull(rl(block)).getPath())
+            .parent(new UncheckedModelFile(modLoc("block/" + name(block))));
     }
 
     /**
@@ -66,17 +83,17 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
      */
     protected void stairs(Block stairBlock, Block textureBlock) {
         if (!(stairBlock instanceof StairBlock block)) {
-            throw new IllegalArgumentException(Objects.requireNonNull(stairBlock.getRegistryName()) + " is not a instance of StairBlock.");
+            throw new IllegalArgumentException(Objects.requireNonNull(rl(stairBlock)) + " is not a instance of StairBlock.");
         } else {
-            stairsBlock(block, new ResourceLocation(Objects.requireNonNull(textureBlock.getRegistryName()).getNamespace(), "block/" + textureBlock.getRegistryName().getPath()));
-            itemModels().getBuilder(Objects.requireNonNull(block.getRegistryName()).getPath())
-                .parent(new ModelFile.UncheckedModelFile(modLoc("block/" + block.getRegistryName().getPath())));
+            stairsBlock(block, new ResourceLocation(Objects.requireNonNull(rl(textureBlock)).getNamespace(), "block/" + name(textureBlock)));
+            itemModels().getBuilder(Objects.requireNonNull(rl(block)).getPath())
+                .parent(new ModelFile.UncheckedModelFile(modLoc("block/" + name(block))));
         }
     }
 
     protected void stairs(Block stairBlock, ResourceLocation top, ResourceLocation bottom, ResourceLocation side, ResourceLocation overlay) {
         if (stairBlock instanceof StairBlock block) {
-            String baseName = block.getRegistryName().toString();
+            String baseName = rl(block).toString();
             ModelFile stairs = overlayStair(baseName, top, bottom, side, overlay);
             ModelFile stairsInner = overlayInnerStair(baseName + "_inner", top, bottom, side, overlay);
             ModelFile stairsOuter = overlayOuterStair(baseName + "_outer", top, bottom, side, overlay);
@@ -103,15 +120,15 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
                         .build();
                 }, StairBlock.WATERLOGGED);
 
-            this.itemModels().getBuilder(Objects.requireNonNull(block.getRegistryName()).getPath()).parent(new ModelFile.UncheckedModelFile(this.modLoc("block/" + block.getRegistryName().getPath())));
+            this.itemModels().getBuilder(name(block)).parent(new ModelFile.UncheckedModelFile(this.modLoc("block/" + name(block))));
         } else {
-            throw new IllegalArgumentException(Objects.requireNonNull(stairBlock.getRegistryName()) + " is not a instance of StairBlock.");
+            throw new IllegalArgumentException(Objects.requireNonNull(rl(stairBlock)) + " is not a instance of StairBlock.");
         }
     }
 
     protected void sidedStairs(Block stairBlock, ResourceLocation top, ResourceLocation bottom, ResourceLocation side) {
         if (stairBlock instanceof StairBlock block) {
-            String baseName = block.getRegistryName().toString();
+            String baseName = rl(block).toString();
             ModelFile stairs = grassLikeStair(baseName, top, bottom, side);
             ModelFile stairsInner = grassLikeInnerStair(baseName + "_inner", top, bottom, side);
             ModelFile stairsOuter = grassLikeOuterStair(baseName + "_outer", top, bottom, side);
@@ -138,18 +155,18 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
                         .build();
                 }, StairBlock.WATERLOGGED);
 
-            this.itemModels().getBuilder(Objects.requireNonNull(block.getRegistryName()).getPath()).parent(new ModelFile.UncheckedModelFile(this.modLoc("block/" + block.getRegistryName().getPath())));
+            this.itemModels().getBuilder(name(block)).parent(new ModelFile.UncheckedModelFile(this.modLoc("block/" + name(block))));
         } else {
-            throw new IllegalArgumentException(Objects.requireNonNull(stairBlock.getRegistryName()) + " is not a instance of StairBlock.");
+            throw new IllegalArgumentException(Objects.requireNonNull(rl(stairBlock)) + " is not a instance of StairBlock.");
         }
     }
 
     protected void stairs(Block stairBlock, ResourceLocation side, ResourceLocation bottom, ResourceLocation top) {
         if (stairBlock instanceof StairBlock block) {
             stairsBlock(block, side, bottom, top);
-            this.itemModels().getBuilder(Objects.requireNonNull(block.getRegistryName()).getPath()).parent(new ModelFile.UncheckedModelFile(this.modLoc("block/" + block.getRegistryName().getPath())));
+            this.itemModels().getBuilder(Objects.requireNonNull(rl(block)).getPath()).parent(new ModelFile.UncheckedModelFile(this.modLoc("block/" + name(block))));
         } else {
-            throw new IllegalArgumentException(Objects.requireNonNull(stairBlock.getRegistryName()) + " is not a instance of StairBlock.");
+            throw new IllegalArgumentException(Objects.requireNonNull(rl(stairBlock)) + " is not a instance of StairBlock.");
         }
     }
 
@@ -165,17 +182,17 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
      */
     protected void slab(Block slabBlock, Block textureBlock) {
         if (!(slabBlock instanceof SlabBlock block)) {
-            throw new IllegalArgumentException(Objects.requireNonNull(slabBlock.getRegistryName()) + " is not a instance of StairBlock.");
+            throw new IllegalArgumentException(Objects.requireNonNull(rl(slabBlock)) + " is not a instance of StairBlock.");
         } else {
-            ResourceLocation textureLocation = new ResourceLocation(Objects.requireNonNull(textureBlock.getRegistryName()).getNamespace(), "block/" + textureBlock.getRegistryName().getPath());
+            ResourceLocation textureLocation = new ResourceLocation(Objects.requireNonNull(rl(textureBlock)).getNamespace(), "block/" + name(textureBlock));
             slabBlock(block, textureLocation, textureLocation);
-            itemModels().getBuilder(Objects.requireNonNull(block.getRegistryName()).getPath()).parent(new ModelFile.UncheckedModelFile(modLoc("block/" + block.getRegistryName().getPath())));
+            itemModels().getBuilder(Objects.requireNonNull(rl(block)).getPath()).parent(new ModelFile.UncheckedModelFile(modLoc("block/" + name(block))));
         }
     }
 
     protected void slab(Block slabBlock, Block fullBlock, ResourceLocation top, ResourceLocation bottom, ResourceLocation side, ResourceLocation overlay) {
         if (slabBlock instanceof SlabBlock block) {
-            ModelFile doubleSlab = models().getExistingFile(new ResourceLocation(fullBlock.getRegistryName().getNamespace(), "block/" + fullBlock.getRegistryName().getPath()));
+            ModelFile doubleSlab = models().getExistingFile(new ResourceLocation(rl(fullBlock).getNamespace(), "block/" + name(fullBlock)));
             ModelFile bottomSlab = overlaySlab(name(block), top, bottom, side, overlay);
             ModelFile topSlab = overlaySlabTop(name(block) + "_top", top, bottom, side, overlay);
 
@@ -184,18 +201,18 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
                 .partialState().with(SlabBlock.TYPE, SlabType.TOP).addModels(new ConfiguredModel(topSlab))
                 .partialState().with(SlabBlock.TYPE, SlabType.DOUBLE).addModels(new ConfiguredModel(doubleSlab));
 
-            this.itemModels().getBuilder(Objects.requireNonNull(block.getRegistryName()).getPath()).parent(new ModelFile.UncheckedModelFile(this.modLoc("block/" + block.getRegistryName().getPath())));
+            this.itemModels().getBuilder(Objects.requireNonNull(rl(block)).getPath()).parent(new ModelFile.UncheckedModelFile(this.modLoc("block/" + name(block))));
         } else {
-            throw new IllegalArgumentException(Objects.requireNonNull(slabBlock.getRegistryName()) + " is not a instance of StairBlock.");
+            throw new IllegalArgumentException(Objects.requireNonNull(rl(slabBlock)) + " is not a instance of StairBlock.");
         }
     }
 
     protected void slab(Block slabBlock, Block fullBlock, ResourceLocation side, ResourceLocation bottom, ResourceLocation top) {
         if (slabBlock instanceof SlabBlock block) {
-            slabBlock(block, new ResourceLocation(fullBlock.getRegistryName().getNamespace(), "block/" + fullBlock.getRegistryName().getPath()), side, bottom, top);
-            this.itemModels().getBuilder(Objects.requireNonNull(block.getRegistryName()).getPath()).parent(new ModelFile.UncheckedModelFile(this.modLoc("block/" + block.getRegistryName().getPath())));
+            slabBlock(block, new ResourceLocation(rl(fullBlock).getNamespace(), "block/" + name(fullBlock)), side, bottom, top);
+            this.itemModels().getBuilder(Objects.requireNonNull(rl(block)).getPath()).parent(new ModelFile.UncheckedModelFile(this.modLoc("block/" + name(block))));
         } else {
-            throw new IllegalArgumentException(Objects.requireNonNull(slabBlock.getRegistryName()) + " is not a instance of SlabBlock.");
+            throw new IllegalArgumentException(Objects.requireNonNull(rl(slabBlock)) + " is not a instance of SlabBlock.");
         }
     }
 
@@ -205,7 +222,7 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
 
     protected void sidedSlab(Block slabBlock, Block fullBlock, ResourceLocation top, ResourceLocation bottom, ResourceLocation side) {
         if (slabBlock instanceof SlabBlock block) {
-            ModelFile doubleSlab = models().getExistingFile(new ResourceLocation(fullBlock.getRegistryName().getNamespace(), "block/" + fullBlock.getRegistryName().getPath()));
+            ModelFile doubleSlab = models().getExistingFile(new ResourceLocation(rl(fullBlock).getNamespace(), "block/" + name(fullBlock)));
             ModelFile bottomSlab = grassLikeSlab(name(block), top, bottom, side);
             ModelFile topSlab = grassLikeSlabTop(name(block) + "_top", top, bottom, side);
 
@@ -214,9 +231,9 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
                 .partialState().with(SlabBlock.TYPE, SlabType.TOP).addModels(new ConfiguredModel(topSlab))
                 .partialState().with(SlabBlock.TYPE, SlabType.DOUBLE).addModels(new ConfiguredModel(doubleSlab));
 
-            this.itemModels().getBuilder(Objects.requireNonNull(block.getRegistryName()).getPath()).parent(new ModelFile.UncheckedModelFile(this.modLoc("block/" + block.getRegistryName().getPath())));
+            this.itemModels().getBuilder(Objects.requireNonNull(rl(block)).getPath()).parent(new ModelFile.UncheckedModelFile(this.modLoc("block/" + name(block))));
         } else {
-            throw new IllegalArgumentException(Objects.requireNonNull(slabBlock.getRegistryName()) + " is not a instance of StairBlock.");
+            throw new IllegalArgumentException(Objects.requireNonNull(rl(slabBlock)) + " is not a instance of StairBlock.");
         }
     }
 
@@ -227,11 +244,11 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
      */
     protected void pillar(Block block) {
         if (!(block instanceof RotatedPillarBlock rotatedPillarBlock)) {
-            throw new IllegalArgumentException(Objects.requireNonNull(block.getRegistryName()) + " is not a instance of RotatedPillarBlock.");
+            throw new IllegalArgumentException(Objects.requireNonNull(rl(block)) + " is not a instance of RotatedPillarBlock.");
         } else {
             logBlock(rotatedPillarBlock);
-            itemModels().getBuilder(Objects.requireNonNull(block.getRegistryName()).getPath())
-                .parent(new ModelFile.UncheckedModelFile(modLoc("block/" + block.getRegistryName().getPath())));
+            itemModels().getBuilder(Objects.requireNonNull(rl(block)).getPath())
+                .parent(new ModelFile.UncheckedModelFile(modLoc("block/" + name(block))));
         }
     }
 
@@ -245,13 +262,8 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
     protected void nonRotatablePillar(Block block, ResourceLocation textureTopBot, ResourceLocation textureSides) {
         getVariantBuilder(block)
             .forAllStates(blockState -> ConfiguredModel.builder().modelFile(models().cubeColumn(name(block), textureSides, textureTopBot)).build());
-        itemModels().getBuilder(Objects.requireNonNull(block.getRegistryName()).getPath())
-            .parent(new ModelFile.UncheckedModelFile(modLoc("block/" + block.getRegistryName().getPath())));
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    protected String name(Block block) {
-        return block.getRegistryName().getPath();
+        itemModels().getBuilder(Objects.requireNonNull(rl(block)).getPath())
+            .parent(new ModelFile.UncheckedModelFile(modLoc("block/" + name(block))));
     }
 
     private BlockModelBuilder overlayStair(String baseName, ResourceLocation top, ResourceLocation bottom, ResourceLocation side, ResourceLocation overlay) {

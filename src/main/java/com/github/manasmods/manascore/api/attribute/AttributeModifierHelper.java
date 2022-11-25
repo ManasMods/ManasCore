@@ -11,6 +11,7 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.ApiStatus.AvailableSince;
 
 import java.util.Optional;
@@ -31,7 +32,7 @@ public final class AttributeModifierHelper {
         AttributeInstance instance = entity.getAttribute(attribute);
 
         if (instance == null) {
-            log.error("Tried to modify an unknown Attribute: {}", attribute.getRegistryName());
+            log.error("Tried to modify an unknown Attribute: {}", ForgeRegistries.ATTRIBUTES.getKey(attribute));
             return;
         }
 

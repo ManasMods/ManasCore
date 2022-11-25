@@ -16,11 +16,10 @@ import org.jetbrains.annotations.ApiStatus.AvailableSince;
 import java.awt.Color;
 import java.util.Optional;
 
-@AvailableSince("1.0.0.0")
+@AvailableSince("2.0.0.0")
 @SuppressWarnings("unused")
 @RequiredArgsConstructor
 public class BiomeBuilder {
-    private final Biome.BiomeCategory biomeCategory;
     private final BiomeGenerationSettingsHelper generationSettingsHelper;
     private final MobSpawnHelper mobSpawnHelper;
     private final Biome.BiomeBuilder biomeBuilder = new Biome.BiomeBuilder();
@@ -93,7 +92,6 @@ public class BiomeBuilder {
         this.grassColorOverride.ifPresent(specialEffects::grassColorOverride);
 
         return biomeBuilder
-            .biomeCategory(biomeCategory)
             .precipitation(rainType)
             .temperature(temperature)
             .downfall(downfall)
@@ -104,7 +102,7 @@ public class BiomeBuilder {
     }
 
     public static BiomeBuilder forest(BiomeGenerationSettingsHelper generationSettingsHelper, MobSpawnHelper mobSpawnHelper) {
-        return new BiomeBuilder(Biome.BiomeCategory.FOREST, generationSettingsHelper, mobSpawnHelper)
+        return new BiomeBuilder(generationSettingsHelper, mobSpawnHelper)
             .temperature(0.7F)
             .downfall(0.8F);
     }

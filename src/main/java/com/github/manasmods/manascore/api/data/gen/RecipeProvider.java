@@ -21,8 +21,11 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.crafting.conditions.IConditionBuilder;
-import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
+import net.minecraftforge.data.event.GatherDataEvent;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.ApiStatus.AvailableSince;
+import org.jetbrains.annotations.ApiStatus.NonExtendable;
+import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -35,11 +38,36 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
         super(gatherDataEvent.getGenerator());
     }
 
+    @OverrideOnly
     protected abstract void generate(Consumer<FinishedRecipe> pFinishedRecipeConsumer);
 
     @Override
     protected void buildCraftingRecipes(@NotNull Consumer<FinishedRecipe> pFinishedRecipeConsumer) {
         generate(pFinishedRecipeConsumer);
+    }
+
+    @AvailableSince("2.0.0.0")
+    @NonExtendable
+    protected final ResourceLocation rl(Item item) {
+        return Objects.requireNonNull(ForgeRegistries.ITEMS.getKey(item));
+    }
+
+    @AvailableSince("2.0.0.0")
+    @NonExtendable
+    protected final ResourceLocation rl(ItemStack item) {
+        return rl(item.getItem());
+    }
+
+    @AvailableSince("2.0.0.0")
+    @NonExtendable
+    protected final ResourceLocation rl(ItemLike itemLike) {
+        return rl(itemLike.asItem());
+    }
+
+    @AvailableSince("2.0.0.0")
+    @NonExtendable
+    protected final ResourceLocation rl(Block block) {
+        return rl(block.asItem());
     }
 
     protected void allSmeltingRecipes(Consumer<FinishedRecipe> pFinishedRecipeConsumer, Ingredient ingredient, ItemLike result, float exp, int smeltingTicks, int campfireTicks, int smokingTicks) {
@@ -51,7 +79,7 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
     protected void smeltingRecipe(Consumer<FinishedRecipe> pFinishedRecipeConsumer, Ingredient ingredient, ItemLike result, float exp, int cookingTicks) {
         for (ItemStack itemStack : ingredient.getItems()) {
             SimpleCookingRecipeBuilder.smelting(ingredient, result, exp, cookingTicks)
-                .unlockedBy("has_" + Objects.requireNonNull(itemStack.getItem().getRegistryName()).getPath(), has(itemStack.getItem()))
+                .unlockedBy("has_" + getHasName(itemStack), has(itemStack.getItem()))
                 .save(pFinishedRecipeConsumer, getSmeltingRecipeName(result));
         }
     }
@@ -77,8 +105,7 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
     protected void slab(Consumer<FinishedRecipe> finishedRecipeConsumer, Block slab, Block... material) {
         RecipeBuilder builder = slabBuilder(slab, Ingredient.of(material));
         for (Block block : material) {
-            //noinspection ConstantConditions
-            builder.unlockedBy("has_" + block.getRegistryName().getNamespace(), has(block));
+            builder.unlockedBy("has_" + getHasName(block), has(block));
         }
 
         builder.save(finishedRecipeConsumer);
@@ -102,8 +129,7 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
         RecipeBuilder builder = craft8 ? betterStairBuilder(stairs, Ingredient.of(material)) : stairBuilder(stairs, Ingredient.of(material));
 
         for (Block block : material) {
-            //noinspection ConstantConditions
-            builder.unlockedBy("has_" + block.getRegistryName().getNamespace(), has(block));
+            builder.unlockedBy("has_" + getHasName(block), has(block));
         }
 
         builder.save(finishedRecipeConsumer);
@@ -121,16 +147,16 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
     protected void stairsToBlock(Consumer<FinishedRecipe> finishedRecipeConsumer, Block stair, Block block) {
         ShapelessRecipeBuilder.shapeless(block, 3)
             .requires(stair, 4)
-            .unlockedBy("has_" + stair.getRegistryName().getNamespace(), has(stair))
-            .save(finishedRecipeConsumer, new ResourceLocation(block.getRegistryName().getNamespace(), "stairs_to_block_" + block.getRegistryName().getPath()));
+            .unlockedBy("has_" + getHasName(stair), has(stair))
+            .save(finishedRecipeConsumer, new ResourceLocation(rl(block).getNamespace(), "stairs_to_block/" + rl(block).getPath()));
     }
 
     @SuppressWarnings("ConstantConditions")
     protected void slabsToBlock(Consumer<FinishedRecipe> finishedRecipeConsumer, Block slab, Block block) {
         ShapelessRecipeBuilder.shapeless(block, 1)
             .requires(slab, 2)
-            .unlockedBy("has_" + slab.getRegistryName().getNamespace(), has(slab))
-            .save(finishedRecipeConsumer, new ResourceLocation(block.getRegistryName().getNamespace(), "slabs_to_block_" + block.getRegistryName().getPath()));
+            .unlockedBy("has_" + getHasName(slab), has(slab))
+            .save(finishedRecipeConsumer, new ResourceLocation(rl(block).getNamespace(), "slabs_to_block/" + rl(block).getPath()));
     }
 
     protected void sword(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike sword) {
@@ -343,7 +369,7 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
 
     protected void nineStorage(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, ItemLike packedMaterial) {
         if (material.getItems().length == 0) {
-            throw new IllegalStateException("No Item in material ingredient of recipe: " + packedMaterial.asItem().getRegistryName());
+            throw new IllegalStateException("No Item in material ingredient of recipe: " + rl(packedMaterial));
         }
         ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(packedMaterial)
             .pattern("XXX")

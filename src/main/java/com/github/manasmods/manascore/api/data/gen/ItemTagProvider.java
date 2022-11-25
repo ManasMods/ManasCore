@@ -5,8 +5,9 @@
 package com.github.manasmods.manascore.api.data.gen;
 
 import net.minecraft.data.tags.ItemTagsProvider;
-import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
+import net.minecraftforge.data.event.GatherDataEvent;
 import org.jetbrains.annotations.ApiStatus.AvailableSince;
+import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 
 @AvailableSince("1.0.0.0")
 public abstract class ItemTagProvider extends ItemTagsProvider {
@@ -20,5 +21,6 @@ public abstract class ItemTagProvider extends ItemTagsProvider {
         generate();
     }
 
+    @OverrideOnly
     protected abstract void generate();
 }

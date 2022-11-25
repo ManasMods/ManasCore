@@ -15,6 +15,7 @@ plugins {
     id 'net.darkhax.curseforgegradle' version '1.0.11'
     id "com.modrinth.minotaur" version "2.+"
     id 'maven-publish'
+    id "io.freefair.lombok" version "6.6-rc1"
 }
 
 apply plugin: 'org.spongepowered.mixin'
@@ -156,17 +157,8 @@ repositories {
 }
 
 dependencies {
-    // Specify the version of Minecraft to use. If this is any group other than 'net.minecraft' it is assumed
-    // that the dep is a ForgeGradle 'patcher' dependency, and its patches will be applied.
-    // The userdev artifact is a special name and will get all sorts of transformations applied to it.
     minecraft "net.minecraftforge:forge:${minecraftVersion}-${forgeVersion}"
-
-    compileOnly 'org.projectlombok:lombok:1.18.22'
-    annotationProcessor 'org.projectlombok:lombok:1.18.22'
-
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-
-    runtimeOnly fg.deobf('com.github.manasmods:unordinary-basics:1.18.2-1.0.1.2')
 }
 
 // Example for how to get properties into the manifest for reading at runtime.
@@ -191,12 +183,25 @@ def replaceResources = tasks.register("replaceResources", Copy) {
     //Copy it into the build dir
     it.from(sourceSets.main.resources) {
         def forgeLoaderVersion = forgeVersion.substring(0, forgeVersion.indexOf('.'))
+        def nextMinecraftVersion = getNextMajorMinecraftVersion(minecraftVersion)
+        def minecraftVersionCheck = "[${minecraftVersion},${nextMinecraftVersion})"
 
         include "META-INF/mods.toml"
-        expand 'modVersion': "${modVersion}", 'forgeLoaderVersion': "[${forgeLoaderVersion},)", 'minecraftVersionCheck':
-                "${minecraftVersionCheck}", 'modId': "${modId}"
+        expand 'modVersion': "${modVersion}",
+                'forgeLoaderVersion': "[${forgeLoaderVersion},)",
+                'minecraftVersionCheck': "${minecraftVersionCheck}",
+                'modId': "${modId}"
     }
     it.into "$buildDir/resources/main/"
+}
+
+static String getNextMajorMinecraftVersion(String currentVersion) {
+    def version = currentVersion.substring(0, currentVersion.indexOf('.'))
+    def majorVersion = currentVersion.substring(currentVersion.indexOf('.') + 1, currentVersion.indexOf('.', currentVersion.indexOf('.') + 1))
+    def majorInt = Integer.valueOf(majorVersion)
+    majorInt++
+    majorVersion = majorInt.toString()
+    return "${version}.${majorVersion}"
 }
 
 processResources {

@@ -7,8 +7,11 @@ package com.github.manasmods.manascore.api.data.gen;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.client.model.generators.ModelFile;
-import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
+import net.minecraftforge.data.event.GatherDataEvent;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.ApiStatus.AvailableSince;
+import org.jetbrains.annotations.ApiStatus.NonExtendable;
+import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 
 import java.util.Objects;
 
@@ -19,6 +22,7 @@ public abstract class ItemModelProvider extends net.minecraftforge.client.model.
         super(gatherDataEvent.getGenerator(), modId, gatherDataEvent.getExistingFileHelper());
     }
 
+    @OverrideOnly
     protected abstract void generate();
 
     @Override
@@ -26,6 +30,17 @@ public abstract class ItemModelProvider extends net.minecraftforge.client.model.
         generate();
     }
 
+    @AvailableSince("2.0.0.0")
+    @NonExtendable
+    protected final ResourceLocation rl(Item item) {
+        return Objects.requireNonNull(ForgeRegistries.ITEMS.getKey(item));
+    }
+
+    @AvailableSince("2.0.0.0")
+    @NonExtendable
+    protected final String name(Item item) {
+        return rl(item).getPath();
+    }
 
     /**
      * Generates the item model json file.
@@ -45,9 +60,9 @@ public abstract class ItemModelProvider extends net.minecraftforge.client.model.
      * @param textureItem the texture providing {@link Item}
      */
     protected void singleTexture(Item item, Item textureItem) {
-        getBuilder(Objects.requireNonNull(item.getRegistryName()).getPath())
+        getBuilder(name(item))
             .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
-            .texture("layer0", new ResourceLocation(Objects.requireNonNull(textureItem.getRegistryName()).getNamespace(), "item/" + textureItem.getRegistryName().getPath()));
+            .texture("layer0", new ResourceLocation(rl(textureItem).getNamespace(), "item/" + name(item)));
     }
 
     /**
@@ -68,8 +83,8 @@ public abstract class ItemModelProvider extends net.minecraftforge.client.model.
      * @param textureItem the texture providing {@link Item}
      */
     protected void handheldSingleTexture(Item item, Item textureItem) {
-        getBuilder(Objects.requireNonNull(item.getRegistryName()).getPath())
+        getBuilder(name(item))
             .parent(new ModelFile.UncheckedModelFile(mcLoc("item/handheld")))
-            .texture("layer0", new ResourceLocation(Objects.requireNonNull(textureItem.getRegistryName()).getNamespace(), "item/" + textureItem.getRegistryName().getPath()));
+            .texture("layer0", new ResourceLocation(rl(textureItem).getNamespace(), "item/" + name(item)));
     }
 }

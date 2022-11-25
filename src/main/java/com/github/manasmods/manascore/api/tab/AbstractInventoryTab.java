@@ -16,7 +16,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.util.FormattedCharSequence;
 import org.jetbrains.annotations.ApiStatus.AvailableSince;
 
@@ -35,7 +34,7 @@ public abstract class AbstractInventoryTab extends Button implements IInventoryT
     private TabPosition position;
 
     public AbstractInventoryTab(MutableComponent tooltip, MutableComponent... tooltips) {
-        super(0, 0, TAB_WIDTH, TAB_HEIGHT, new TextComponent(""), pButton -> {
+        super(0, 0, TAB_WIDTH, TAB_HEIGHT, Component.empty(), pButton -> {
             AbstractInventoryTab tab = (AbstractInventoryTab) pButton;
             tab.sendOpenContainerPacket();
         }, (pButton, pPoseStack, pMouseX, pMouseY) -> {

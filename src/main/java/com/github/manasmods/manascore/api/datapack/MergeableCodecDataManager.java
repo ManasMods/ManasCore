@@ -23,7 +23,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.ApiStatus.AvailableSince;
 
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
@@ -92,12 +91,8 @@ public class MergeableCodecDataManager<RAW, FINE> extends SimplePreparableReload
         final Map<ResourceLocation, FINE> map = new HashMap<>();
 
         Map<ResourceLocation, List<Resource>> resourceStacks = new HashMap<>();
-        resourceManager.listResources(this.folderName, id -> id.endsWith(JSON_EXTENSION)).forEach(location -> {
-            try {
-                resourceStacks.put(location, resourceManager.getResources(location));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        resourceManager.listResources(this.folderName, id -> id.toDebugFileName().endsWith(JSON_EXTENSION)).forEach((location, resource) -> {
+            resourceStacks.put(location, resourceManager.getResourceStack(location));
         });
 
         for (var entry : resourceStacks.entrySet()) {
@@ -109,13 +104,13 @@ public class MergeableCodecDataManager<RAW, FINE> extends SimplePreparableReload
                 fullPath.substring(this.folderName.length() + 1, fullPath.length() - JSON_EXTENSION_LENGTH));
 
             for (Resource resource : entry.getValue()) {
-                try (Reader reader = new InputStreamReader(resource.getInputStream())) {
+                try (Reader reader = new InputStreamReader(resource.open())) {
                     JsonElement jsonElement = JsonParser.parseReader(reader);
                     this.codec.parse(JsonOps.INSTANCE, jsonElement)
-                        .resultOrPartial(errorMsg -> LOGGER.error("Error deserializing json {} in folder {} from pack {}: {}", id, this.folderName, resource.getLocation().getNamespace(), errorMsg))
+                        .resultOrPartial(errorMsg -> LOGGER.error("Error deserializing json {} in folder {} from pack {}: {}", id, this.folderName, resource.sourcePackId(), errorMsg))
                         .ifPresent(raws::add);
                 } catch (Exception e) {
-                    LOGGER.error(String.format(Locale.ENGLISH, "Error reading resource %s in folder %s from pack %s: ", id, this.folderName, resource.getLocation().getNamespace()), e);
+                    LOGGER.error(String.format(Locale.ENGLISH, "Error reading resource %s in folder %s from pack %s: ", id, this.folderName, resource.sourcePackId()), e);
                 }
             }
             map.put(id, merger.apply(raws));
