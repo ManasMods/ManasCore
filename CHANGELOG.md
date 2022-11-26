@@ -1,10 +1,6 @@
+# 2.0.1.0
+- add `@GenerateModels` Annotation
+- add `@SingleTextureModel` Annotation to generate a `singleTexture` model for the annotated registry object field
+- add `@SingleHandheldTextureModel` Annotation to generate a `handheldSingleTexture` model for the annotated registry object field
 # 2.0.0.0
 - port to 1.19.2
-# 1.0.2.0
-- add `ItemComparator` and `ItemComparator.Builder` to sort Items based on an easy-to-use rule set 
-# 1.0.1.1
-- fix small issue in `FontRenderHelper` that caused the scaling factor finder to result in smaller texts then needed
-# 1.0.1.0
-- add `FontRenderHelper` to allow texts in GUIs to get resized until they fit into an Area
-# 1.0.0.0
-- Initial release
