@@ -1,3 +1,5 @@
+# 2.0.4.0
+- automatically load known block in BlockLoot using the `WithLootTables` annotation
 # 2.0.3.0
 - add `@GenerateBlockLoot` 
 - add extended `BlockLoot` class 
