@@ -5,6 +5,13 @@
 package com.github.manasmods.manascore.api.data.gen;
 
 import com.github.manasmods.manascore.ManasCore;
+import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockModels.CubeAllModel;
+import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockModels.PillarModel;
+import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockModels.SlabModel;
+import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockModels.StairModel;
+import com.github.manasmods.manascore.api.data.gen.annotation.GenerateItemModels;
+import com.github.manasmods.manascore.api.util.ReflectionUtils;
+import lombok.extern.log4j.Log4j2;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
@@ -19,16 +26,28 @@ import net.minecraftforge.client.model.generators.ConfiguredModel;
 import net.minecraftforge.client.model.generators.ModelFile;
 import net.minecraftforge.client.model.generators.ModelFile.UncheckedModelFile;
 import net.minecraftforge.data.event.GatherDataEvent;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.forgespi.language.ModFileScanData.AnnotationData;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.ApiStatus.AvailableSince;
 import org.jetbrains.annotations.ApiStatus.NonExtendable;
 import org.jetbrains.annotations.ApiStatus.OverrideOnly;
+import org.objectweb.asm.Type;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 @AvailableSince("1.0.0.0")
 @SuppressWarnings("unused")
+@Log4j2
 public abstract class BlockStateProvider extends net.minecraftforge.client.model.generators.BlockStateProvider {
+    private static final Type GEN_MODELS = Type.getType(GenerateItemModels.class);
 
     public BlockStateProvider(final GatherDataEvent gatherDataEvent, String modId) {
         super(gatherDataEvent.getGenerator(), modId, gatherDataEvent.getExistingFileHelper());
@@ -37,10 +56,144 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
     @OverrideOnly
     protected abstract void generate();
 
-
+    @NonExtendable
     @Override
     protected final void registerStatesAndModels() {
         generate();
+        final List<AnnotationData> annotations = new ArrayList<>();
+        ModList.get().forEachModFile(modFile -> {
+            modFile.getScanResult().getAnnotations()
+                .stream()
+                .filter(annotationData -> GEN_MODELS.equals(annotationData.annotationType()))
+                .forEach(annotations::add);
+        });
+        generateAnnotationModels(annotations);
+    }
+
+    @NonExtendable
+    private void generateAnnotationModels(List<AnnotationData> annotations) {
+        annotations.forEach(annotationData -> {
+            Class<?> clazz = null;
+            try {
+                clazz = Class.forName(annotationData.clazz().getClassName());
+            } catch (ClassNotFoundException e) {
+                log.error("Could not load class " + annotationData.clazz().getClassName());
+                log.throwing(e);
+            }
+            if (clazz == null) return;
+
+            List<Field> blockRegistryObjectFieldList = Arrays.stream(clazz.getDeclaredFields())
+                .filter(field -> Modifier.isStatic(field.getModifiers()))
+                .filter(field -> field.getType().equals(RegistryObject.class))
+                .filter(field -> {
+                    ParameterizedType registryObjectType = null;
+                    try {
+                        registryObjectType = ((ParameterizedType) field.getGenericType());
+                    } catch (ClassCastException e) {
+                        log.error("Could not load generic type of field " + field.getName() + " in " + annotationData.clazz().getClassName());
+                        log.throwing(e);
+                    }
+                    if (registryObjectType == null) return false;
+
+                    Class<?> registryObjectClass = null;
+                    try {
+                        registryObjectClass = (Class<?>) registryObjectType.getActualTypeArguments()[0];
+                    } catch (ClassCastException e) {
+                        log.error("Could not load generic type of field " + field.getName() + " in " + annotationData.clazz().getClassName() + ".");
+                        log.throwing(e);
+                    }
+                    if (registryObjectClass == null) return false;
+
+                    return Block.class.isAssignableFrom(registryObjectClass);
+                })
+                .toList();
+
+            generateCubeAllModels(annotationData, blockRegistryObjectFieldList);
+            generatePillarModels(annotationData, blockRegistryObjectFieldList);
+            generateStairModels(annotationData, blockRegistryObjectFieldList);
+            generateSlabModels(annotationData, blockRegistryObjectFieldList);
+        });
+    }
+
+    @NonExtendable
+    private void generateCubeAllModels(AnnotationData annotationData, List<Field> blockRegistryObjectFieldList) {
+        for (Field registryObjectField : blockRegistryObjectFieldList) {
+            if (!registryObjectField.isAnnotationPresent(CubeAllModel.class)) continue;
+            RegistryObject<Block> registryObject = ReflectionUtils.getRegistryObjectFromField(annotationData, registryObjectField, Block.class);
+
+            if (registryObject == null) continue;
+            CubeAllModel annotation = registryObjectField.getAnnotation(CubeAllModel.class);
+            // Generate default model
+            if (annotation.value().isEmpty() || annotation.value().isBlank()) {
+                log.debug("Generating block model for registry object {}", registryObject.getId());
+                defaultBlock(registryObject.get());
+                continue;
+            }
+
+            ResourceLocation itemId = ResourceLocation.tryParse(annotation.value());
+            Block textureBlock = ForgeRegistries.BLOCKS.getValue(itemId);
+            if (textureBlock == null) {
+                log.error("Could not find texture block {} for block {}", itemId, registryObject.getId());
+                continue;
+            }
+
+            log.debug("Generating block model for registry object {} with texture of {}", registryObject.getId(), itemId);
+            defaultBlock(registryObject.get(), textureBlock);
+        }
+    }
+
+    @NonExtendable
+    private void generatePillarModels(AnnotationData annotationData, List<Field> blockRegistryObjectFieldList) {
+        for (Field registryObjectField : blockRegistryObjectFieldList) {
+            if (!registryObjectField.isAnnotationPresent(PillarModel.class)) continue;
+            RegistryObject<Block> registryObject = ReflectionUtils.getRegistryObjectFromField(annotationData, registryObjectField, Block.class);
+            if (registryObject == null) continue;
+            // Generate default model
+            log.debug("Generating block model for registry object {}", registryObject.getId());
+            pillar(registryObject.get());
+        }
+    }
+
+    @NonExtendable
+    private void generateStairModels(AnnotationData annotationData, List<Field> blockRegistryObjectFieldList) {
+        for (Field registryObjectField : blockRegistryObjectFieldList) {
+            if (!registryObjectField.isAnnotationPresent(StairModel.class)) continue;
+            RegistryObject<Block> registryObject = ReflectionUtils.getRegistryObjectFromField(annotationData, registryObjectField, Block.class);
+
+            if (registryObject == null) continue;
+            StairModel annotation = registryObjectField.getAnnotation(StairModel.class);
+            // Generate default model
+            ResourceLocation itemId = ResourceLocation.tryParse(annotation.value());
+            Block textureBlock = ForgeRegistries.BLOCKS.getValue(itemId);
+            if (textureBlock == null) {
+                log.error("Could not find texture block {} for block {}", itemId, registryObject.getId());
+                continue;
+            }
+
+            log.debug("Generating block model for registry object {} with texture of {}", registryObject.getId(), itemId);
+            stairs(registryObject.get(), textureBlock);
+        }
+    }
+
+    @NonExtendable
+    private void generateSlabModels(AnnotationData annotationData, List<Field> blockRegistryObjectFieldList) {
+        for (Field registryObjectField : blockRegistryObjectFieldList) {
+            if (!registryObjectField.isAnnotationPresent(SlabModel.class)) continue;
+            RegistryObject<Block> registryObject = ReflectionUtils.getRegistryObjectFromField(annotationData, registryObjectField, Block.class);
+
+            if (registryObject == null) continue;
+            SlabModel annotation = registryObjectField.getAnnotation(SlabModel.class);
+            // Generate default model
+            ResourceLocation itemId = ResourceLocation.tryParse(annotation.value());
+            Block textureBlock = ForgeRegistries.BLOCKS.getValue(itemId);
+            if (textureBlock == null) {
+                log.error("Could not find texture block {} for block {}", itemId, registryObject.getId());
+                continue;
+            }
+
+            log.debug("Generating block model for registry object {} with texture of {}", registryObject.getId(), itemId);
+            stairs(registryObject.get(), textureBlock);
+        }
     }
 
     @AvailableSince("2.0.0.0")

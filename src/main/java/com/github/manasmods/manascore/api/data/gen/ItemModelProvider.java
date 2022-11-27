@@ -4,8 +4,9 @@
 
 package com.github.manasmods.manascore.api.data.gen;
 
-import com.github.manasmods.manascore.api.data.gen.GenerateModels.SingleHandheldTextureModel;
-import com.github.manasmods.manascore.api.data.gen.GenerateModels.SingleTextureModel;
+import com.github.manasmods.manascore.api.data.gen.annotation.GenerateItemModels;
+import com.github.manasmods.manascore.api.data.gen.annotation.GenerateItemModels.SingleHandheldTextureModel;
+import com.github.manasmods.manascore.api.data.gen.annotation.GenerateItemModels.SingleTextureModel;
 import com.github.manasmods.manascore.api.util.ReflectionUtils;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.resources.ResourceLocation;
@@ -33,7 +34,7 @@ import java.util.Objects;
 @SuppressWarnings("unused")
 @Log4j2
 public abstract class ItemModelProvider extends net.minecraftforge.client.model.generators.ItemModelProvider {
-    private static final Type GEN_MODELS = Type.getType(GenerateModels.class);
+    private static final Type GEN_MODELS = Type.getType(GenerateItemModels.class);
 
     public ItemModelProvider(final GatherDataEvent gatherDataEvent, String modId) {
         super(gatherDataEvent.getGenerator(), modId, gatherDataEvent.getExistingFileHelper());
@@ -104,7 +105,7 @@ public abstract class ItemModelProvider extends net.minecraftforge.client.model.
     private void generateSingleTextureModels(AnnotationData annotationData, List<Field> itemRegistryObjectFieldList) {
         for (Field registryObjectField : itemRegistryObjectFieldList) {
             if (!registryObjectField.isAnnotationPresent(SingleTextureModel.class)) continue;
-            RegistryObject<Item> registryObject = ReflectionUtils.getRegistryObjectFromField(annotationData, registryObjectField);
+            RegistryObject<Item> registryObject = ReflectionUtils.getRegistryObjectFromField(annotationData, registryObjectField, Item.class);
 
             if (registryObject == null) continue;
             SingleTextureModel annotation = registryObjectField.getAnnotation(SingleTextureModel.class);
@@ -131,7 +132,7 @@ public abstract class ItemModelProvider extends net.minecraftforge.client.model.
     private void generateSingleHandheldTextureModels(AnnotationData annotationData, List<Field> itemRegistryObjectFieldList) {
         for (Field registryObjectField : itemRegistryObjectFieldList) {
             if (!registryObjectField.isAnnotationPresent(SingleHandheldTextureModel.class)) continue;
-            RegistryObject<Item> registryObject = ReflectionUtils.getRegistryObjectFromField(annotationData, registryObjectField);
+            RegistryObject<Item> registryObject = ReflectionUtils.getRegistryObjectFromField(annotationData, registryObjectField, Item.class);
 
             if (registryObject == null) continue;
             SingleHandheldTextureModel annotation = registryObjectField.getAnnotation(SingleHandheldTextureModel.class);
