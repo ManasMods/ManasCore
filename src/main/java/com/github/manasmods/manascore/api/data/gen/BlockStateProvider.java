@@ -5,11 +5,11 @@
 package com.github.manasmods.manascore.api.data.gen;
 
 import com.github.manasmods.manascore.ManasCore;
+import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockModels;
 import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockModels.CubeAllModel;
 import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockModels.PillarModel;
 import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockModels.SlabModel;
 import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockModels.StairModel;
-import com.github.manasmods.manascore.api.data.gen.annotation.GenerateItemModels;
 import com.github.manasmods.manascore.api.util.ReflectionUtils;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.core.Direction;
@@ -47,7 +47,7 @@ import java.util.Objects;
 @SuppressWarnings("unused")
 @Log4j2
 public abstract class BlockStateProvider extends net.minecraftforge.client.model.generators.BlockStateProvider {
-    private static final Type GEN_ANNOTATION = Type.getType(GenerateItemModels.class);
+    private static final Type GEN_ANNOTATION = Type.getType(GenerateBlockModels.class);
 
     public BlockStateProvider(final GatherDataEvent gatherDataEvent, String modId) {
         super(gatherDataEvent.getGenerator(), modId, gatherDataEvent.getExistingFileHelper());

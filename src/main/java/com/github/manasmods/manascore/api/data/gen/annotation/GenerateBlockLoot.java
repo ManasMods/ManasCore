@@ -18,6 +18,11 @@ public @interface GenerateBlockLoot {
     @AvailableSince("2.0.3.0")
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
+    @interface WithLootTables {}
+
+    @AvailableSince("2.0.3.0")
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
     @interface SelfDrop {}
 
     @AvailableSince("2.0.3.0")

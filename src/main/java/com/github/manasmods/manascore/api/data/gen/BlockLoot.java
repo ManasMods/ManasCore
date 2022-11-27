@@ -4,13 +4,14 @@
 
 package com.github.manasmods.manascore.api.data.gen;
 
+import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockLoot;
 import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockLoot.DoorDrop;
 import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockLoot.LeavesDrop;
 import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockLoot.OreDrop;
 import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockLoot.OtherDrop;
 import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockLoot.SelfDrop;
 import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockLoot.SlabDrop;
-import com.github.manasmods.manascore.api.data.gen.annotation.GenerateItemModels;
+import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockLoot.WithLootTables;
 import com.github.manasmods.manascore.api.util.ReflectionUtils;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.resources.ResourceLocation;
@@ -18,6 +19,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.forgespi.language.ModFileScanData.AnnotationData;
+import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.ApiStatus.AvailableSince;
@@ -30,11 +32,17 @@ import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 @AvailableSince("2.0.3.0")
 @Log4j2
 public abstract class BlockLoot extends net.minecraft.data.loot.BlockLoot {
-    private static final Type GEN_ANNOTATION = Type.getType(GenerateItemModels.class);
+    private static final Type GEN_ANNOTATION = Type.getType(GenerateBlockLoot.class);
 
     @NonExtendable
     @Override
@@ -199,4 +207,63 @@ public abstract class BlockLoot extends net.minecraft.data.loot.BlockLoot {
     }
 
     protected abstract void loadTables();
+
+    /**
+     * Gets all {@link DeferredRegister} objects in {@link GenerateBlockLoot} annotated classes with {@link WithLootTables} annotation.
+     */
+    @Override
+    protected Iterable<Block> getKnownBlocks() {
+        return ModList.get().getAllScanData()
+            .stream()
+            .flatMap(modFileScanData -> modFileScanData.getAnnotations().stream())
+            .filter(annotationData -> GEN_ANNOTATION.equals(annotationData.annotationType()))
+            .flatMap(annotationData -> {
+                Class<?> clazz = null;
+                try {
+                    clazz = Class.forName(annotationData.clazz().getClassName());
+                } catch (ClassNotFoundException e) {
+                    log.error("Could not load class " + annotationData.clazz().getClassName());
+                    log.throwing(e);
+                }
+                if (clazz == null) return Stream.of();
+
+                return Arrays.stream(clazz.getDeclaredFields())
+                    .filter(field -> Modifier.isStatic(field.getModifiers()))
+                    .filter(field -> field.getType().equals(DeferredRegister.class))
+                    .filter(field -> {
+                        ParameterizedType registryObjectType = null;
+                        try {
+                            registryObjectType = ((ParameterizedType) field.getGenericType());
+                        } catch (ClassCastException e) {
+                            log.error("Could not load generic type of field " + field.getName() + " in " + annotationData.clazz().getClassName());
+                            log.throwing(e);
+                        }
+                        if (registryObjectType == null) return false;
+
+                        Class<?> registryObjectClass = null;
+                        try {
+                            registryObjectClass = (Class<?>) registryObjectType.getActualTypeArguments()[0];
+                        } catch (ClassCastException e) {
+                            log.error("Could not load generic type of field " + field.getName() + " in " + annotationData.clazz().getClassName() + ".");
+                            log.throwing(e);
+                        }
+                        if (registryObjectClass == null) return false;
+
+                        return Block.class.isAssignableFrom(registryObjectClass);
+                    })
+                    .filter(field -> field.isAnnotationPresent(WithLootTables.class))
+                    .map(field -> ReflectionUtils.getDeferredRegisterFromField(annotationData, field, Block.class))
+                    .filter(Objects::nonNull)
+                    .flatMap(blockDeferredRegister -> blockDeferredRegister.getEntries().stream())
+                    .filter(RegistryObject::isPresent)
+                    .filter(distinctBy(blockRegistryObject -> blockRegistryObject))
+                    .map(RegistryObject::get);
+            })
+            .toList();
+    }
+
+    private static <T> Predicate<T> distinctBy(Function<? super T, ?> keyExtractor) {
+        Set<Object> seen = ConcurrentHashMap.newKeySet();
+        return t -> seen.add(keyExtractor.apply(t));
+    }
 }
