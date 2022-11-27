@@ -1,3 +1,5 @@
+# 2.0.2.1
+- fix wrong annotation targets in `@GenerateBlockModels` sub annotations 
 # 2.0.2.0
 - rename `@GenerateModels` Annotation to `@GenerateItemModels`
 - add `@GenerateBlockModels`

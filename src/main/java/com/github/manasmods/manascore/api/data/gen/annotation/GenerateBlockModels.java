@@ -17,7 +17,7 @@ import java.lang.annotation.Target;
 public @interface GenerateBlockModels {
     @AvailableSince("2.0.2.0")
     @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.TYPE)
+    @Target(ElementType.FIELD)
     @interface CubeAllModel {
         /**
          * ResourceLocation to the block providing a Texture
@@ -27,12 +27,12 @@ public @interface GenerateBlockModels {
 
     @AvailableSince("2.0.2.0")
     @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.TYPE)
+    @Target(ElementType.FIELD)
     @interface PillarModel {}
 
     @AvailableSince("2.0.2.0")
     @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.TYPE)
+    @Target(ElementType.FIELD)
     @interface StairModel {
         /**
          * ResourceLocation to the block providing a Texture
@@ -42,7 +42,7 @@ public @interface GenerateBlockModels {
 
     @AvailableSince("2.0.2.0")
     @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.TYPE)
+    @Target(ElementType.FIELD)
     @interface SlabModel {
         /**
          * ResourceLocation to the block providing a Texture
