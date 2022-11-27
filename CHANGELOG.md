@@ -1,3 +1,6 @@
+# 2.0.3.0
+- add `@GenerateBlockLoot` 
+- add extended `BlockLoot` class 
 # 2.0.2.1
 - fix wrong annotation targets in `@GenerateBlockModels` sub annotations 
 # 2.0.2.0

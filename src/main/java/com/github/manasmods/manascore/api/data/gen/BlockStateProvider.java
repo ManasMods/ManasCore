@@ -47,7 +47,7 @@ import java.util.Objects;
 @SuppressWarnings("unused")
 @Log4j2
 public abstract class BlockStateProvider extends net.minecraftforge.client.model.generators.BlockStateProvider {
-    private static final Type GEN_MODELS = Type.getType(GenerateItemModels.class);
+    private static final Type GEN_ANNOTATION = Type.getType(GenerateItemModels.class);
 
     public BlockStateProvider(final GatherDataEvent gatherDataEvent, String modId) {
         super(gatherDataEvent.getGenerator(), modId, gatherDataEvent.getExistingFileHelper());
@@ -64,7 +64,7 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
         ModList.get().forEachModFile(modFile -> {
             modFile.getScanResult().getAnnotations()
                 .stream()
-                .filter(annotationData -> GEN_MODELS.equals(annotationData.annotationType()))
+                .filter(annotationData -> GEN_ANNOTATION.equals(annotationData.annotationType()))
                 .forEach(annotations::add);
         });
         generateAnnotationModels(annotations);
