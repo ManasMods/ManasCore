@@ -33,11 +33,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
+
+import static com.github.manasmods.manascore.api.util.StreamUtils.distinctBy;
 
 @AvailableSince("2.0.3.0")
 @Log4j2
@@ -55,11 +53,11 @@ public abstract class BlockLoot extends net.minecraft.data.loot.BlockLoot {
                 .filter(annotationData -> GEN_ANNOTATION.equals(annotationData.annotationType()))
                 .forEach(annotations::add);
         });
-        generateAnnotationModels(annotations);
+        generateAnnotationLootTables(annotations);
     }
 
     @NonExtendable
-    private void generateAnnotationModels(List<AnnotationData> annotations) {
+    private void generateAnnotationLootTables(List<AnnotationData> annotations) {
         annotations.forEach(annotationData -> {
             Class<?> clazz = null;
             try {
@@ -260,10 +258,5 @@ public abstract class BlockLoot extends net.minecraft.data.loot.BlockLoot {
                     .map(RegistryObject::get);
             })
             .toList();
-    }
-
-    private static <T> Predicate<T> distinctBy(Function<? super T, ?> keyExtractor) {
-        Set<Object> seen = ConcurrentHashMap.newKeySet();
-        return t -> seen.add(keyExtractor.apply(t));
     }
 }

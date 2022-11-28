@@ -1,3 +1,7 @@
+# 2.0.5.0
+- automatically load known entities in EntityLoot using the `WithLootTables` annotation
+- add `@GenerateEntityLoot`
+- add extended `EntityLoot` class
 # 2.0.4.0
 - automatically load known block in BlockLoot using the `WithLootTables` annotation
 # 2.0.3.0
