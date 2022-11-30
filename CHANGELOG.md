@@ -1,3 +1,5 @@
+# 2.0.6.0
+- add `addBlock`, `addItem` and `addEntityType` to `LanguageProvider`
 # 2.0.5.0
 - automatically load known entities in EntityLoot using the `WithLootTables` annotation
 - add `@GenerateEntityLoot`

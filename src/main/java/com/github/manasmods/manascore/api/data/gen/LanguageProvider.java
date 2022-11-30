@@ -5,7 +5,11 @@
 package com.github.manasmods.manascore.api.data.gen;
 
 
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 import net.minecraftforge.data.event.GatherDataEvent;
+import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.ApiStatus.AvailableSince;
 import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 
@@ -25,5 +29,16 @@ public abstract class LanguageProvider extends net.minecraftforge.common.data.La
     @Override
     protected void addTranslations() {
         generate();
+    }
+
+    protected <T extends Block> void addBlock(RegistryObject<T> obj, String value) {
+        add(obj.get(), value);
+    }
+
+    protected <T extends Item> void addItem(RegistryObject<T> obj, String value) {
+        add(obj.get(), value);
+    }
+    protected <T extends EntityType<?>> void addEntityType(RegistryObject<T> obj, String value) {
+        add(obj.get(), value);
     }
 }
