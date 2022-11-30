@@ -1,3 +1,5 @@
+# 2.0.7.0
+- add supplier supporting method of `slab`, `stairs`, `planksFromLogs` and `nineStorage`
 # 2.0.6.0
 - add `addBlock`, `addItem` and `addEntityType` to `LanguageProvider`
 # 2.0.5.0

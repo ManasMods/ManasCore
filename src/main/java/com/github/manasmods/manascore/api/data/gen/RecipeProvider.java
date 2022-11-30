@@ -28,8 +28,10 @@ import org.jetbrains.annotations.ApiStatus.NonExtendable;
 import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 @AvailableSince("1.0.0.0")
 @SuppressWarnings({"unused", "SameParameterValue"})
@@ -96,10 +98,19 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
         }
     }
 
+    protected void slab(Consumer<FinishedRecipe> finishedRecipeConsumer, Supplier<Block> slab, TagKey<Item> tag) {
+        slab(finishedRecipeConsumer, slab.get(), tag);
+    }
+
     protected void slab(Consumer<FinishedRecipe> finishedRecipeConsumer, Block slab, TagKey<Item> tag) {
         RecipeBuilder builder = slabBuilder(slab, Ingredient.of(tag));
         builder.unlockedBy("has_" + tag.location().getNamespace(), has(tag));
         builder.save(finishedRecipeConsumer);
+    }
+
+    @SafeVarargs
+    protected final void slab(Consumer<FinishedRecipe> finishedRecipeConsumer, Supplier<Block> slab, Supplier<Block>... material) {
+        slab(finishedRecipeConsumer, slab.get(), Arrays.stream(material).map(Supplier::get).toArray(Block[]::new));
     }
 
     protected void slab(Consumer<FinishedRecipe> finishedRecipeConsumer, Block slab, Block... material) {
@@ -111,6 +122,10 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
         builder.save(finishedRecipeConsumer);
     }
 
+    protected void stairs(Consumer<FinishedRecipe> finishedRecipeConsumer, Supplier<Block> stairs, TagKey<Item> tag) {
+        stairs(finishedRecipeConsumer, stairs.get(), tag);
+    }
+
     protected void stairs(Consumer<FinishedRecipe> finishedRecipeConsumer, Block stairs, TagKey<Item> tag) {
         stairs(finishedRecipeConsumer, true, stairs, tag);
     }
@@ -119,6 +134,11 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
         RecipeBuilder builder = craft8 ? betterStairBuilder(stairs, Ingredient.of(tag)) : stairBuilder(stairs, Ingredient.of(tag));
         builder.unlockedBy("has_" + tag.location().getNamespace(), has(tag));
         builder.save(finishedRecipeConsumer);
+    }
+
+    @SafeVarargs
+    protected final void stairs(Consumer<FinishedRecipe> finishedRecipeConsumer, Supplier<Block> stairs, Supplier<Block>... material) {
+        stairs(finishedRecipeConsumer, stairs.get(), Arrays.stream(material).map(Supplier::get).toArray(Block[]::new));
     }
 
     protected void stairs(Consumer<FinishedRecipe> finishedRecipeConsumer, Block stairs, Block... material) {
@@ -359,6 +379,18 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
         return getHasName(stack.getItem());
     }
 
+    protected void nineStorage(Consumer<FinishedRecipe> finishedRecipeConsumer, Supplier<ItemLike> material, ItemLike packedMaterial) {
+        nineStorage(finishedRecipeConsumer, material.get(), packedMaterial);
+    }
+
+    protected void nineStorage(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, Supplier<ItemLike> packedMaterial) {
+        nineStorage(finishedRecipeConsumer, material, packedMaterial.get());
+    }
+
+    protected void nineStorage(Consumer<FinishedRecipe> finishedRecipeConsumer, Supplier<ItemLike> material, Supplier<ItemLike> packedMaterial) {
+        nineStorage(finishedRecipeConsumer, material.get(), packedMaterial.get());
+    }
+
     protected void nineStorage(Consumer<FinishedRecipe> finishedRecipeConsumer, ItemLike material, ItemLike packedMaterial) {
         nineStorage(finishedRecipeConsumer, Ingredient.of(material), packedMaterial);
     }
@@ -474,5 +506,9 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
 
     protected void armor(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, ItemLike helmet, ItemLike chestplate, ItemLike leggings, ItemLike boots) {
         armour(finishedRecipeConsumer, material, helmet, chestplate, leggings, boots);
+    }
+
+    protected void planksFromLogs(Consumer<FinishedRecipe> pFinishedRecipeConsumer, Supplier<ItemLike> pPlanks, TagKey<Item> pLogs) {
+        planksFromLogs(pFinishedRecipeConsumer, pPlanks.get(), pLogs);
     }
 }
