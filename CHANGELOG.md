@@ -1,3 +1,6 @@
+# 2.0.8.0
+- add supplier supporting method of `subTag` to ItemTagProvider
+- add supplier supporting method of `mineableWithAxe`, `mineableWithHoe`, `mineableWithPickaxe`, `mineableWithShovel`, `mineableWithAllTools` and `subTag` to BlockTagProvider
 # 2.0.7.0
 - add supplier supporting method of `slab`, `stairs`, `planksFromLogs` and `nineStorage`
 # 2.0.6.0
