@@ -1,3 +1,5 @@
+# 2.0.9.0
+- add `needsNetheriteTool`, `needsDiamondTool`, `needsIronTool`, `needsStoneTool`, `needsWoodenTools` and `needsGoldenTools` to BlockTagProvider
 # 2.0.8.0
 - add supplier supporting method of `subTag` to ItemTagProvider
 - add supplier supporting method of `mineableWithAxe`, `mineableWithHoe`, `mineableWithPickaxe`, `mineableWithShovel`, `mineableWithAllTools` and `subTag` to BlockTagProvider

@@ -8,6 +8,7 @@ import net.minecraft.data.tags.BlockTagsProvider;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
+import net.minecraftforge.common.Tags.Blocks;
 import net.minecraftforge.data.event.GatherDataEvent;
 import org.jetbrains.annotations.ApiStatus.AvailableSince;
 import org.jetbrains.annotations.ApiStatus.NonExtendable;
@@ -81,6 +82,66 @@ public abstract class BlockTagProvider extends BlockTagsProvider {
         mineableWithHoe(blocks);
         mineableWithPickaxe(blocks);
         mineableWithShovel(blocks);
+    }
+
+    @SafeVarargs
+    @NonExtendable
+    protected final void needsNetheriteTool(Supplier<? extends Block>... blocks) {
+        needsNetheriteTool(Arrays.stream(blocks).map(Supplier::get).toArray(Block[]::new));
+    }
+
+    protected void needsNetheriteTool(Block... blocks) {
+        tag(Blocks.NEEDS_NETHERITE_TOOL).add(blocks);
+    }
+
+    @SafeVarargs
+    @NonExtendable
+    protected final void needsDiamondTool(Supplier<? extends Block>... blocks) {
+        needsDiamondTool(Arrays.stream(blocks).map(Supplier::get).toArray(Block[]::new));
+    }
+
+    protected void needsDiamondTool(Block... blocks) {
+        tag(BlockTags.NEEDS_DIAMOND_TOOL).add(blocks);
+    }
+
+    @SafeVarargs
+    @NonExtendable
+    protected final void needsIronTool(Supplier<? extends Block>... blocks) {
+        needsIronTool(Arrays.stream(blocks).map(Supplier::get).toArray(Block[]::new));
+    }
+
+    protected void needsIronTool(Block... blocks) {
+        tag(BlockTags.NEEDS_IRON_TOOL).add(blocks);
+    }
+
+    @SafeVarargs
+    @NonExtendable
+    protected final void needsStoneTool(Supplier<? extends Block>... blocks) {
+        needsStoneTool(Arrays.stream(blocks).map(Supplier::get).toArray(Block[]::new));
+    }
+
+    protected void needsStoneTool(Block... blocks) {
+        tag(BlockTags.NEEDS_STONE_TOOL).add(blocks);
+    }
+
+    @SafeVarargs
+    @NonExtendable
+    protected final void needsWoodenTools(Supplier<? extends Block>... blocks) {
+        needsWoodenTools(Arrays.stream(blocks).map(Supplier::get).toArray(Block[]::new));
+    }
+
+    protected void needsWoodenTools(Block... blocks) {
+        tag(Blocks.NEEDS_WOOD_TOOL).add(blocks);
+    }
+
+    @SafeVarargs
+    @NonExtendable
+    protected final void needsGoldenTools(Supplier<? extends Block>... blocks) {
+        needsGoldenTools(Arrays.stream(blocks).map(Supplier::get).toArray(Block[]::new));
+    }
+
+    protected void needsGoldenTools(Block... blocks) {
+        tag(Blocks.NEEDS_GOLD_TOOL).add(blocks);
     }
 
     @SafeVarargs
