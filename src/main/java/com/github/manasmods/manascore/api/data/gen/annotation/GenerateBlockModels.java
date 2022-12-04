@@ -4,6 +4,7 @@
 
 package com.github.manasmods.manascore.api.data.gen.annotation;
 
+import com.github.manasmods.manascore.api.data.gen.RenderType;
 import org.jetbrains.annotations.ApiStatus.AvailableSince;
 
 import java.lang.annotation.ElementType;
@@ -23,6 +24,8 @@ public @interface GenerateBlockModels {
          * ResourceLocation to the block providing a Texture
          */
         String value() default "";
+
+        RenderType renderType() default RenderType.DEFAULT;
     }
 
     @AvailableSince("2.0.2.0")

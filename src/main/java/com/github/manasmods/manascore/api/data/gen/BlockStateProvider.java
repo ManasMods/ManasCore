@@ -126,7 +126,7 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
             // Generate default model
             if (annotation.value().isEmpty() || annotation.value().isBlank()) {
                 log.debug("Generating block model for registry object {}", registryObject.getId());
-                defaultBlock(registryObject.get());
+                defaultBlock(registryObject.get(), annotation.renderType());
                 continue;
             }
 
@@ -138,7 +138,7 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
             }
 
             log.debug("Generating block model for registry object {} with texture of {}", registryObject.getId(), itemId);
-            defaultBlock(registryObject.get(), textureBlock);
+            defaultBlock(registryObject.get(), textureBlock, annotation.renderType());
         }
     }
 
@@ -219,11 +219,45 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
     /**
      * Generates blockstate, block and item model json file.
      *
+     * @param block      the target {@link Block}
+     * @param renderType the render type
+     */
+    protected void defaultBlock(Block block, RenderType renderType) {
+        defaultBlock(block, block, renderType);
+    }
+
+    /**
+     * Generates blockstate, block and item model json file.
+     *
      * @param block        the target {@link Block}
      * @param textureBlock the texture providing {@link Block}
      */
     protected void defaultBlock(Block block, Block textureBlock) {
-        getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder().modelFile(cubeAll(textureBlock)).build());
+        defaultBlock(block, textureBlock, RenderType.DEFAULT);
+    }
+
+    /**
+     * Generates blockstate, block and item model json file.
+     *
+     * @param block        the target {@link Block}
+     * @param textureBlock the texture providing {@link Block}
+     * @param renderType   the render type
+     */
+    protected void defaultBlock(Block block, Block textureBlock, RenderType renderType) {
+        getVariantBuilder(block).forAllStates(state -> {
+            if (RenderType.DEFAULT.equals(renderType)) {
+                return ConfiguredModel.builder()
+                    .modelFile(cubeAll(textureBlock))
+                    .build();
+            } else {
+                return ConfiguredModel.builder()
+                    .modelFile(models()
+                        .cubeAll(name(textureBlock), blockTexture(textureBlock))
+                        .renderType(renderType.getId()))
+                    .build();
+            }
+        });
+
         itemModels().getBuilder(Objects.requireNonNull(rl(block)).getPath())
             .parent(new UncheckedModelFile(modLoc("block/" + name(block))));
     }
