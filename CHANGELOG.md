@@ -1,3 +1,7 @@
+# 2.0.10.1
+
+- fix issue with `@SlabModel` using the stairs gen method
+
 # 2.0.10.0
 
 - add render type support to `BlockStateProvider#defaultBlock` and `@CubeAllModel` annotation

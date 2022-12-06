@@ -192,7 +192,7 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
             }
 
             log.debug("Generating block model for registry object {} with texture of {}", registryObject.getId(), itemId);
-            stairs(registryObject.get(), textureBlock);
+            slab(registryObject.get(), textureBlock);
         }
     }
 
