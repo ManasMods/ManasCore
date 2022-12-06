@@ -1,3 +1,5 @@
+# 2.0.11.0
+- add sapling model gen method to BlockStateProvider
 # 2.0.10.1
 
 - fix issue with `@SlabModel` using the stairs gen method

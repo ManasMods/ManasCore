@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 @AvailableSince("1.0.0.0")
 @SuppressWarnings("unused")
@@ -451,6 +452,26 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
             .forAllStates(blockState -> ConfiguredModel.builder().modelFile(models().cubeColumn(name(block), textureSides, textureTopBot)).build());
         itemModels().getBuilder(Objects.requireNonNull(rl(block)).getPath())
             .parent(new ModelFile.UncheckedModelFile(modLoc("block/" + name(block))));
+    }
+
+    /**
+     * Generates blockstate, block and item model json file.
+     *
+     * @param sapling sapling block
+     */
+    protected void sapling(Supplier<? extends Block> sapling) {
+        sapling(sapling.get());
+    }
+
+    /**
+     * Generates blockstate, block and item model json file.
+     *
+     * @param sapling sapling block
+     */
+    protected void sapling(Block sapling) {
+        getVariantBuilder(sapling).forAllStates(blockState -> ConfiguredModel.builder().modelFile(models().cross(name(sapling), rl(sapling))).build());
+        itemModels().getBuilder(Objects.requireNonNull(rl(sapling)).getPath())
+            .parent(new ModelFile.UncheckedModelFile(modLoc("block/" + name(sapling))));
     }
 
     private BlockModelBuilder overlayStair(String baseName, ResourceLocation top, ResourceLocation bottom, ResourceLocation side, ResourceLocation overlay) {
