@@ -469,7 +469,7 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
      * @param sapling sapling block
      */
     protected void sapling(Block sapling) {
-        getVariantBuilder(sapling).forAllStates(blockState -> ConfiguredModel.builder().modelFile(models().cross(name(sapling), rl(sapling))).build());
+        getVariantBuilder(sapling).forAllStates(blockState -> ConfiguredModel.builder().modelFile(models().cross(name(sapling), blockTexture(sapling))).build());
         itemModels().getBuilder(Objects.requireNonNull(rl(sapling)).getPath())
             .parent(new ModelFile.UncheckedModelFile(modLoc("block/" + name(sapling))));
     }
