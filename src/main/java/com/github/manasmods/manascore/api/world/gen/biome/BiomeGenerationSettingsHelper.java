@@ -6,6 +6,7 @@ package com.github.manasmods.manascore.api.world.gen.biome;
 
 import lombok.RequiredArgsConstructor;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.world.level.biome.BiomeGenerationSettings;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.carver.ConfiguredWorldCarver;
@@ -18,10 +19,9 @@ import org.jetbrains.annotations.ApiStatus.AvailableSince;
 public class BiomeGenerationSettingsHelper {
     private final BiomeGenerationSettings.Builder biomeGenSettings;
 
-    public BiomeGenerationSettingsHelper() {
-        this.biomeGenSettings = new BiomeGenerationSettings.Builder();
+    public BiomeGenerationSettingsHelper(HolderGetter<PlacedFeature> pPlacedFeatures, HolderGetter<ConfiguredWorldCarver<?>> pWorldCarvers) {
+        this.biomeGenSettings = new BiomeGenerationSettings.Builder(pPlacedFeatures, pWorldCarvers);
     }
-
 
     public static BiomeGenerationSettingsHelper from(BiomeGenerationSettings.Builder biomeGenSettings) {
         return new BiomeGenerationSettingsHelper(biomeGenSettings);
@@ -46,8 +46,8 @@ public class BiomeGenerationSettingsHelper {
         return this;
     }
 
-    public BiomeGenerationSettingsHelper addCarver(GenerationStep.Carving generationStep, Holder<? extends ConfiguredWorldCarver<?>> carver) {
-        biomeGenSettings.addCarver(generationStep, carver);
+    public BiomeGenerationSettingsHelper addCarver(GenerationStep.Carving pCarving, Holder<ConfiguredWorldCarver<?>> pCarver) {
+        biomeGenSettings.addCarver(pCarving, pCarver);
         return this;
     }
 

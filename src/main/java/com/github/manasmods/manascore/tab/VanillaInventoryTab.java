@@ -7,6 +7,7 @@ package com.github.manasmods.manascore.tab;
 import com.github.manasmods.manascore.ManasCore;
 import com.github.manasmods.manascore.api.tab.AbstractInventoryTab;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
@@ -21,12 +22,12 @@ public class VanillaInventoryTab extends AbstractInventoryTab {
     private final ItemStack iconStack = new ItemStack(Blocks.GRASS_BLOCK);
 
     public VanillaInventoryTab() {
-        super(Component.translatable("key.categories.inventory"));
+        super(Tooltip.create(Component.translatable("key.categories.inventory")));
     }
 
     @Override
     protected void renderIcon(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
-        minecraft.getItemRenderer().renderAndDecorateFakeItem(this.iconStack, this.x + 6, this.y + 8);
+        minecraft.getItemRenderer().renderAndDecorateFakeItem(this.iconStack, this.getX() + 6, this.getY() + 8);
     }
 
     @Override

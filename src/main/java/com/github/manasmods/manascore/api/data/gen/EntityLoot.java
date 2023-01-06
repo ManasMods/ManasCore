@@ -9,6 +9,7 @@ import com.github.manasmods.manascore.api.data.gen.annotation.GenerateEntityLoot
 import com.github.manasmods.manascore.api.data.gen.annotation.GenerateEntityLoot.WithLootTables;
 import com.github.manasmods.manascore.api.util.ReflectionUtils;
 import lombok.extern.log4j.Log4j2;
+import net.minecraft.data.loot.packs.VanillaEntityLoot;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraftforge.fml.ModList;
@@ -30,12 +31,12 @@ import java.util.stream.Stream;
 import static com.github.manasmods.manascore.api.util.StreamUtils.distinctBy;
 
 @Log4j2
-public abstract class EntityLoot extends net.minecraft.data.loot.EntityLoot {
+public abstract class EntityLoot extends VanillaEntityLoot {
     private static final Type GEN_ANNOTATION = Type.getType(GenerateEntityLoot.class);
 
     @NonExtendable
     @Override
-    protected final void addTables() {
+    public final void generate() {
         loadTables();
         final List<AnnotationData> annotations = new ArrayList<>();
         ModList.get().forEachModFile(modFile -> {
@@ -105,8 +106,8 @@ public abstract class EntityLoot extends net.minecraft.data.loot.EntityLoot {
 
     @SuppressWarnings("unchecked")
     @Override
-    protected Iterable<EntityType<?>> getKnownEntities() {
-        return (Iterable<EntityType<?>>) (Object) ModList.get().getAllScanData()
+    protected Stream<EntityType<?>> getKnownEntityTypes() {
+        return (Stream<EntityType<?>>) (Object) ModList.get().getAllScanData()
             .stream()
             .flatMap(modFileScanData -> modFileScanData.getAnnotations().stream())
             .filter(annotationData -> GEN_ANNOTATION.equals(annotationData.annotationType()))
@@ -151,7 +152,6 @@ public abstract class EntityLoot extends net.minecraft.data.loot.EntityLoot {
                     .filter(RegistryObject::isPresent)
                     .filter(distinctBy(entityTypeRegistryObject -> entityTypeRegistryObject))
                     .map(RegistryObject::get);
-            })
-            .toList();
+            });
     }
 }

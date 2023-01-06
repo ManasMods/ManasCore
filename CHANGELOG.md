@@ -1,3 +1,11 @@
+# 2.1.0.0
+
+- update to 1.19.3
+
+# 2.0.12.0
+
+- add Cached class for easier object caching
+
 # 2.0.11.1
 
 - fix Sapling model location

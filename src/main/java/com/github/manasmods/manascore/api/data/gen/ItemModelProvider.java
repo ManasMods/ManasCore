@@ -37,7 +37,7 @@ public abstract class ItemModelProvider extends net.minecraftforge.client.model.
     private static final Type GEN_MODELS = Type.getType(GenerateItemModels.class);
 
     public ItemModelProvider(final GatherDataEvent gatherDataEvent, String modId) {
-        super(gatherDataEvent.getGenerator(), modId, gatherDataEvent.getExistingFileHelper());
+        super(gatherDataEvent.getGenerator().getPackOutput(), modId, gatherDataEvent.getExistingFileHelper());
     }
 
     @OverrideOnly

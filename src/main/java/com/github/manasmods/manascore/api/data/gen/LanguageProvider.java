@@ -20,7 +20,7 @@ public abstract class LanguageProvider extends net.minecraftforge.common.data.La
     }
 
     public LanguageProvider(GatherDataEvent gatherDataEvent, String modid, String localeCode) {
-        super(gatherDataEvent.getGenerator(), modid, localeCode);
+        super(gatherDataEvent.getGenerator().getPackOutput(), modid, localeCode);
     }
 
     @OverrideOnly

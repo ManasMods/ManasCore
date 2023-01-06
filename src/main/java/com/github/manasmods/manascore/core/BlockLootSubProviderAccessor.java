@@ -1,19 +1,14 @@
 package com.github.manasmods.manascore.core;
 
-import net.minecraft.data.loot.BlockLoot;
+import net.minecraft.data.loot.BlockLootSubProvider;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(BlockLoot.class)
-public interface BlockLootAccessor {
+@Mixin(BlockLootSubProvider.class)
+public interface BlockLootSubProviderAccessor {
 
     @Accessor("NORMAL_LEAVES_SAPLING_CHANCES")
     static float[] getNormalLeavesSaplingChances() {
-        throw new AssertionError("Could not access NORMAL_LEAVES_SAPLING_CHANCES in Block Loot class");
-    }
-
-    @Accessor("JUNGLE_LEAVES_SAPLING_CHANGES")
-    static float[] getJungleLeavesSaplingChances() {
         throw new AssertionError("Could not access NORMAL_LEAVES_SAPLING_CHANCES in Block Loot class");
     }
 

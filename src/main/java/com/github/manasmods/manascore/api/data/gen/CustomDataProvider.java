@@ -16,9 +16,11 @@ import org.jetbrains.annotations.ApiStatus.AvailableSince;
 import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 import org.jetbrains.annotations.ApiStatus.ScheduledForRemoval;
 
-import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
@@ -42,7 +44,7 @@ public abstract class CustomDataProvider implements DataProvider {
     protected abstract void run(BiConsumer<ResourceLocation, Supplier<JsonElement>> consumer);
 
     @Override
-    public void run(CachedOutput pOutput) {
+    public CompletableFuture<?> run(CachedOutput pOutput) {
         Map<ResourceLocation, Supplier<JsonElement>> map = Maps.newHashMap();
         BiConsumer<ResourceLocation, Supplier<JsonElement>> consumer = (location, jsonElementSupplier) -> {
             Supplier<JsonElement> supplier = map.put(location, jsonElementSupplier);
@@ -53,17 +55,17 @@ public abstract class CustomDataProvider implements DataProvider {
 
         run(consumer);
 
+        List<CompletableFuture<?>> futures = new ArrayList<>();
         map.forEach((location, jsonElementSupplier) -> {
-            Path path = this.generator.getOutputFolder()
+            Path path = this.generator.getPackOutput().getOutputFolder()
                 .resolve("data")
                 .resolve(location.getNamespace())
                 .resolve(this.outputPath)
                 .resolve(location.getPath() + ".json");
-            try {
-                DataProvider.saveStable(pOutput, jsonElementSupplier.get(), path);
-            } catch (IOException e) {
-                log.error("Couldn't save {}", path, e);
-            }
+
+            futures.add(DataProvider.saveStable(pOutput, jsonElementSupplier.get(), path));
         });
+
+        return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new));
     }
 }

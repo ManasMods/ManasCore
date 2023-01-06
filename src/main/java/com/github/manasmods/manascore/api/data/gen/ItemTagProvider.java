@@ -4,6 +4,7 @@
 
 package com.github.manasmods.manascore.api.data.gen;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.tags.ItemTagsProvider;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -19,7 +20,7 @@ import java.util.function.Supplier;
 public abstract class ItemTagProvider extends ItemTagsProvider {
 
     public ItemTagProvider(GatherDataEvent gatherDataEvent, String modId, BlockTagProvider blockTagProvider) {
-        super(gatherDataEvent.getGenerator(), blockTagProvider, modId, gatherDataEvent.getExistingFileHelper());
+        super(gatherDataEvent.getGenerator().getPackOutput(),gatherDataEvent.getLookupProvider(), blockTagProvider, modId, gatherDataEvent.getExistingFileHelper());
     }
 
     @SafeVarargs
@@ -34,7 +35,7 @@ public abstract class ItemTagProvider extends ItemTagsProvider {
     }
 
     @Override
-    protected void addTags() {
+    protected void addTags(HolderLookup.Provider pProvider) {
         generate();
     }
 

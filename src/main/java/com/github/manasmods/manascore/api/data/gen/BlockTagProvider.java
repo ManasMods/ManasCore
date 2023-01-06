@@ -4,11 +4,12 @@
 
 package com.github.manasmods.manascore.api.data.gen;
 
-import net.minecraft.data.tags.BlockTagsProvider;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.Tags.Blocks;
+import net.minecraftforge.common.data.BlockTagsProvider;
 import net.minecraftforge.data.event.GatherDataEvent;
 import org.jetbrains.annotations.ApiStatus.AvailableSince;
 import org.jetbrains.annotations.ApiStatus.NonExtendable;
@@ -20,11 +21,11 @@ import java.util.function.Supplier;
 @AvailableSince("1.0.0.0")
 public abstract class BlockTagProvider extends BlockTagsProvider {
     public BlockTagProvider(GatherDataEvent gatherDataEvent, String modId) {
-        super(gatherDataEvent.getGenerator(), modId, gatherDataEvent.getExistingFileHelper());
+        super(gatherDataEvent.getGenerator().getPackOutput(),gatherDataEvent.getLookupProvider(), modId, gatherDataEvent.getExistingFileHelper());
     }
 
     @Override
-    protected void addTags() {
+    protected void addTags(HolderLookup.Provider pProvider) {
         generate();
     }
 

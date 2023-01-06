@@ -51,7 +51,7 @@ public abstract class BlockStateProvider extends net.minecraftforge.client.model
     private static final Type GEN_ANNOTATION = Type.getType(GenerateBlockModels.class);
 
     public BlockStateProvider(final GatherDataEvent gatherDataEvent, String modId) {
-        super(gatherDataEvent.getGenerator(), modId, gatherDataEvent.getExistingFileHelper());
+        super(gatherDataEvent.getGenerator().getPackOutput(), modId, gatherDataEvent.getExistingFileHelper());
     }
 
     @OverrideOnly

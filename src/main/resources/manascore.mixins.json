@@ -5,8 +5,9 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "manascore.refmap.json",
   "mixins": [
-    "BlockLootAccessor",
-    "ShapedRecipeBuilderAccessor"
+    "BlockLootSubProviderAccessor",
+    "ShapedRecipeBuilderAccessor",
+    "VanillaBlockLootAccessor"
   ],
   "client": [
     "AbstractContainerScreenAccessor"

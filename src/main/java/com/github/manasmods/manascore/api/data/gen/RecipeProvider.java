@@ -8,6 +8,7 @@ import com.github.manasmods.manascore.core.ShapedRecipeBuilderAccessor;
 import net.minecraft.advancements.RequirementsStrategy;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.RecipeBuilder;
+import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
@@ -37,15 +38,15 @@ import java.util.function.Supplier;
 @SuppressWarnings({"unused", "SameParameterValue"})
 public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipeProvider implements IConditionBuilder {
     public RecipeProvider(final GatherDataEvent gatherDataEvent) {
-        super(gatherDataEvent.getGenerator());
+        super(gatherDataEvent.getGenerator().getPackOutput());
     }
 
     @OverrideOnly
-    protected abstract void generate(Consumer<FinishedRecipe> pFinishedRecipeConsumer);
+    protected abstract void generate(Consumer<FinishedRecipe> pWriter);
 
     @Override
-    protected void buildCraftingRecipes(@NotNull Consumer<FinishedRecipe> pFinishedRecipeConsumer) {
-        generate(pFinishedRecipeConsumer);
+    protected void buildRecipes(@NotNull Consumer<FinishedRecipe> pWriter) {
+        generate(pWriter);
     }
 
     @AvailableSince("2.0.0.0")
@@ -72,15 +73,15 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
         return rl(block.asItem());
     }
 
-    protected void allSmeltingRecipes(Consumer<FinishedRecipe> pFinishedRecipeConsumer, Ingredient ingredient, ItemLike result, float exp, int smeltingTicks, int campfireTicks, int smokingTicks) {
-        smeltingRecipe(pFinishedRecipeConsumer, ingredient, result, exp, smeltingTicks);
+    protected void allSmeltingRecipes(Consumer<FinishedRecipe> pFinishedRecipeConsumer, Ingredient ingredient, RecipeCategory recipeCategory, ItemLike result, float exp, int smeltingTicks, int campfireTicks, int smokingTicks) {
+        smeltingRecipe(pFinishedRecipeConsumer, ingredient, recipeCategory, result, exp, smeltingTicks);
         campfireRecipe(pFinishedRecipeConsumer, ingredient, result, exp, campfireTicks);
         smokingRecipe(pFinishedRecipeConsumer, ingredient, result, exp, smokingTicks);
     }
 
-    protected void smeltingRecipe(Consumer<FinishedRecipe> pFinishedRecipeConsumer, Ingredient ingredient, ItemLike result, float exp, int cookingTicks) {
+    protected void smeltingRecipe(Consumer<FinishedRecipe> pFinishedRecipeConsumer, Ingredient ingredient, RecipeCategory recipeCategory, ItemLike result, float exp, int cookingTicks) {
         for (ItemStack itemStack : ingredient.getItems()) {
-            SimpleCookingRecipeBuilder.smelting(ingredient, result, exp, cookingTicks)
+            SimpleCookingRecipeBuilder.smelting(ingredient, recipeCategory, result, exp, cookingTicks)
                 .unlockedBy("has_" + getHasName(itemStack), has(itemStack.getItem()))
                 .save(pFinishedRecipeConsumer, getSmeltingRecipeName(result));
         }
@@ -103,7 +104,7 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
     }
 
     protected void slab(Consumer<FinishedRecipe> finishedRecipeConsumer, Block slab, TagKey<Item> tag) {
-        RecipeBuilder builder = slabBuilder(slab, Ingredient.of(tag));
+        RecipeBuilder builder = slabBuilder(RecipeCategory.BUILDING_BLOCKS, slab, Ingredient.of(tag));
         builder.unlockedBy("has_" + tag.location().getNamespace(), has(tag));
         builder.save(finishedRecipeConsumer);
     }
@@ -114,7 +115,7 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
     }
 
     protected void slab(Consumer<FinishedRecipe> finishedRecipeConsumer, Block slab, Block... material) {
-        RecipeBuilder builder = slabBuilder(slab, Ingredient.of(material));
+        RecipeBuilder builder = slabBuilder(RecipeCategory.BUILDING_BLOCKS, slab, Ingredient.of(material));
         for (Block block : material) {
             builder.unlockedBy("has_" + getHasName(block), has(block));
         }
@@ -156,7 +157,7 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
     }
 
     protected static RecipeBuilder betterStairBuilder(ItemLike pStairs, Ingredient pMaterial) {
-        return ShapedRecipeBuilder.shaped(pStairs, 8)
+        return ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, pStairs, 8)
             .define('#', pMaterial)
             .pattern("#  ")
             .pattern("## ")
@@ -165,7 +166,7 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
 
     @SuppressWarnings("ConstantConditions")
     protected void stairsToBlock(Consumer<FinishedRecipe> finishedRecipeConsumer, Block stair, Block block) {
-        ShapelessRecipeBuilder.shapeless(block, 3)
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.BUILDING_BLOCKS, block, 3)
             .requires(stair, 4)
             .unlockedBy("has_" + getHasName(stair), has(stair))
             .save(finishedRecipeConsumer, new ResourceLocation(rl(block).getNamespace(), "stairs_to_block/" + rl(block).getPath()));
@@ -173,7 +174,7 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
 
     @SuppressWarnings("ConstantConditions")
     protected void slabsToBlock(Consumer<FinishedRecipe> finishedRecipeConsumer, Block slab, Block block) {
-        ShapelessRecipeBuilder.shapeless(block, 1)
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.BUILDING_BLOCKS, block, 1)
             .requires(slab, 2)
             .unlockedBy("has_" + getHasName(slab), has(slab))
             .save(finishedRecipeConsumer, new ResourceLocation(rl(block).getNamespace(), "slabs_to_block/" + rl(block).getPath()));
@@ -200,7 +201,7 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
     }
 
     protected void sword(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, Ingredient stick, ItemLike sword) {
-        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(sword)
+        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, sword)
             .pattern("X")
             .pattern("X")
             .pattern("S")
@@ -230,7 +231,7 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
     }
 
     protected void axe(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, Ingredient stick, ItemLike axe) {
-        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(axe)
+        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, axe)
             .pattern("XX")
             .pattern("XS")
             .pattern(" S")
@@ -260,7 +261,7 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
     }
 
     protected void hoe(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, Ingredient stick, ItemLike hoe) {
-        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(hoe)
+        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, hoe)
             .pattern("XX")
             .pattern(" S")
             .pattern(" S")
@@ -290,7 +291,7 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
     }
 
     protected void pickaxe(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, Ingredient stick, ItemLike pickaxe) {
-        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(pickaxe)
+        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, pickaxe)
             .pattern("XXX")
             .pattern(" S ")
             .pattern(" S ")
@@ -320,7 +321,7 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
     }
 
     protected void shovel(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, Ingredient stick, ItemLike shovel) {
-        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(shovel)
+        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, shovel)
             .pattern("X")
             .pattern("S")
             .pattern("S")
@@ -403,7 +404,7 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
         if (material.getItems().length == 0) {
             throw new IllegalStateException("No Item in material ingredient of recipe: " + rl(packedMaterial));
         }
-        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(packedMaterial)
+        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(RecipeCategory.MISC, packedMaterial)
             .pattern("XXX")
             .pattern("XXX")
             .pattern("XXX")
@@ -420,7 +421,7 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
     }
 
     protected void helmet(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, ItemLike helmet) {
-        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(helmet)
+        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, helmet)
             .pattern("XXX")
             .pattern("X X")
             .define('X', material);
@@ -437,7 +438,7 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
     }
 
     protected void chestplate(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, ItemLike chestplate) {
-        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(chestplate)
+        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, chestplate)
             .pattern("X X")
             .pattern("XXX")
             .pattern("XXX")
@@ -455,7 +456,7 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
     }
 
     protected void leggings(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, ItemLike leggings) {
-        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(leggings)
+        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, leggings)
             .pattern("XXX")
             .pattern("X X")
             .pattern("X X")
@@ -473,7 +474,7 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
     }
 
     protected void boots(Consumer<FinishedRecipe> finishedRecipeConsumer, Ingredient material, ItemLike boots) {
-        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(boots)
+        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, boots)
             .pattern("X X")
             .pattern("X X")
             .define('X', material);
@@ -509,6 +510,6 @@ public abstract class RecipeProvider extends net.minecraft.data.recipes.RecipePr
     }
 
     protected void planksFromLogs(Consumer<FinishedRecipe> pFinishedRecipeConsumer, Supplier<ItemLike> pPlanks, TagKey<Item> pLogs) {
-        planksFromLogs(pFinishedRecipeConsumer, pPlanks.get(), pLogs);
+        planksFromLogs(pFinishedRecipeConsumer, pPlanks.get(), pLogs, 4);
     }
 }

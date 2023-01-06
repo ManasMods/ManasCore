@@ -14,6 +14,7 @@ import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockLoot.
 import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockLoot.WithLootTables;
 import com.github.manasmods.manascore.api.util.ReflectionUtils;
 import lombok.extern.log4j.Log4j2;
+import net.minecraft.data.loot.packs.VanillaBlockLoot;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -39,12 +40,12 @@ import static com.github.manasmods.manascore.api.util.StreamUtils.distinctBy;
 
 @AvailableSince("2.0.3.0")
 @Log4j2
-public abstract class BlockLoot extends net.minecraft.data.loot.BlockLoot {
+public abstract class BlockLoot extends VanillaBlockLoot {
     private static final Type GEN_ANNOTATION = Type.getType(GenerateBlockLoot.class);
 
     @NonExtendable
     @Override
-    protected final void addTables() {
+    protected final void generate() {
         loadTables();
         final List<AnnotationData> annotations = new ArrayList<>();
         ModList.get().forEachModFile(modFile -> {
@@ -188,7 +189,7 @@ public abstract class BlockLoot extends net.minecraft.data.loot.BlockLoot {
             if (registryObject == null) continue;
 
             log.debug("Generating block loot for registry object {}", registryObject.getId());
-            add(registryObject.get(), BlockLoot::createDoorTable);
+            add(registryObject.get(), this::createDoorTable);
         }
     }
 
@@ -200,7 +201,7 @@ public abstract class BlockLoot extends net.minecraft.data.loot.BlockLoot {
             if (registryObject == null) continue;
 
             log.debug("Generating block loot for registry object {}", registryObject.getId());
-            add(registryObject.get(), BlockLoot::createSlabItemTable);
+            add(registryObject.get(), this::createSlabItemTable);
         }
     }
 
