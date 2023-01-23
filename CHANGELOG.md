@@ -1,3 +1,7 @@
+# 2.0.12.0
+
+- allow exact class matching in `ItemComparator`  
+
 # 2.0.11.1
 
 - fix Sapling model location

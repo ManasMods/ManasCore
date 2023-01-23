@@ -43,6 +43,16 @@ public class ItemComparator<T extends Item> {
             });
         }
 
+        public static <T extends Item> Builder<T> firstInstancesOf(Class<? extends Item> type, boolean exact) {
+            if (!exact) return firstInstancesOf(type);
+
+            return new Builder<>((t, t2) -> {
+                if (type == t.getClass() && type != t2.getClass()) return -1;
+                if (type == t2.getClass() && type != t.getClass()) return 1;
+                return 0;
+            });
+        }
+
         public Builder<T> then(BiFunction<T, T, Integer> test) {
             tests.add(test);
             return this;
@@ -52,6 +62,18 @@ public class ItemComparator<T extends Item> {
             tests.add((t, t2) -> {
                 if (type.isInstance(t) && !type.isInstance(t2)) return -1;
                 if (type.isInstance(t2) && !type.isInstance(t)) return 1;
+                return 0;
+            });
+
+            return this;
+        }
+
+        public Builder<T> thenInstancesOf(Class<? extends Item> type, boolean exact) {
+            if (!exact) return thenInstancesOf(type);
+
+            tests.add((t, t2) -> {
+                if (type == t.getClass() && type != t2.getClass()) return -1;
+                if (type == t2.getClass() && type != t.getClass()) return 1;
                 return 0;
             });
 
