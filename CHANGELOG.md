@@ -1,3 +1,6 @@
+# 2.0.13.0
+- add `Crit Chance` Attribute
+- add `Crit Multiplier` Attribute
 # 2.0.12.0
 
 - allow exact class matching in `ItemComparator`  
