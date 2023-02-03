@@ -56,7 +56,7 @@ public class ManasCoreAttributeHandler {
         if (rand.nextFloat() > critChance && !e.isVanillaCritical()) return;
 
         float critMultiplier = (float) e.getEntity().getAttributeValue(ManasCoreAttributes.CRIT_MULTIPLIER.get());
-        float critModifier = e.getDamageModifier() * critMultiplier;
+        float critModifier = (e.getDamageModifier() - 1) * critMultiplier;
 
         e.setDamageModifier(critModifier);
         e.setResult(Event.Result.ALLOW);
