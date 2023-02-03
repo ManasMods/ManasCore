@@ -19,7 +19,7 @@ public class ManasCoreAttributes {
     private static final DeferredRegister<Attribute> registry = DeferredRegister.create(ForgeRegistries.ATTRIBUTES, ManasCore.MOD_ID);
     public static final RegistryObject<Attribute> JUMP_POWER = registry.register("jump_power", () -> new RangedAttribute("manascore.attribute.jump_power.name", 0.42, 0, 800).setSyncable(true));
     public static final RegistryObject<Attribute> CRIT_CHANCE = registry.register("crit_chance", () -> new RangedAttribute("manascore.attribute.crit_chance.name", 0, 0, 100).setSyncable(true));
-    public static final RegistryObject<Attribute> CRIT_MULTIPLIER = registry.register("crit_multiplier", () -> new RangedAttribute("manascore.attribute.crit_multiplier.name", 1.5, 0, 420).setSyncable(true));
+    public static final RegistryObject<Attribute> CRIT_MULTIPLIER = registry.register("crit_multiplier", () -> new RangedAttribute("manascore.attribute.crit_multiplier.name", 1.5, -1.5, 420).setSyncable(true));
 
     @ApiStatus.Internal
     public static void register(final IEventBus modEventBus) {
