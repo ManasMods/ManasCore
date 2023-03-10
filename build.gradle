@@ -49,6 +49,8 @@ minecraft {
 
             property 'forge.enabledGameTestNamespaces', "${modId}"
 
+            property 'mixin.debug.export', 'true'
+
             mods {
                 manascore {
                     source sourceSets.main
@@ -57,7 +59,7 @@ minecraft {
         }
 
         server {
-            workingDirectory project.file('run')
+            workingDirectory project.file('runServer')
 
             // Recommended logging data for a userdev environment
             // The markers can be added/removed as needed separated by commas.
@@ -72,6 +74,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             property 'forge.enabledGameTestNamespaces', "${modId}"
+            arg "nogui"
 
             mods {
                 manascore {
@@ -165,6 +168,13 @@ repositories {
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraftVersion}-${forgeVersion}"
+
+    /* @Professor thing about a way to allow ManasCore Users to use MixinExtras without the need of initializing it
+    minecraftLibrary("com.github.LlamaLad7:MixinExtras:${mixinExtrasVersion}")
+    jarJar "com.github.LlamaLad7:MixinExtras:[${mixinExtrasVersion},)"
+    annotationProcessor("com.github.LlamaLad7:MixinExtras:${mixinExtrasVersion}")
+    */
+
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
     runtimeOnly fg.deobf("curse.maven:TargetDummy-225738:4293885") // https://www.curseforge.com/minecraft/mc-mods/mmmmmmmmmmmm/files/4293885

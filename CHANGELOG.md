@@ -1,9 +1,15 @@
+# 2.0.14.0
+
+- added config to change vanillas anvil EXP limit
+
 # 2.0.13.0
+
 - add `Crit Chance` Attribute
 - add `Crit Multiplier` Attribute
+
 # 2.0.12.0
 
-- allow exact class matching in `ItemComparator`  
+- allow exact class matching in `ItemComparator`
 
 # 2.0.11.1
 

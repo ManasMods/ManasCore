@@ -6,10 +6,12 @@
   "refmap": "manascore.refmap.json",
   "mixins": [
     "BlockLootAccessor",
+    "MixinAnvilMenu",
     "ShapedRecipeBuilderAccessor"
   ],
   "client": [
-    "AbstractContainerScreenAccessor"
+    "AbstractContainerScreenAccessor",
+    "MixinAnvilScreen"
   ],
   "injectors": {
     "defaultRequire": 1
