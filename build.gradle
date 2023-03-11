@@ -187,7 +187,7 @@ tasks.jarJar.configure {
 }
 
 reobf {
-    jarJar { }
+    jarJar {}
 }
 tasks.jarJar.finalizedBy('reobfJarJar')
 
@@ -258,7 +258,7 @@ task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge)
     dependsOn build
 
     apiToken = project.findProperty('curseforge_apikey') ?: System.getenv('CF_TOKEN')
-    def mainFile = upload(619025, jar)
+    def mainFile = upload(619025, tasks.jarJar)
     mainFile.releaseType = 'release'
     mainFile.displayName = "${minecraftVersion}-${modVersion}"
     mainFile.changelog = file('CHANGELOG.md')
@@ -272,7 +272,7 @@ modrinth {
     projectId = "wRRSWpd1"
     versionType = "release"
     versionName = "${minecraftVersion}-${modVersion}"
-    uploadFile = tasks.jar
+    uploadFile = tasks.jarJar
     gameVersions = [project.minecraftVersion]
     loaders = ["forge"]
     changelog = file('CHANGELOG.md').text
@@ -281,7 +281,6 @@ modrinth {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            from components.java
             jarJar.component(it, tasks.jarJar)
         }
     }
