@@ -1,3 +1,8 @@
+# 2.0.15.0
+
+- embed `MixinExtras` to ManasCore
+- automatically initialize `MixinExtras` in runtimes
+
 # 2.0.14.0
 
 - added config to change vanillas anvil EXP limit

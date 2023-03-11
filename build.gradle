@@ -164,16 +164,15 @@ repositories {
             includeGroup "curse.maven"
         }
     }
+
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraftVersion}-${forgeVersion}"
 
-    /* @Professor thing about a way to allow ManasCore Users to use MixinExtras without the need of initializing it
     minecraftLibrary("com.github.LlamaLad7:MixinExtras:${mixinExtrasVersion}")
-    jarJar "com.github.LlamaLad7:MixinExtras:[${mixinExtrasVersion},)"
     annotationProcessor("com.github.LlamaLad7:MixinExtras:${mixinExtrasVersion}")
-    */
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
@@ -181,8 +180,25 @@ dependencies {
     runtimeOnly fg.deobf("curse.maven:MoonlightLib-499980:4377790") // https://www.curseforge.com/minecraft/mc-mods/selene/files/4377790
 }
 
+jarJar.enable()
+
+tasks.jarJar.configure {
+    classifier ''
+}
+
+reobf {
+    jarJar { }
+}
+tasks.jarJar.finalizedBy('reobfJarJar')
+
+dependencies {
+    jarJar "com.github.LlamaLad7:MixinExtras:[${mixinExtrasVersion},)"
+}
+
 // Example for how to get properties into the manifest for reading at runtime.
 jar {
+    classifier 'slim'
+
     manifest {
         attributes([
                 "Specification-Title"     : "manascore",
@@ -265,7 +281,8 @@ modrinth {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifact jar
+            from components.java
+            jarJar.component(it, tasks.jarJar)
         }
     }
     repositories {
