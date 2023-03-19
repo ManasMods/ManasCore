@@ -3,6 +3,8 @@ package com.github.manasmods.manascore.api.client.animation;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.mojang.logging.LogUtils;
+import net.minecraft.util.GsonHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,24 +37,29 @@ public class AnimationDefinition {
     public static AnimationDefinition fromJson(JsonObject object) {
         AnimationDefinition definition = new AnimationDefinition();
 
-        definition.name = object.get("name").getAsString();
+        definition.name = GsonHelper.getAsString(object, "name");
 
         if(object.has("durationTicks")) {
-            definition.durationTicks = object.get("durationTicks").getAsInt();
+            definition.durationTicks = GsonHelper.getAsInt(object, "durationTicks");
         }
 
         if(object.has("cancelable")) {
-            definition.cancelable = object.get("cancelable").getAsBoolean();
+            definition.cancelable = GsonHelper.getAsBoolean(object, "cancelable");
         }
 
-        JsonArray parts = object.getAsJsonArray("parts");
+        JsonArray parts = GsonHelper.getAsJsonArray(object, "parts");
 
         definition.parts = new ArrayList<>();
 
-        for(JsonElement element : parts.asList()) {
-            AnimationPart part = AnimationPart.fromJson(element.getAsJsonObject());
+        try {
+            for(JsonElement element : parts.asList()) {
+                AnimationPart part = AnimationPart.fromJson(element.getAsJsonObject());
 
-            definition.parts.add(part);
+                definition.parts.add(part);
+            }
+        } catch (IllegalStateException ex) {
+            LogUtils.getLogger().error("Expected object, got something else in parts");
+            ex.printStackTrace();
         }
 
         return definition;

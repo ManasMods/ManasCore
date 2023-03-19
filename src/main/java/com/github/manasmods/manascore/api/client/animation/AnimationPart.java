@@ -3,6 +3,9 @@ package com.github.manasmods.manascore.api.client.animation;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import net.minecraft.util.GsonHelper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,44 +34,62 @@ public class AnimationPart {
 
         /**
          * Parameters that are automatically passed to the renderer, these will be taken either from the AnimationPart Shared Value Storage or the global Animation storage
+         * Params have a value, a type and a scope. (Type isnt really used, just as documentation for the expected type)
+         * Valid scopes are:
+         *  - provided => The value is a constant and is read from the config file, may be overridden by the mod in code
+         *  - dynamic => The value is provided by the mod or by minecraft itself
          */
-        private Map<String, Object> params;
+        private Map<String, ConfigValue> params;
+
+        @Data
+        @AllArgsConstructor
+        public static class ConfigValue<T> {
+
+            private T value;
+            private String scope;
+
+        }
     }
 
     public static AnimationPart fromJson(JsonObject object) {
         AnimationPart part = new AnimationPart();
 
-        part.name = object.get("name").getAsString();
+        part.name = GsonHelper.getAsString(object, "name");
 
         if(object.has("abortAnimation")) {
-            object.get("abortAnimation").getAsString();
+            part.abortAnimation = GsonHelper.getAsString(object, "abortAnimation");
         }
 
-        JsonArray parts = object.getAsJsonArray("rendererChain");
+        JsonArray chain = GsonHelper.getAsJsonArray(object, "rendererChain");
 
         part.rendererChain = new ArrayList<>();
 
-        for(JsonElement element : parts.asList()) {
+        for(JsonElement element : chain.asList()) {
+            JsonObject obj = GsonHelper.convertToJsonObject(element, "rendererChain element");
+
             RendererConfig config = new RendererConfig();
-            config.name = element.getAsJsonObject().get("name").getAsString();
+            config.name = GsonHelper.getAsString(obj, "name");
             config.params = new HashMap<>();
 
-            Map<String, JsonElement> paramsMap = element.getAsJsonObject().get("params").getAsJsonObject().asMap();
+            Map<String, JsonElement> paramsMap = GsonHelper.getAsJsonObject(obj, "params").asMap();
 
             for(String paramName : paramsMap.keySet()) {
-                JsonElement param = paramsMap.get(paramName);
+                JsonObject param = GsonHelper.convertToJsonObject(paramsMap.get(paramName), String.format("Renderer %s params element %s", config.name, paramName));
 
-                if(param.isJsonPrimitive()) {
-                    if(param.getAsJsonPrimitive().isString()) {
-                        config.params.put(paramName, param.getAsString());
+                String scope = GsonHelper.getAsString(param, "scope");
+                JsonElement value = param.get("value");
+
+                if(value.isJsonPrimitive()) {
+                    if(value.getAsJsonPrimitive().isString()) {
+                        config.params.put(paramName, new RendererConfig.ConfigValue(value.getAsString(), scope));
                     }
 
-                    if(param.getAsJsonPrimitive().isBoolean()) {
-                        config.params.put(paramName, param.getAsBoolean());
+                    if(value.getAsJsonPrimitive().isBoolean()) {
+                        config.params.put(paramName, new RendererConfig.ConfigValue(value.getAsBoolean(), scope));
                     }
 
-                    if(param.getAsJsonPrimitive().isNumber()) {
-                        config.params.put(paramName, param.getAsNumber());
+                    if(value.getAsJsonPrimitive().isNumber()) {
+                        config.params.put(paramName, new RendererConfig.ConfigValue(value.getAsNumber(), scope));
                     }
                 }
             }
