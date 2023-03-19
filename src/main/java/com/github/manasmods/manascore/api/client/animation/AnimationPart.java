@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import net.minecraft.util.GsonHelper;
 
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.Map;
 /**
  * An animation constitutes a separate part of an animation with its own renderer and shared values
  */
+@Getter
 public class AnimationPart {
 
     /**
@@ -26,6 +28,7 @@ public class AnimationPart {
 
     private String abortAnimation;
 
+    @Getter
     public static class RendererConfig {
         /**
          * The name of the renderer to use

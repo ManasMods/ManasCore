@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.logging.LogUtils;
+import lombok.Getter;
 import net.minecraft.util.GsonHelper;
 
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import java.util.List;
 /**
  * An animation is a semi-entity which renders effects on-screen of every player.
  */
+@Getter
 public class AnimationDefinition {
 
     /**
