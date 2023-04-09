@@ -4,6 +4,7 @@ import com.github.manasmods.manascore.api.client.animation.AnimationDefinition;
 import com.github.manasmods.manascore.api.client.animation.AnimationPart;
 import com.github.manasmods.manascore.api.client.animation.renderer.IAnimationRenderer;
 import com.github.manasmods.manascore.api.client.animation.renderer.RendererRegistry;
+import com.github.manasmods.manascore.api.util.Lookup;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -14,13 +15,14 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class AnimationManager extends SimpleJsonResourceReloadListener {
 
@@ -72,7 +74,39 @@ public class AnimationManager extends SimpleJsonResourceReloadListener {
 
                 IAnimationRenderer renderer = RendererRegistry.REGISTRY.get().getValue(resourceLocation);
 
-                CompiledAnimationPart.CompiledRendererConfig compiledRendererConfig = new CompiledAnimationPart.CompiledRendererConfig(rendererConfig.getName(), renderer, rendererConfig.getParams());
+                //Create fast storage
+                Lookup lookup = null;
+
+                if(FMLEnvironment.dist.isClient()) {
+                    lookup = Lookup.create(rendererConfig);
+                }
+
+                CompiledAnimationPart.CompiledRendererConfig compiledRendererConfig = new CompiledAnimationPart.CompiledRendererConfig(rendererConfig.getName(), renderer, lookup, rendererConfig.getParams());
+
+                List<AnimationPart.RendererConfig.ConfigValue> configValues = compiledRendererConfig.getParams().values().stream().sorted(Comparator.comparingInt(AnimationPart.RendererConfig.ConfigValue::getPosition)).collect(Collectors.toList());
+
+                if(FMLEnvironment.dist.isClient()) {
+                    Method renderMethod = null;
+
+                    for(Method method : Objects.requireNonNull(renderer).getClass().getMethods()) {
+                        if(method.getName().equalsIgnoreCase("render")) {
+                            //First 3 params are always PoseStack, MultiBufferSource and RunningAnimation
+                            for(int i = 3; i < method.getParameterCount(); i++) {
+                                int j = i - 3;
+
+                                Parameter parameter = method.getParameters()[i];
+
+                                if(configValues.get(j).getValue() != null && !configValues.get(j).getValue().getClass().equals(parameter.getType())) {
+                                    throw new RuntimeException(String.format("Type %s doesn't equal type %s from config", parameter.getType(), configValues.get(j).getValue().getClass()));
+                                }
+                            }
+
+                            renderMethod = method;
+                        }
+                    }
+
+                    compiledRendererConfig.setCachedRenderMethod(renderMethod);
+                }
 
                 rendererChain.add(compiledRendererConfig);
             }

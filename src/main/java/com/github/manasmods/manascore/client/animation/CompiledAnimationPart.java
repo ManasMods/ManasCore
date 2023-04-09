@@ -2,10 +2,13 @@ package com.github.manasmods.manascore.client.animation;
 
 import com.github.manasmods.manascore.api.client.animation.AnimationPart;
 import com.github.manasmods.manascore.api.client.animation.renderer.IAnimationRenderer;
+import com.github.manasmods.manascore.api.util.Lookup;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
@@ -30,11 +33,14 @@ public class CompiledAnimationPart {
 
 
     @Data
-    @AllArgsConstructor
+    @RequiredArgsConstructor
     public static class CompiledRendererConfig {
         private final String name;
 
         private final IAnimationRenderer renderer;
+        private Method cachedRenderMethod;
+
+        private final Lookup lookup;
 
         private final Map<String, AnimationPart.RendererConfig.ConfigValue> params;
     }

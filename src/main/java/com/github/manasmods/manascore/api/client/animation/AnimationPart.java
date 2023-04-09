@@ -49,6 +49,7 @@ public class AnimationPart {
         public static class ConfigValue<T> {
 
             private T value;
+            private int position;
             private String scope;
 
         }
@@ -76,6 +77,9 @@ public class AnimationPart {
 
             Map<String, JsonElement> paramsMap = GsonHelper.getAsJsonObject(obj, "params").asMap();
 
+            //Position of the argument
+            int pos = 0;
+
             for(String paramName : paramsMap.keySet()) {
                 JsonObject param = GsonHelper.convertToJsonObject(paramsMap.get(paramName), String.format("Renderer %s params element %s", config.name, paramName));
 
@@ -84,17 +88,19 @@ public class AnimationPart {
 
                 if(value.isJsonPrimitive()) {
                     if(value.getAsJsonPrimitive().isString()) {
-                        config.params.put(paramName, new RendererConfig.ConfigValue(value.getAsString(), scope));
+                        config.params.put(paramName, new RendererConfig.ConfigValue(value.getAsString(), pos, scope));
                     }
 
                     if(value.getAsJsonPrimitive().isBoolean()) {
-                        config.params.put(paramName, new RendererConfig.ConfigValue(value.getAsBoolean(), scope));
+                        config.params.put(paramName, new RendererConfig.ConfigValue(value.getAsBoolean(), pos, scope));
                     }
 
                     if(value.getAsJsonPrimitive().isNumber()) {
-                        config.params.put(paramName, new RendererConfig.ConfigValue(value.getAsNumber(), scope));
+                        config.params.put(paramName, new RendererConfig.ConfigValue(value.getAsNumber(), pos, scope));
                     }
                 }
+
+                pos++;
             }
 
             part.rendererChain.add(config);
