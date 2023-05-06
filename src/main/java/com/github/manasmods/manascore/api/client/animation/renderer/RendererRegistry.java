@@ -1,6 +1,8 @@
 package com.github.manasmods.manascore.api.client.animation.renderer;
 
 import com.github.manasmods.manascore.ManasCore;
+import com.github.manasmods.manascore.client.animation.renderers.TransformResetRenderer;
+import com.github.manasmods.manascore.client.animation.renderers.TransformingRotatingRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
@@ -16,7 +18,11 @@ public class RendererRegistry {
     public static final Supplier<IForgeRegistry<IAnimationRenderer>> REGISTRY = RENDERERS.makeRegistry(RegistryBuilder::new);
 
     public static void register(IEventBus modBus) {
+        //Remember to change IDs in Documentation if you change it here!
+        RENDERERS.register("transformingRenderer", TransformingRotatingRenderer::new);
+        RENDERERS.register("transformReset", TransformResetRenderer::new);
 
+        RENDERERS.register(modBus);
     }
 
 }
