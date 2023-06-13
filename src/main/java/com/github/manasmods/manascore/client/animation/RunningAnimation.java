@@ -1,9 +1,11 @@
 package com.github.manasmods.manascore.client.animation;
 
 import com.github.manasmods.manascore.api.client.animation.AnimationPart;
+import com.github.manasmods.manascore.api.util.Lookup;
 import com.github.manasmods.manascore.api.util.SharedStorage;
 import com.mojang.blaze3d.vertex.PoseStack;
 import lombok.Getter;
+import lombok.Setter;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraftforge.client.event.EntityRenderersEvent;
@@ -16,6 +18,9 @@ import java.util.Map;
 public class RunningAnimation {
 
     private CompiledAnimation animation;
+
+    @Setter
+    private int id;
 
     /**
      * Global variable storage. Use only when you want to share values across all parts.
@@ -38,10 +43,6 @@ public class RunningAnimation {
         }
     }
 
-    public void preTick(Entity entityIn) {
-
-    }
-
     //Run post tick to update arguments
     //Only in client!!
     public void postTick() {
@@ -51,13 +52,22 @@ public class RunningAnimation {
 
                 for(CompiledAnimationPart.CompiledRendererConfig renderer : part.getRendererChain()) {
                     for(String key : renderer.getLookup().getNameToVar().keySet()) {
-                        if(storage.containsKey(key)) {
-                            int i = renderer.getLookup().lookup(key);
+                        Lookup.Argument argument = renderer.getLookup().lookup(key);
 
-                            if(i == -1)
-                                throw new RuntimeException(String.format("Renderer argument %s at Renderer %s in AnimationPart %s in Animation %s has no index!", key, renderer.getName(), part.getName(), animation.getName()));
+                        if(argument == null)
+                            throw new RuntimeException(String.format("Renderer argument %s at Renderer %s in AnimationPart %s in Animation %s has no index!", key, renderer.getName(), part.getName(), animation.getName()));
 
-                            renderer.getLookup().setArgument(i, storage.get(key));
+                        switch (argument.getType()) {
+                            case DERIVED -> {
+                                if(storage.containsKey(argument.getValue())) {
+                                    renderer.getLookup().setArgument(argument.getPosition(), storage.get(argument.getValue()));
+                                }
+                            }
+                            case DYNAMIC -> {
+                                if(storage.containsKey(key)) {
+                                    renderer.getLookup().setArgument(argument.getPosition(), storage.get(key));
+                                }
+                            }
                         }
                     }
                 }
@@ -132,16 +142,8 @@ public class RunningAnimation {
         return this.globalStorage.containsKey(key) || (this.partStorage.containsKey(part) && this.partStorage.get(part).containsKey(key));
     }*/
 
-    public void sync() {
-
-    }
-
     public static RunningAnimation create(CompiledAnimation animation) {
         return new RunningAnimation(animation);
-    }
-
-    public static RunningAnimation createAndRun(CompiledAnimation animation) {
-        return null;
     }
 
 }

@@ -19,6 +19,7 @@ import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
@@ -115,6 +116,15 @@ public class AnimationManager extends SimpleJsonResourceReloadListener {
         }
 
         return new CompiledAnimation(definition.getName(), definition.isCancelable(), definition.getDurationTicks(), compiledAnimationParts);
+    }
+
+    @Nullable
+    public CompiledAnimation getAnimation(ResourceLocation rl) {
+        if(!this.byName.containsKey(rl)) {
+            return null;
+        }
+
+        return this.byName.get(rl);
     }
 
     @Override
