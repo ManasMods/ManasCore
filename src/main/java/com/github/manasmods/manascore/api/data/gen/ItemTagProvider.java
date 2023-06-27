@@ -6,20 +6,23 @@ package com.github.manasmods.manascore.api.data.gen;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.tags.ItemTagsProvider;
+import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 import net.minecraftforge.data.event.GatherDataEvent;
 import org.jetbrains.annotations.ApiStatus.AvailableSince;
 import org.jetbrains.annotations.ApiStatus.NonExtendable;
 import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 @AvailableSince("1.0.0.0")
 public abstract class ItemTagProvider extends ItemTagsProvider {
 
-    public ItemTagProvider(GatherDataEvent gatherDataEvent, String modId, BlockTagProvider blockTagProvider) {
+    public ItemTagProvider(GatherDataEvent gatherDataEvent, String modId, CompletableFuture<TagLookup<Block>> blockTagProvider) {
         super(gatherDataEvent.getGenerator().getPackOutput(),gatherDataEvent.getLookupProvider(), blockTagProvider, modId, gatherDataEvent.getExistingFileHelper());
     }
 

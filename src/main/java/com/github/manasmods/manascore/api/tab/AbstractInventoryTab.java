@@ -39,7 +39,7 @@ public abstract class AbstractInventoryTab extends Button implements IInventoryT
     }
 
     @Override
-    public void renderButton(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+    public void renderWidget(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         RenderSystem.setShaderColor(1f, 1f, 1f, this.alpha);
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
@@ -52,7 +52,7 @@ public abstract class AbstractInventoryTab extends Button implements IInventoryT
     protected abstract void renderIcon(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick);
 
     @Override
-    protected void renderBg(PoseStack pPoseStack, Minecraft pMinecraft, int pMouseX, int pMouseY) {
+    public void renderBg(PoseStack pPoseStack, Minecraft pMinecraft, int pMouseX, int pMouseY) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         this.position.bindTexture();
         float yOffset = this.isCurrent() ? TAB_HEIGHT : 0F;

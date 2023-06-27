@@ -5,6 +5,8 @@
 package com.github.manasmods.manascore.tab;
 
 import com.github.manasmods.manascore.api.tab.AbstractInventoryTab;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -23,4 +25,6 @@ public interface IInventoryTab {
             return tab != null && tab.equals(this);
         };
     }
+
+    void renderBg(PoseStack pPoseStack, Minecraft pMinecraft, int pMouseX, int pMouseY);
 }
