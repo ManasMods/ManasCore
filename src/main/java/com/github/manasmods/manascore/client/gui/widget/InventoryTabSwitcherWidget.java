@@ -28,6 +28,7 @@ public class InventoryTabSwitcherWidget extends GuiComponent implements Renderab
     private final Button prevButton, nextButton;
     private final TreeMap<Integer, AbstractInventoryTab> tabs = new TreeMap<>();
     private final AbstractContainerScreen parent;
+    private boolean isFocused = false;
 
     public InventoryTabSwitcherWidget(AbstractContainerScreen parent, int maxPages) {
         this.parent = parent;
@@ -142,5 +143,15 @@ public class InventoryTabSwitcherWidget extends GuiComponent implements Renderab
             if (this.nextButton.isMouseOver(pMouseX, pMouseY)) this.nextButton.mouseClicked(pMouseX, pMouseY, pButton);
         }
         return false;
+    }
+
+    @Override
+    public void setFocused(boolean focused) {
+        isFocused = focused;
+    }
+
+    @Override
+    public boolean isFocused() {
+        return isFocused;
     }
 }

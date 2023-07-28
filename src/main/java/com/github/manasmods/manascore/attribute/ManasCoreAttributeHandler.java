@@ -34,7 +34,7 @@ public class ManasCoreAttributeHandler {
         //Calculation
         double baseJumpPower = entity.getAttribute(ManasCoreAttributes.JUMP_POWER.get()).getValue();
         float blockModifier0 = entity.level.getBlockState(entityPos).getBlock().getJumpFactor();
-        float blockModifier1 = entity.level.getBlockState(new BlockPos(entityPos.getX(), entity.getBoundingBox().minY - 0.5000001D, entityPos.getZ())).getBlock().getJumpFactor();
+        float blockModifier1 = entity.level.getBlockState(new BlockPos(entityPos.getX(), (int)(entity.getBoundingBox().minY - 0.5000001D), entityPos.getZ())).getBlock().getJumpFactor();
         double blockModifier = (double) blockModifier0 == 1.0D ? blockModifier1 : blockModifier0;
         double jumpPower = baseJumpPower * blockModifier;
         final double verticalVelocity = jumpPower + entity.getJumpBoostPower();

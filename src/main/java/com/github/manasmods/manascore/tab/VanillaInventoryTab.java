@@ -27,7 +27,7 @@ public class VanillaInventoryTab extends AbstractInventoryTab {
 
     @Override
     protected void renderIcon(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
-        minecraft.getItemRenderer().renderAndDecorateFakeItem(this.iconStack, this.getX() + 6, this.getY() + 8);
+        minecraft.getItemRenderer().renderAndDecorateFakeItem(pPoseStack, this.iconStack, this.getX() + 6, this.getY() + 8);
     }
 
     @Override
