@@ -13,7 +13,7 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeSpecialEffects;
 import org.jetbrains.annotations.ApiStatus.AvailableSince;
 
-import java.awt.Color;
+import java.awt.*;
 import java.util.Optional;
 
 @AvailableSince("2.0.0.0")
@@ -24,7 +24,6 @@ public class BiomeBuilder {
     private final MobSpawnHelper mobSpawnHelper;
     private final Biome.BiomeBuilder biomeBuilder = new Biome.BiomeBuilder();
     @Setter
-    private Biome.Precipitation rainType = Biome.Precipitation.RAIN;
     private float temperature = 0.8F;
     private float downfall = 0.4F;
     private int waterColor = 4159204;
@@ -74,10 +73,7 @@ public class BiomeBuilder {
         return this;
     }
 
-    public BiomeBuilder rain(Biome.Precipitation rainType) {
-        this.rainType = rainType;
-        return this;
-    }
+    //If you're looking to set the rain type, it seems to have been removed in 1.19.4. It is now based on the temperature of a biome and is not manually set.
 
     public Biome build() {
         BiomeSpecialEffects.Builder specialEffects = new BiomeSpecialEffects.Builder()
@@ -92,7 +88,6 @@ public class BiomeBuilder {
         this.grassColorOverride.ifPresent(specialEffects::grassColorOverride);
 
         return biomeBuilder
-            .precipitation(rainType)
             .temperature(temperature)
             .downfall(downfall)
             .specialEffects(specialEffects.build())

@@ -36,7 +36,7 @@ public class ImagePredicateButton extends Button {
     }
 
     @Override
-    public void renderButton(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+    public void renderWidget(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         active = renderCheck.check();
 
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
