@@ -25,6 +25,4 @@ public interface IInventoryTab {
             return tab != null && tab.equals(this);
         };
     }
-
-    void renderBg(PoseStack pPoseStack, Minecraft pMinecraft, int pMouseX, int pMouseY);
 }
