@@ -13,7 +13,7 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeSpecialEffects;
 import org.jetbrains.annotations.ApiStatus.AvailableSince;
 
-import java.awt.Color;
+import java.awt.*;
 import java.util.Optional;
 
 @AvailableSince("2.0.0.0")

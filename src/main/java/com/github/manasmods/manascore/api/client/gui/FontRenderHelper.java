@@ -14,7 +14,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.ApiStatus.AvailableSince;
 
-import java.awt.Color;
+import java.awt.*;
 import java.util.List;
 
 @OnlyIn(Dist.CLIENT)

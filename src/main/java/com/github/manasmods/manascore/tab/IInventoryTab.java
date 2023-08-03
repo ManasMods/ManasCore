@@ -5,8 +5,6 @@
 package com.github.manasmods.manascore.tab;
 
 import com.github.manasmods.manascore.api.tab.AbstractInventoryTab;
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;

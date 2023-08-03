@@ -5,13 +5,7 @@
 package com.github.manasmods.manascore.api.data.gen;
 
 import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockLoot;
-import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockLoot.DoorDrop;
-import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockLoot.LeavesDrop;
-import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockLoot.OreDrop;
-import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockLoot.OtherDrop;
-import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockLoot.SelfDrop;
-import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockLoot.SlabDrop;
-import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockLoot.WithLootTables;
+import com.github.manasmods.manascore.api.data.gen.annotation.GenerateBlockLoot.*;
 import com.github.manasmods.manascore.api.util.ReflectionUtils;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.data.loot.packs.VanillaBlockLoot;
