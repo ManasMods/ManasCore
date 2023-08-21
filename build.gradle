@@ -104,6 +104,7 @@ minecraft {
             mods {
                 manascore {
                     source sourceSets.main
+                    source sourceSets.test
                 }
             }
         }
@@ -176,8 +177,10 @@ dependencies {
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
-    runtimeOnly fg.deobf("curse.maven:TargetDummy-225738:4293885") // https://www.curseforge.com/minecraft/mc-mods/mmmmmmmmmmmm/files/4293885
-    runtimeOnly fg.deobf("curse.maven:MoonlightLib-499980:4377790") // https://www.curseforge.com/minecraft/mc-mods/selene/files/4377790
+    runtimeOnly fg.deobf("curse.maven:TargetDummy-225738:4293885")
+    // https://www.curseforge.com/minecraft/mc-mods/mmmmmmmmmmmm/files/4293885
+    runtimeOnly fg.deobf("curse.maven:MoonlightLib-499980:4377790")
+    // https://www.curseforge.com/minecraft/mc-mods/selene/files/4377790
 }
 
 jarJar.enable()
