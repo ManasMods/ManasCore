@@ -150,14 +150,6 @@ repositories {
     // flatDir {
     //     dir 'libs'
     // }
-    maven {
-        name = "manasmods"
-        credentials {
-            username project.findProperty('manasmodsUsername') ?: System.getenv().getOrDefault('MANAS_REPO_USER', '')
-            password project.findProperty('manasmodsPassword') ?: System.getenv().getOrDefault('MANAS_REPO_USER_PASSWORD', '')
-        }
-        url "https://manasmods.bytesafe.dev/maven/manasmods"
-    }
 
     maven {
         url "https://cursemaven.com"
@@ -172,9 +164,10 @@ repositories {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraftVersion}-${forgeVersion}"
 
-    minecraftLibrary("com.github.LlamaLad7:MixinExtras:${mixinExtrasVersion}")
-    annotationProcessor("com.github.LlamaLad7:MixinExtras:${mixinExtrasVersion}")
-
+    implementation(annotationProcessor("com.github.llamalad7.mixinextras:mixinextras-common:${mixinExtrasVersion}"))
+    implementation(jarJar("com.github.llamalad7.mixinextras:mixinextras-forge:${mixinExtrasVersion}")) {
+        jarJar.ranged(it, "[${mixinExtrasVersion},)")
+    }
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
     runtimeOnly fg.deobf("curse.maven:TargetDummy-225738:4293885")
@@ -229,7 +222,8 @@ def replaceResources = tasks.register("replaceResources", Copy) {
         expand 'modVersion': "${modVersion}",
                 'forgeLoaderVersion': "[${forgeLoaderVersion},)",
                 'minecraftVersionCheck': "${minecraftVersionCheck}",
-                'modId': "${modId}"
+                'modId': "${modId}",
+                'mixinExtrasVersion': "${mixinExtrasVersion}"
     }
     it.into "$buildDir/resources/main/"
 }

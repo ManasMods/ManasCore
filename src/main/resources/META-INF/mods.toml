@@ -15,18 +15,24 @@ description = '''
 Utility and Core Library for Manas Mods
 '''
 #@formatter:off
-[[dependencies.manascore]] #optional
+[[dependencies.${modId}]] #optional
    modId="forge" #mandatory
    mandatory=true #mandatory
    versionRange="${forgeLoaderVersion}" #mandatory
    ordering="NONE"
    side="BOTH"
 # Here's another dependency
-[[dependencies.manascore]]
+[[dependencies.${modId}]]
    modId="minecraft"
    mandatory=true
    # This version range declares a minimum of the current minecraft version up to but not including the next major version
    versionRange="${minecraftVersionCheck}"
+   ordering="NONE"
+   side="BOTH"
+[[dependencies.${modId}]]
+   modId="mixinextras"
+   mandatory=true
+   versionRange="[${mixinExtrasVersion},)"
    ordering="NONE"
    side="BOTH"
 ##@formatter:on
