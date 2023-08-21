@@ -1,6 +1,7 @@
 package com.github.manasmods.manascore.api.client.animation.renderer;
 
 import com.github.manasmods.manascore.ManasCore;
+import com.github.manasmods.manascore.client.animation.renderers.SimpleModelRenderer;
 import com.github.manasmods.manascore.client.animation.renderers.TransformResetRenderer;
 import com.github.manasmods.manascore.client.animation.renderers.TransformingRotatingRenderer;
 import net.minecraft.resources.ResourceLocation;
@@ -21,6 +22,7 @@ public class RendererRegistry {
         //Remember to change IDs in Documentation if you change it here!
         RENDERERS.register("transformingRenderer", TransformingRotatingRenderer::new);
         RENDERERS.register("transformReset", TransformResetRenderer::new);
+        RENDERERS.register("simpleModel", SimpleModelRenderer::new);
 
         RENDERERS.register(modBus);
     }

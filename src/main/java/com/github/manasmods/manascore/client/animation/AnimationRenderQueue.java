@@ -20,11 +20,26 @@ public class AnimationRenderQueue implements IAnimationRenderQueue {
     private HashMap<Integer, RunningAnimation> runningAnimations;
 
 
+    /**
+     * Runs the specified animation.
+     *
+     * Remember the initialization procedure
+     * - RunningAnimation#create
+     * - Set all parameters required for first run
+     * - Invoke this method
+     *
+     * If the parameters are not set before running this method, the animation may crash the game.
+     *
+     * @param animation the animation to run
+     */
     public void run(RunningAnimation animation) {
         int id = ++ANIMATION_RENDER_ID_GEN;
         this.runningAnimations.put(id, animation);
 
         animation.setId(id);
+
+        //Update data before rendering for the first time.
+        animation.postTick();
     }
 
     @Override

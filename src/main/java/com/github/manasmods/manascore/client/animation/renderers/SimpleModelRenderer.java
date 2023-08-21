@@ -6,6 +6,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
 
 public class SimpleModelRenderer implements IAnimationRenderer {
     @Override
@@ -13,7 +14,9 @@ public class SimpleModelRenderer implements IAnimationRenderer {
 
     }
 
-    public void render(PoseStack poseStack, MultiBufferSource bufferIn, RunningAnimation animation, Model model, RenderType type) {
+    public void render(PoseStack poseStack, MultiBufferSource bufferIn, RunningAnimation animation, Model model, String texture) {
+        RenderType type = RenderType.entitySolid(new ResourceLocation(texture));
+
         model.renderToBuffer(poseStack, bufferIn.getBuffer(type), 0, 0, 0, 0, 0, 0);
     }
 }

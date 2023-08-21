@@ -37,7 +37,7 @@ public class AnimationPart {
 
         /**
          * Parameters that are automatically passed to the renderer, these will be taken either from the AnimationPart Shared Value Storage or the global Animation storage
-         * Params have a value, a type and a scope. (Type isnt really used, just as documentation for the expected type)
+         * Params have a value, a position and a scope. (Position is the argument position after all required args)
          * Valid scopes are:
          *  - provided => The value is a constant and is read from the config file, may be overridden by the mod in code
          *  - derived => The value is provided by the mod or by minecraft and copied as the name, value has to be ${VARIABLE_NAME}
