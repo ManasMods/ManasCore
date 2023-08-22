@@ -82,7 +82,7 @@ public class EntitySkillCapabilityStorage implements InternalSkillStorage {
         if (nbt.contains("resetExistingData")) {
             this.skillInstances.clear();
         }
-        ListTag skillList = nbt.getList("skills", Tag.TAG_LIST);
+        ListTag skillList = nbt.getList("skills", Tag.TAG_COMPOUND);
         skillList.forEach(tag -> {
             try {
                 if (tag instanceof CompoundTag compoundTag) {

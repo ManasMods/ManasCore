@@ -17,7 +17,8 @@ import org.jetbrains.annotations.ApiStatus;
 
 @ApiStatus.Internal
 public class EntitySkillCapability {
-    static final Capability<InternalSkillStorage> CAP = CapabilityManager.get(new CapabilityToken<>() {});
+    static final Capability<InternalSkillStorage> CAP = CapabilityManager.get(new CapabilityToken<>() {
+    });
     private static final ResourceLocation ID = new ResourceLocation(ManasCore.MOD_ID, "skills");
 
     private static void register(RegisterCapabilitiesEvent e) {
@@ -36,7 +37,13 @@ public class EntitySkillCapability {
 
     private static void clonePlayer(final PlayerEvent.Clone e) {
         if (e.getEntity() instanceof ServerPlayer player) {
-            load(player).syncAll();
+            e.getOriginal().reviveCaps();
+            InternalSkillStorage skillStorage = load(e.getOriginal());
+            InternalSkillStorage newStorage = load(player);
+            newStorage.deserializeNBT(skillStorage.serializeNBT());
+
+            e.getOriginal().invalidateCaps();
+            newStorage.syncAll();
         }
     }
 
