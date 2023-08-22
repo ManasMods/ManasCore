@@ -3,6 +3,7 @@ package com.github.manasmods.manascore.api.skills;
 import com.github.manasmods.manascore.api.skills.capability.SkillStorage;
 import com.github.manasmods.manascore.capability.skill.EntitySkillCapability;
 import com.github.manasmods.manascore.skill.SkillRegistry;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.IForgeRegistry;
@@ -14,12 +15,22 @@ import org.jetbrains.annotations.NotNull;
 public final class SkillAPI {
     /**
      * This Method returns the {@link ManasSkill} Registry.
-     * It can be used to create {@link DeferredRegister} instances or to load {@link ManasSkill}s from the Registry.
+     * It can be used to load {@link ManasSkill}s from the Registry.
      */
     @NotNull
     public static IForgeRegistry<ManasSkill> getSkillRegistry() {
         return SkillRegistry.REGISTRY.get();
     }
+
+    /**
+     * This Method returns the Registry Key of the {@link SkillRegistry}.
+     * It can be used to create {@link DeferredRegister} instances
+     */
+    @NotNull
+    public static ResourceLocation getSkillRegistryKey() {
+        return SkillRegistry.REGISTRY_KEY;
+    }
+
 
     /**
      * Can be used to load the {@link SkillStorage} from an {@link Entity}.

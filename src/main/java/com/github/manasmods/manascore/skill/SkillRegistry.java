@@ -17,7 +17,7 @@ import java.util.function.Supplier;
 
 @ApiStatus.Internal
 public class SkillRegistry {
-    private static final ResourceLocation REGISTRY_KEY = new ResourceLocation(ManasCore.MOD_ID, "skills");
+    public static final ResourceLocation REGISTRY_KEY = new ResourceLocation(ManasCore.MOD_ID, "skills");
     public static final DeferredRegister<ManasSkill> SKILLS = DeferredRegister.create(REGISTRY_KEY, ManasCore.MOD_ID);
     public static final Supplier<IForgeRegistry<ManasSkill>> REGISTRY = SKILLS.makeRegistry(() -> {
         RegistryBuilder<ManasSkill> builder = new RegistryBuilder<>();
