@@ -82,18 +82,19 @@ public class EntitySkillCapabilityStorage implements InternalSkillStorage {
         if (nbt.contains("resetExistingData")) {
             this.skillInstances.clear();
         }
-        ListTag skillList = nbt.getList("skills", Tag.TAG_COMPOUND);
-        skillList.forEach(tag -> {
+
+        for (Tag tag : nbt.getList("skills", Tag.TAG_COMPOUND)) {
+            if (!(tag instanceof CompoundTag compoundTag)) {
+                log.error("Tag is not a Compound! Exception while deserializing tag {}.", tag);
+                continue;
+            }
+
             try {
-                if (tag instanceof CompoundTag compoundTag) {
-                    ManasSkillInstance instance = ManasSkillInstance.fromNBT(compoundTag);
-                    this.skillInstances.put(instance.getSkillId(), instance);
-                } else {
-                    log.error("Tag is not a Compound! Exception while deserializing tag {}.", tag);
-                }
+                ManasSkillInstance instance = ManasSkillInstance.fromNBT(compoundTag);
+                this.skillInstances.put(instance.getSkillId(), instance);
             } catch (Exception exception) {
                 log.error("Exception while deserializing tag {}.\n{}", tag, exception);
             }
-        });
+        }
     }
 }

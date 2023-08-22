@@ -44,6 +44,7 @@ public class ManasSkillInstance implements Cloneable {
     @Override
     public ManasSkillInstance clone() {
         ManasSkillInstance clone = new ManasSkillInstance(getSkill());
+        clone.dirty = this.dirty;
         return clone;
     }
 

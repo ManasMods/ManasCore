@@ -9,9 +9,11 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.Entity;
+import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 
 public class SyncSkillsPacket {
@@ -44,7 +46,7 @@ public class SyncSkillsPacket {
 
     @RequiredArgsConstructor
     public enum SyncType {
-        FULL(skillStorage -> skillStorage.serializeNBT(), (entityId1, updateTag) -> {
+        FULL(INBTSerializable::serializeNBT, (entityId1, updateTag) -> {
             ClientLevelAccessor.execute(level -> {
                 Entity target = level.getEntity(entityId1);
                 if (target == null) return;
@@ -61,25 +63,20 @@ public class SyncSkillsPacket {
 
             tag.put("skills", skills);
             return tag;
-        }, (entityId1, updateTag) -> {
-            ClientLevelAccessor.execute(level -> {
-                Entity target = level.getEntity(entityId1);
-                if (target == null) return;
-                if (!updateTag.contains("skills")) return;
-                SkillAPI.getSkillsFrom(target).updateSkills(updateTag.getList("skills", Tag.TAG_LIST)
-                        .parallelStream()
-                        .map(tag -> {
-                            if (tag instanceof CompoundTag compoundTag) {
-                                return compoundTag;
-                            }
-                            return null;
-                        })
-                        .filter(Objects::nonNull)
-                        .map(ManasSkillInstance::fromNBT)
-                        .toList()
-                );
-            });
-        });
+        }, (entityId1, updateTag) -> ClientLevelAccessor.execute(level -> {
+            Entity target = level.getEntity(entityId1);
+            if (target == null) return;
+            if (!updateTag.contains("skills")) return;
+
+            List<ManasSkillInstance> updatedSkills = new ArrayList<>();
+
+            for (Tag tag : updateTag.getList("skills", Tag.TAG_COMPOUND)) {
+                if (!(tag instanceof CompoundTag compoundTag)) continue;
+                updatedSkills.add(ManasSkillInstance.fromNBT(compoundTag));
+            }
+
+            SkillAPI.getSkillsFrom(target).updateSkills(updatedSkills);
+        }));
 
         private final UpdateFactory factory;
         private final UpdateHandler handler;
