@@ -187,10 +187,6 @@ reobf {
 }
 tasks.jarJar.finalizedBy('reobfJarJar')
 
-dependencies {
-    jarJar "com.github.LlamaLad7:MixinExtras:[${mixinExtrasVersion},)"
-}
-
 // Example for how to get properties into the manifest for reading at runtime.
 jar {
     classifier 'slim'
