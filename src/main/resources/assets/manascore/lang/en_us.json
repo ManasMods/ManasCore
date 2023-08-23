@@ -1,5 +1,7 @@
 {
   "manascore.attribute.crit_chance.name": "% Critical Chance",
   "manascore.attribute.crit_multiplier.name": "Additional Critical Multiplier",
-  "manascore.attribute.jump_power.name": "Jump Power"
+  "manascore.attribute.jump_power.name": "Jump Power",
+  "manascore.category.test": "ManasCore Keybinding Test Category",
+  "manascore.keybinding.test": "Test Keybinding"
 }
