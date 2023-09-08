@@ -23,10 +23,12 @@ public class KeybindingRegistry {
 
     static {
         if (!FMLEnvironment.production) {
-            keybindings.add(new ManasKeybinding("manascore.keybinding.test", KeybindingCategory.of("test"),
+            KeybindingCategory category = KeybindingCategory.of("test");
+            keybindings.add(new ManasKeybinding("manascore.keybinding.test", category,
                     () -> log.info("Pressed"),
                     duration -> log.info("Released in {} Seconds", duration / 1000.0)
             ));
+            keybindings.add(new ManasKeybinding("manascore.keybinding.test2", category, () -> log.info("Pressed")));
         }
     }
 

@@ -3,5 +3,6 @@
   "manascore.attribute.crit_multiplier.name": "Additional Critical Multiplier",
   "manascore.attribute.jump_power.name": "Jump Power",
   "manascore.category.test": "ManasCore Keybinding Test Category",
-  "manascore.keybinding.test": "Test Keybinding"
+  "manascore.keybinding.test": "Test Keybinding (Release)",
+  "manascore.keybinding.test2": "Test Keybinding (Tick)"
 }
