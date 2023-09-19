@@ -1,6 +1,9 @@
 package com.github.manasmods.manascore.api.skills;
 
 import com.github.manasmods.manascore.api.skills.capability.SkillStorage;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -11,6 +14,9 @@ import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.Event;
 import org.jetbrains.annotations.ApiStatus;
+
+import javax.annotation.Nullable;
+import java.util.Objects;
 
 /**
  * This is the Registry Object for Skills.
@@ -36,6 +42,26 @@ public class ManasSkill {
      */
     public ManasSkillInstance createDefaultInstance() {
         return new ManasSkillInstance(this);
+    }
+
+    @Nullable
+    public ResourceLocation getRegistryName() {
+        return SkillAPI.getSkillRegistry().getKey(this);
+    }
+
+    @Nullable
+    public MutableComponent getName() {
+        final ResourceLocation id = getRegistryName();
+        if (id == null) return null;
+        return Component.translatable(String.format("%s.skill.%s", id.getNamespace(), id.getPath().replace('/', '.')));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ManasSkill skill = (ManasSkill) o;
+        return Objects.equals(getRegistryName(), skill.getRegistryName());
     }
 
     /**
