@@ -6,7 +6,13 @@ import net.minecraft.core.Holder.Reference;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraftforge.event.entity.living.LivingDamageEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Objects;
@@ -122,7 +128,51 @@ public class ManasSkillInstance implements Cloneable {
         return Objects.hash(skillRegistryObject);
     }
 
-    public void onHurt(LivingHurtEvent event) {
-        this.getSkill().onEntityHurt(this, event);
+    public void onToggleOn(Player player) {
+        this.getSkill().onToggleOn(this, player);
+    }
+
+    public void onToggleOff(Player player) {
+        this.getSkill().onToggleOff(this, player);
+    }
+
+    public void onTick(Player player) {
+        this.getSkill().onTick(this, player);
+    }
+
+    public void onActivation(Player player) {
+        this.getSkill().onActivation(this, player);
+    }
+
+    public void onRelease(Player player) {
+        this.getSkill().onRelease(this, player);
+    }
+
+    public boolean onScroll(Player player, int direction) {
+        return this.getSkill().onScroll(this, player, direction);
+    }
+
+    public void onRightClickBlock(Player player, BlockHitResult hitResult) {
+        this.getSkill().onRightClickBlock(this, player, hitResult);
+    }
+
+    public float onDamageEntity(LivingEntity living, LivingEntity entity, LivingHurtEvent e) {
+        return this.getSkill().onDamageEntity(this, living, entity, e);
+    }
+
+    public float onTouchEntity(LivingEntity living, LivingEntity entity, LivingHurtEvent e) {
+        return this.getSkill().onTouchEntity(this, living, entity, e);
+    }
+
+    public float onTakenDamage(LivingEntity living, LivingDamageEvent e) {
+        return this.getSkill().onTakenDamage(this, living, e);
+    }
+
+    public boolean onDeath(LivingEntity living, LivingDeathEvent e) {
+        return this.getSkill().onDeath(this, living, e);
+    }
+
+    public void onRespawn(ManasSkillInstance instance, PlayerEvent.PlayerRespawnEvent event) {
+        this.getSkill().onRespawn(instance, event);
     }
 }
