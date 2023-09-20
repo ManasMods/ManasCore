@@ -65,6 +65,58 @@ public class ManasSkill {
     }
 
     /**
+     * Determine if the skill can be used at all - useful for anti skill/magic.
+     */
+    public boolean canInteractSkill(ManasSkillInstance instance , Player player) {
+        return true;
+    }
+
+    /**
+     * Determine if the skill is equippable or toggleable
+     */
+    public boolean canBeEquipped() {
+        return true;
+    }
+    public boolean canBeToggled() {
+        return false;
+    }
+
+    /**
+     * Mana cost of the Skill
+     */
+    public double manaCost(Player player, ManasSkillInstance instance) {
+        return 0;
+    }
+
+    /**
+     * Skill mastery
+     */
+    public boolean isMastered(ManasSkillInstance instance) {
+        return instance.getMastery() >= 100;
+    }
+    public void addMasteryPoint(ManasSkillInstance instance, Player player) {
+        if (isMastered(instance)) return;
+        instance.setMastery(instance.getMastery() + 1);
+    }
+
+    /**
+     * Skill Modes
+     */
+    public int modes() {
+        return 1;
+    }
+
+    public int nextMode(Player player, ManasSkillInstance instance) {
+        int next = instance.getMode() + 1;
+        if (next > modes()) next = 1;
+        return next;
+    }
+
+    public Component getModeName(int mode) {
+        return Component.empty();
+    }
+
+    /**
      * Called when the {@link LivingEntity} owning this Skill gets hurt
      *
      * @param instance Affected {@link ManasSkillInstance}

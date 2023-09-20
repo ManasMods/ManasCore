@@ -4,6 +4,7 @@ import com.github.manasmods.manascore.network.toclient.SyncSkillsPacket;
 import lombok.Getter;
 import net.minecraft.core.Holder.Reference;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -15,6 +16,7 @@ import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import org.jetbrains.annotations.ApiStatus;
 
+import javax.annotation.Nullable;
 import java.util.Objects;
 
 /**
@@ -25,6 +27,13 @@ import java.util.Objects;
  */
 @ApiStatus.AvailableSince("1.0.2.0")
 public class ManasSkillInstance implements Cloneable {
+    private int mode = 1;
+    private int coolDown;
+    private int removeTime = -1;
+    private int masteryPoint;
+    private boolean toggled;
+    @Nullable
+    private CompoundTag tag;
     private final Reference<ManasSkill> skillRegistryObject;
     @Getter
     private boolean dirty = false;
@@ -73,6 +82,12 @@ public class ManasSkillInstance implements Cloneable {
      * @param tag Tag with data from {@link ManasSkillInstance#fromNBT(CompoundTag)}
      */
     public CompoundTag serialize(CompoundTag tag) {
+        tag.putByte("Mode", (byte) this.mode);
+        tag.putInt("CoolDown", this.coolDown);
+        tag.putInt("RemoveTime", this.removeTime);
+        tag.putInt("Mastery", this.masteryPoint);
+        tag.putBoolean("Toggled", this.toggled);
+        if (this.tag != null) tag.put("tag", this.tag.copy());
         return tag;
     }
 
@@ -80,6 +95,12 @@ public class ManasSkillInstance implements Cloneable {
      * Can be used to load custom data.
      */
     public void deserialize(CompoundTag tag) {
+        this.mode = tag.getByte("Mode");
+        this.coolDown = tag.getInt("CoolDown");
+        this.removeTime = tag.getInt("RemoveTime");
+        this.masteryPoint = tag.getInt("Mastery");
+        this.toggled = tag.getBoolean("Toggled");
+        if (tag.contains("tag", 10)) this.tag = tag.getCompound("tag");
     }
 
     /**
@@ -128,6 +149,116 @@ public class ManasSkillInstance implements Cloneable {
         return Objects.hash(skillRegistryObject);
     }
 
+    public boolean canInteractSkill(Player player) {
+        return this.getSkill().canInteractSkill(this, player);
+    }
+    public boolean canBeEquipped() {
+        return this.getSkill().canBeEquipped();
+    }
+    public boolean canBeToggled() {
+        return this.getSkill().canBeToggled();
+    }
+    public double manaCost(Player player) {
+        return  this.getSkill().manaCost(player, this);
+    }
+
+    /**
+     * Modes of the skill
+     */
+    public int modes() {
+        return this.getSkill().modes();
+    }
+
+    public int nextMode(Player player) {
+        return this.getSkill().nextMode(player, this);
+    }
+
+    public Component getModeName(int mode) {
+        return this.getSkill().getModeName(mode);
+    }
+
+    public int getMode() {
+        return this.mode;
+    }
+
+    public void setMode(int mode) {
+        this.mode = mode;
+    }
+
+    /**
+     * Mastery point of the skill
+     */
+    public boolean isMastered() {
+        return this.getSkill().isMastered(this);
+    }
+
+    public void addMasteryPoint(Player player) {
+        this.getSkill().addMasteryPoint(this, player);
+    }
+
+    public int getMastery() {
+        return this.masteryPoint;
+    }
+
+    public void setMastery(int point) {
+        this.masteryPoint = point;
+    }
+
+    /**
+     * Cooldown of the skill's action
+     */
+    public boolean onCoolDown() {
+        return this.coolDown > 0;
+    }
+    public void setCoolDown(int coolDown) {
+        this.coolDown = coolDown;
+    }
+    public void decreaseCoolDown(int coolDown) {
+        this.coolDown -= coolDown;
+    }
+
+    /**
+     * Remove the skill after some time if temporary
+     */
+    public boolean isTemporarySkill() {
+        return this.removeTime != -1;
+    }
+    public boolean shouldRemove() {
+        return this.removeTime == 0;
+    }
+    public void setRemoveTime(int removeTime) {
+        this.removeTime = removeTime;
+    }
+
+    /**
+     * Toggling the skill
+     */
+    public boolean isToggled() {
+        return this.toggled;
+    }
+    public void setToggled(boolean toggled) {
+        this.toggled = toggled;
+    }
+
+    /**
+     * Additional Tags for the instance
+     */
+    @Nullable
+    public CompoundTag getTag() {
+        return this.tag;
+    }
+
+    public CompoundTag getOrCreateTag() {
+        if (this.tag == null) {
+            this.setTag(new CompoundTag());
+        }
+        return this.tag;
+    }
+    public void setTag(@Nullable CompoundTag tag) {
+        this.tag = tag;
+    }
+
+    /** ACTION **/
     public void onToggleOn(Player player) {
         this.getSkill().onToggleOn(this, player);
     }
