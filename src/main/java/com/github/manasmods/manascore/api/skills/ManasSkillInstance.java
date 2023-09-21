@@ -4,12 +4,12 @@ import com.github.manasmods.manascore.network.toclient.SyncSkillsPacket;
 import lombok.Getter;
 import net.minecraft.core.Holder.Reference;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
@@ -149,8 +149,8 @@ public class ManasSkillInstance implements Cloneable {
         return Objects.hash(skillRegistryObject);
     }
 
-    public boolean canInteractSkill(Player player) {
-        return this.getSkill().canInteractSkill(this, player);
+    public boolean canInteractSkill(LivingEntity living) {
+        return this.getSkill().canInteractSkill(this, living);
     }
     public boolean canBeEquipped() {
         return this.getSkill().canBeEquipped();
@@ -158,25 +158,10 @@ public class ManasSkillInstance implements Cloneable {
     public boolean canBeToggled() {
         return this.getSkill().canBeToggled();
     }
-    public double manaCost(Player player) {
-        return  this.getSkill().manaCost(player, this);
-    }
 
     /**
      * Modes of the skill
      */
-    public int modes() {
-        return this.getSkill().modes();
-    }
-
-    public int nextMode(Player player) {
-        return this.getSkill().nextMode(player, this);
-    }
-
-    public Component getModeName(int mode) {
-        return this.getSkill().getModeName(mode);
-    }
-
     public int getMode() {
         return this.mode;
     }
@@ -297,6 +282,10 @@ public class ManasSkillInstance implements Cloneable {
 
     public float onTakenDamage(LivingEntity living, LivingDamageEvent e) {
         return this.getSkill().onTakenDamage(this, living, e);
+    }
+
+    public boolean onProjectileHit(LivingEntity living, ProjectileImpactEvent event) {
+        return this.getSkill().onProjectileHit(this, living, event);
     }
 
     public boolean onDeath(LivingEntity living, LivingDeathEvent e) {
