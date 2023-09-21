@@ -1,4 +1,4 @@
-package com.github.manasmods.manascore.capability.skill;
+package com.github.manasmods.manascore.capability.skill.event;
 
 import com.github.manasmods.manascore.ManasCore;
 import com.github.manasmods.manascore.api.skills.ManasSkillInstance;

@@ -3,6 +3,10 @@ package com.github.manasmods.manascore.client.keybinding;
 import com.github.manasmods.manascore.ManasCore;
 import com.github.manasmods.manascore.api.client.keybinding.KeybindingCategory;
 import com.github.manasmods.manascore.api.client.keybinding.ManasKeybinding;
+import com.github.manasmods.manascore.network.ManasCoreNetwork;
+import com.github.manasmods.manascore.network.toserver.RequestSkillActivationPacket;
+import com.github.manasmods.manascore.network.toserver.RequestSkillReleasePacket;
+import com.github.manasmods.manascore.network.toserver.RequestSkillTogglePacket;
 import lombok.extern.log4j.Log4j2;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
@@ -28,7 +32,15 @@ public class KeybindingRegistry {
                     () -> log.info("Pressed"),
                     duration -> log.info("Released in {} Seconds", duration / 1000.0)
             ));
-            keybindings.add(new ManasKeybinding("manascore.keybinding.test2", category, () -> log.info("Pressed")));
+            keybindings.add(new ManasKeybinding("manascore.keybinding.test_press", category, () -> log.info("Pressed")));
+
+            //duration - milliseconds
+            keybindings.add(new ManasKeybinding("manascore.keybinding.skill", category,
+                    () -> ManasCoreNetwork.INSTANCE.sendToServer(new RequestSkillActivationPacket(0)),
+                    duration -> ManasCoreNetwork.INSTANCE.sendToServer(new RequestSkillReleasePacket(0, (int) (duration / 50)))
+            ));
+            keybindings.add(new ManasKeybinding("manascore.keybinding.skill_toggle", category,
+                    () -> ManasCoreNetwork.INSTANCE.sendToServer(new RequestSkillTogglePacket())));
         }
     }
 

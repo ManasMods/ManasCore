@@ -2,6 +2,10 @@ package com.github.manasmods.manascore.network;
 
 import com.github.manasmods.manascore.ManasCore;
 import com.github.manasmods.manascore.network.toclient.SyncSkillsPacket;
+import com.github.manasmods.manascore.network.toserver.RequestSkillActivationPacket;
+import com.github.manasmods.manascore.network.toserver.RequestSkillReleasePacket;
+import com.github.manasmods.manascore.network.toserver.RequestSkillScrollPacket;
+import com.github.manasmods.manascore.network.toserver.RequestSkillTogglePacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.network.NetworkRegistry;
@@ -18,7 +22,14 @@ public class ManasCoreNetwork {
 
     public static void register() {
         int i = 0;
+        //to client
         INSTANCE.registerMessage(i++, SyncSkillsPacket.class, SyncSkillsPacket::toBytes, SyncSkillsPacket::new, SyncSkillsPacket::handle);
+
+        //to server
+        INSTANCE.registerMessage(++i, RequestSkillActivationPacket.class, RequestSkillActivationPacket::toBytes, RequestSkillActivationPacket::new, RequestSkillActivationPacket::handle);
+        INSTANCE.registerMessage(++i, RequestSkillReleasePacket.class, RequestSkillReleasePacket::toBytes, RequestSkillReleasePacket::new, RequestSkillReleasePacket::handle);
+        INSTANCE.registerMessage(++i, RequestSkillScrollPacket.class, RequestSkillScrollPacket::toBytes, RequestSkillScrollPacket::new, RequestSkillScrollPacket::handle);
+        INSTANCE.registerMessage(++i, RequestSkillTogglePacket.class, RequestSkillTogglePacket::toBytes, RequestSkillTogglePacket::new, RequestSkillTogglePacket::handle);
     }
 
     public static <T> void toServer(T message) {

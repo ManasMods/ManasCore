@@ -75,9 +75,6 @@ public class ManasSkill {
     /**
      * Determine if the skill is toggleable or equip-able.
      */
-    public boolean canBeEquipped() {
-        return true;
-    }
     public boolean canBeToggled() {
         return false;
     }
@@ -135,7 +132,7 @@ public class ManasSkill {
      *
      * @param instance Affected {@link ManasSkillInstance}
      */
-    public void onRelease(ManasSkillInstance instance, Player player) {
+    public void onRelease(ManasSkillInstance instance, Player player, int heldTicks) {
     }
 
     /**
@@ -144,8 +141,7 @@ public class ManasSkill {
      *
      * @param instance Affected {@link ManasSkillInstance}
      */
-    public boolean onScroll(ManasSkillInstance instance, Player player, int direction) {
-        return false;
+    public void onScroll(ManasSkillInstance instance, Player player, int direction) {
     }
 
     /**

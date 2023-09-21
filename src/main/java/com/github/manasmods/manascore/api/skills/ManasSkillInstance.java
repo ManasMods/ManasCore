@@ -152,9 +152,6 @@ public class ManasSkillInstance implements Cloneable {
     public boolean canInteractSkill(LivingEntity living) {
         return this.getSkill().canInteractSkill(this, living);
     }
-    public boolean canBeEquipped() {
-        return this.getSkill().canBeEquipped();
-    }
     public boolean canBeToggled() {
         return this.getSkill().canBeToggled();
     }
@@ -215,6 +212,10 @@ public class ManasSkillInstance implements Cloneable {
         this.removeTime = removeTime;
     }
 
+    public void decreaseRemoveTime(int time) {
+        this.removeTime -= time;
+    }
+
     /**
      * Toggling the skill
      */
@@ -260,12 +261,12 @@ public class ManasSkillInstance implements Cloneable {
         this.getSkill().onActivation(this, player);
     }
 
-    public void onRelease(Player player) {
-        this.getSkill().onRelease(this, player);
+    public void onRelease(Player player, int heldTicks) {
+        this.getSkill().onRelease(this, player, heldTicks);
     }
 
-    public boolean onScroll(Player player, int direction) {
-        return this.getSkill().onScroll(this, player, direction);
+    public void onScroll(Player player, int direction) {
+        this.getSkill().onScroll(this, player, direction);
     }
 
     public void onRightClickBlock(Player player, BlockHitResult hitResult) {
