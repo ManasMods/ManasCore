@@ -7,6 +7,7 @@ import com.github.manasmods.manascore.network.ManasCoreNetwork;
 import com.github.manasmods.manascore.network.toserver.RequestSkillActivationPacket;
 import com.github.manasmods.manascore.network.toserver.RequestSkillReleasePacket;
 import com.github.manasmods.manascore.network.toserver.RequestSkillTogglePacket;
+import com.mojang.blaze3d.platform.InputConstants;
 import lombok.extern.log4j.Log4j2;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
@@ -28,9 +29,13 @@ public class KeybindingRegistry {
     static {
         if (!FMLEnvironment.production) {
             KeybindingCategory category = KeybindingCategory.of("test");
-            keybindings.add(new ManasKeybinding("manascore.keybinding.test", category,
-                    () -> log.info("Pressed"),
+            keybindings.add(new ManasKeybinding("manascore.keybinding.test", InputConstants.KEY_X,
+                    category, () -> log.info("Pressing"),
                     duration -> log.info("Released in {} Seconds", duration / 1000.0)
+            ));
+            keybindings.add(new ManasKeybinding("manascore.keybinding.test_action_once", InputConstants.KEY_C,
+                    category, () -> log.info("Pressed"),
+                    duration -> log.info("Released in {} Seconds", duration / 1000.0), true
             ));
             keybindings.add(new ManasKeybinding("manascore.keybinding.test_press", category, () -> log.info("Pressed")));
 

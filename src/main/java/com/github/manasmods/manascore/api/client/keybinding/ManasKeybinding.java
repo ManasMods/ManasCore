@@ -33,7 +33,7 @@ public class ManasKeybinding extends KeyMapping {
      * @param action     Action when pressed
      */
     public ManasKeybinding(String langKey, int defaultKey, KeybindingCategory category, KeyBindingAction action) {
-        this(langKey, InputConstants.Type.KEYSYM.getOrCreate(defaultKey), category, action, null);
+        this(langKey, InputConstants.Type.KEYSYM.getOrCreate(defaultKey), category, action, null, false);
     }
 
     /**
@@ -46,7 +46,7 @@ public class ManasKeybinding extends KeyMapping {
      * @param action     Action when pressed
      */
     public ManasKeybinding(String langKey, InputConstants.Key defaultKey, KeybindingCategory category, KeyBindingAction action) {
-        this(langKey, defaultKey, category, action, null);
+        this(langKey, defaultKey, category, action, null, false);
     }
 
     /**
@@ -83,7 +83,7 @@ public class ManasKeybinding extends KeyMapping {
      * @param release    Action when released
      */
     public ManasKeybinding(String langKey, int defaultKey, KeybindingCategory category, KeyBindingAction action, @Nullable KeyBindingRelease release) {
-        this(langKey, InputConstants.Type.KEYSYM.getOrCreate(defaultKey), category, action, release);
+        this(langKey, InputConstants.Type.KEYSYM.getOrCreate(defaultKey), category, action, release, false);
     }
 
     /**
@@ -96,7 +96,22 @@ public class ManasKeybinding extends KeyMapping {
      * @param action     Action when pressed
      * @param release    Action when released
      */
-    public ManasKeybinding(String langKey, InputConstants.Key defaultKey, KeybindingCategory category, KeyBindingAction action, @Nullable KeyBindingRelease release) {
+    public ManasKeybinding(String langKey, int defaultKey, KeybindingCategory category, KeyBindingAction action, @Nullable KeyBindingRelease release, boolean actionOnce) {
+        this(langKey, InputConstants.Type.KEYSYM.getOrCreate(defaultKey), category, action, release, actionOnce);
+    }
+
+    /**
+     * Creates a Keybinding which handles the given action automatically.
+     * No need to create an {@link Mod.EventBusSubscriber}.
+     *
+     * @param langKey    Translation String
+     * @param defaultKey Default Key
+     * @param category   Category
+     * @param action     Action when pressed
+     * @param release    Action when released
+     * @param actionOnce Determine if the press action should be triggered once
+     */
+    public ManasKeybinding(String langKey, InputConstants.Key defaultKey, KeybindingCategory category, KeyBindingAction action, @Nullable KeyBindingRelease release, boolean actionOnce) {
         super(langKey, KeyConflictContext.UNIVERSAL, defaultKey, category.getCategoryString());
         if (release == null) {
             this.action = action;
@@ -105,8 +120,9 @@ public class ManasKeybinding extends KeyMapping {
             this.action = () -> {
                 if (!PRESSED_KEYBINDINGS.containsKey(this)) {
                     PRESSED_KEYBINDINGS.put(this, System.currentTimeMillis());
-                    action.onPress();
+                    if (actionOnce) action.onPress();
                 }
+                if (!actionOnce) action.onPress();
             };
             this.release = () -> {
                 if (PRESSED_KEYBINDINGS.containsKey(this)) {

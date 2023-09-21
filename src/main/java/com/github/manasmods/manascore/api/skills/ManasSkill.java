@@ -92,7 +92,6 @@ public class ManasSkill {
 
     /**
      * Called when the {@link Player} toggles this Skill on.
-     * Triggered by mods using this lib, not the lib itself.
      *
      * @param instance Affected {@link ManasSkillInstance}
      */
@@ -101,7 +100,6 @@ public class ManasSkill {
 
     /**
      * Called when the {@link Player} toggles this Skill off.
-     * Triggered by mods using this lib, not the lib itself.
      *
      * @param instance Affected {@link ManasSkillInstance}
      */
@@ -109,8 +107,7 @@ public class ManasSkill {
     }
 
     /**
-     * Called every tick if this Skill is toggled.
-     * Triggered by mods using this lib, not the lib itself.
+     * Called every tick if this Skill is obtained.
      *
      * @param instance Affected {@link ManasSkillInstance}
      */
@@ -119,7 +116,6 @@ public class ManasSkill {
 
     /**
      * Called when the {@link Player} presses the skill activation button.
-     * Triggered by mods using this lib, not the lib itself.
      *
      * @param instance Affected {@link ManasSkillInstance}
      */
@@ -128,7 +124,6 @@ public class ManasSkill {
 
     /**
      * Called when the {@link Player} releases the skill activation button.
-     * Triggered by mods using this lib, not the lib itself.
      *
      * @param instance Affected {@link ManasSkillInstance}
      */
@@ -137,7 +132,6 @@ public class ManasSkill {
 
     /**
      * Called when the {@link Player} scrolls the mouse when holding the skill activation buttons.
-     * Triggered by mods using this lib, not the lib itself.
      *
      * @param instance Affected {@link ManasSkillInstance}
      */
@@ -146,7 +140,6 @@ public class ManasSkill {
 
     /**
      * Called when the {@link Player} right-clicks a block.
-     * Triggered by mods using this lib, not the lib itself.
      *
      * @param instance Affected {@link ManasSkillInstance}
      * @param hitResult Triggered {@link BlockHitResult}
