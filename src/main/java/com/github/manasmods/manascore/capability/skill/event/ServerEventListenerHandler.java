@@ -38,10 +38,10 @@ public class ServerEventListenerHandler {
     public static void onPreBarrierDamage(final SkillDamageEvent.PreBarrier e) {
         final LivingEntity entity = e.getEntity();
         if (e.getSource().getEntity() instanceof LivingEntity living) {
-            SkillStorage skillStorage = SkillAPI.getSkillsFrom(entity);
+            SkillStorage skillStorage = SkillAPI.getSkillsFrom(living);
             for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
                 if (!skillInstance.canInteractSkill(living)) continue;
-                skillInstance.onDamageEntity(living, entity, e.getEvent());
+                skillInstance.onDamageEntity(entity, e.getEvent());
             }
         }
     }
@@ -50,10 +50,10 @@ public class ServerEventListenerHandler {
     public static void onPostBarrierDamage(final SkillDamageEvent.PostBarrier e) {
         final LivingEntity entity = e.getEntity();
         if (e.getSource().getEntity() instanceof LivingEntity living) {
-            SkillStorage skillStorage = SkillAPI.getSkillsFrom(entity);
+            SkillStorage skillStorage = SkillAPI.getSkillsFrom(living);
             for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
                 if (!skillInstance.canInteractSkill(living)) continue;
-                skillInstance.onTouchEntity(living, entity, e.getEvent());
+                skillInstance.onTouchEntity(entity, e.getEvent());
             }
         }
     }
@@ -64,9 +64,9 @@ public class ServerEventListenerHandler {
         LivingEntity target = e.getNewTarget();
         if (target == null) return;
 
-        SkillStorage skillStorage = SkillAPI.getSkillsFrom(living);
+        SkillStorage skillStorage = SkillAPI.getSkillsFrom(target);
         for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
-            if (!skillInstance.canInteractSkill(living)) continue;
+            if (!skillInstance.canInteractSkill(target)) continue;
             skillInstance.onBeingTargeted(target, living, e);
         }
         skillStorage.syncChanges();
@@ -78,7 +78,7 @@ public class ServerEventListenerHandler {
         SkillStorage skillStorage = SkillAPI.getSkillsFrom(living);
         for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
             if (!skillInstance.canInteractSkill(living)) continue;
-            skillInstance.onBeingDamaged(living, e);
+            skillInstance.onBeingDamaged(e);
         }
         skillStorage.syncChanges();
     }
@@ -89,7 +89,7 @@ public class ServerEventListenerHandler {
         SkillStorage skillStorage = SkillAPI.getSkillsFrom(living);
         for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
             if (!skillInstance.canInteractSkill(living)) continue;
-            skillInstance.onTakenDamage(living, e);
+            skillInstance.onTakenDamage(e);
         }
         skillStorage.syncChanges();
     }
@@ -102,9 +102,7 @@ public class ServerEventListenerHandler {
         SkillStorage skillStorage = SkillAPI.getSkillsFrom(living);
         for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
             if (!skillInstance.canInteractSkill(living)) continue;
-
             skillInstance.onProjectileHit(living, e);
-            e.setCanceled(true);
         }
     }
 
@@ -145,9 +143,7 @@ public class ServerEventListenerHandler {
         SkillStorage skillStorage = SkillAPI.getSkillsFrom(living);
         for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
             if (!skillInstance.canInteractSkill(living)) continue;
-
-            skillInstance.onDeath(living, e);
-            e.setCanceled(true);
+            skillInstance.onDeath(e);
         }
     }
 }

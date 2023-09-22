@@ -5,7 +5,6 @@ import com.github.manasmods.manascore.api.skills.ManasSkillInstance;
 import com.github.manasmods.manascore.api.skills.SkillAPI;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
@@ -20,7 +19,7 @@ public class HealSkill extends ManasSkill {
     }
 
     @Override
-    public void onTakenDamage(ManasSkillInstance instance, LivingEntity living, LivingDamageEvent event) {
+    public void onTakenDamage(ManasSkillInstance instance, LivingDamageEvent event) {
         float amount = event.getAmount() / 2;
         event.getEntity().heal(amount);
         log.debug("Healed {} by {} health", event.getEntity().getName().getString(), amount);

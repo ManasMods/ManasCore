@@ -4,5 +4,7 @@
   "manascore.attribute.jump_power.name": "Jump Power",
   "manascore.category.test": "ManasCore Keybinding Test Category",
   "manascore.keybinding.test": "Test Keybinding (Release)",
-  "manascore.keybinding.test2": "Test Keybinding (Tick)"
+  "manascore.keybinding.test_press": "Test Keybinding (Tick)",
+  "manascore.keybinding.skill": "Test Keybinding Skill with Activation and Release",
+  "manascore.keybinding.skill_toggle": "Test Keybinding Skill Toggle"
 }

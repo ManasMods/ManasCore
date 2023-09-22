@@ -45,7 +45,7 @@ public class RequestSkillScrollPacket {
                     if (optional.isEmpty()) continue;
 
                     if (!optional.get().canInteractSkill(player)) continue;
-                    optional.get().onScroll(player, (int) delta);
+                    optional.get().onScroll(player, delta);
                 }
                 storage.syncChanges();
             }

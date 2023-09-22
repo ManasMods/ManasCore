@@ -33,7 +33,7 @@ public class ManasKeybinding extends KeyMapping {
      * @param action     Action when pressed
      */
     public ManasKeybinding(String langKey, int defaultKey, KeybindingCategory category, KeyBindingAction action) {
-        this(langKey, InputConstants.Type.KEYSYM.getOrCreate(defaultKey), category, action, null, false);
+        this(langKey, InputConstants.Type.KEYSYM.getOrCreate(defaultKey), category, action, null);
     }
 
     /**
@@ -46,7 +46,7 @@ public class ManasKeybinding extends KeyMapping {
      * @param action     Action when pressed
      */
     public ManasKeybinding(String langKey, InputConstants.Key defaultKey, KeybindingCategory category, KeyBindingAction action) {
-        this(langKey, defaultKey, category, action, null, false);
+        this(langKey, defaultKey, category, action, null);
     }
 
     /**
@@ -83,7 +83,7 @@ public class ManasKeybinding extends KeyMapping {
      * @param release    Action when released
      */
     public ManasKeybinding(String langKey, int defaultKey, KeybindingCategory category, KeyBindingAction action, @Nullable KeyBindingRelease release) {
-        this(langKey, InputConstants.Type.KEYSYM.getOrCreate(defaultKey), category, action, release, false);
+        this(langKey, InputConstants.Type.KEYSYM.getOrCreate(defaultKey), category, action, release);
     }
 
     /**
@@ -96,57 +96,25 @@ public class ManasKeybinding extends KeyMapping {
      * @param action     Action when pressed
      * @param release    Action when released
      */
-    public ManasKeybinding(String langKey, int defaultKey, KeybindingCategory category, KeyBindingAction action, @Nullable KeyBindingRelease release, boolean actionOnce) {
-        this(langKey, InputConstants.Type.KEYSYM.getOrCreate(defaultKey), category, action, release, actionOnce);
-    }
-
-    /**
-     * Creates a Keybinding which handles the given action automatically.
-     * No need to create an {@link Mod.EventBusSubscriber}.
-     *
-     * @param langKey    Translation String
-     * @param defaultKey Default Key
-     * @param category   Category
-     * @param action     Action when pressed
-     * @param release    Action when released
-     * @param actionOnce Determine if the press action should be triggered once
-     */
-    public ManasKeybinding(String langKey, InputConstants.Key defaultKey, KeybindingCategory category, KeyBindingAction action, @Nullable KeyBindingRelease release, boolean actionOnce) {
+    public ManasKeybinding(String langKey, InputConstants.Key defaultKey, KeybindingCategory category, KeyBindingAction action, @Nullable KeyBindingRelease release) {
         super(langKey, KeyConflictContext.UNIVERSAL, defaultKey, category.getCategoryString());
-        if (actionOnce) {
+        if (release == null) {
+            this.action = action;
+            this.release = null;
+        } else {
             this.action = () -> {
                 if (!PRESSED_KEYBINDINGS.containsKey(this)) {
                     PRESSED_KEYBINDINGS.put(this, System.currentTimeMillis());
                     action.onPress();
                 }
             };
-
-            if (release == null) {
-                this.release = () -> PRESSED_KEYBINDINGS.remove(this);
-            } else {
-                this.release = () -> {
-                    if (PRESSED_KEYBINDINGS.containsKey(this)) {
-                        long start = PRESSED_KEYBINDINGS.remove(this);
-                        long end = System.currentTimeMillis();
-                        release.onRelease(end - start);
-                    }
-                };
-            }
-
-        } else {
-            this.action = action;
-            if (release == null) {
-                this.release = null;
-            } else {
-
-                this.release = () -> {
-                    if (PRESSED_KEYBINDINGS.containsKey(this)) {
-                        long start = PRESSED_KEYBINDINGS.remove(this);
-                        long end = System.currentTimeMillis();
-                        release.onRelease(end - start);
-                    }
-                };
-            }
+            this.release = () -> {
+                if (PRESSED_KEYBINDINGS.containsKey(this)) {
+                    long start = PRESSED_KEYBINDINGS.remove(this);
+                    long end = System.currentTimeMillis();
+                    release.onRelease(end - start);
+                }
+            };
         }
     }
 

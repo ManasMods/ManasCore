@@ -1,6 +1,7 @@
 package com.github.manasmods.manascore.api.skills;
 
 import com.github.manasmods.manascore.api.skills.capability.SkillStorage;
+import com.github.manasmods.manascore.api.skills.event.SkillDamageEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -75,7 +76,7 @@ public class ManasSkill {
 
     /**
      * Determine if the {@link ManasSkillInstance} of this Skill can be used by {@link LivingEntity}.
-     * Returning false will stop {@link LivingEntity} from using any feature of the skill.
+     * @return false will stop {@link LivingEntity} from using any feature of the skill.
      *
      * @param instance Affected {@link ManasSkillInstance}
      * @param living   Affected {@link LivingEntity}
@@ -85,8 +86,8 @@ public class ManasSkill {
     }
 
     /**
-     * Determine if this skill can be toggleable.
-     * Returning false if this skill is not toggleable.
+     * Determine if this skill can be toggled.
+     * @return false if this skill is not toggleable.
      */
     public boolean canBeToggled() {
         return false;
@@ -94,6 +95,7 @@ public class ManasSkill {
 
     /**
      * Determine if the {@link ManasSkillInstance} of this Skill is mastered.
+     * @return true to will mark this Skill is mastered, which can be used for increase stats or additional features/modes.
      *
      * @param instance Affected {@link ManasSkillInstance}
      */
@@ -113,7 +115,7 @@ public class ManasSkill {
     }
 
     /**
-     * Called when the {@link Player} toggles this Skill on.
+     * Called when the {@link Player} owing this Skill toggles it on.
      *
      * @param instance Affected {@link ManasSkillInstance}
      * @param player   Affected {@link Player}
@@ -122,7 +124,7 @@ public class ManasSkill {
     }
 
     /**
-     * Called when the {@link Player} toggles this Skill off.
+     * Called when the {@link Player} owning this Skill toggles it off.
      *
      * @param instance Affected {@link ManasSkillInstance}
      * @param player   Affected {@link Player}
@@ -131,7 +133,7 @@ public class ManasSkill {
     }
 
     /**
-     * Called every tick if this Skill is obtained.
+     * Called every tick of the {@link Player} owning this Skill.
      *
      * @param instance Affected {@link ManasSkillInstance}
      * @param player   Affected {@link Player}
@@ -140,7 +142,7 @@ public class ManasSkill {
     }
 
     /**
-     * Called when the {@link Player} presses the skill activation button.
+     * Called when the {@link Player} owning this Skill presses the skill activation button.
      *
      * @param instance Affected {@link ManasSkillInstance}
      * @param player   Affected {@link Player}
@@ -149,7 +151,7 @@ public class ManasSkill {
     }
 
     /**
-     * Called when the {@link Player} releases the skill activation button after {@param heldTicks}.
+     * Called when the {@link Player} owning this Skill releases the skill activation button after {@param heldTicks}.
      *
      * @param instance  Affected {@link ManasSkillInstance}
      * @param player    Affected {@link Player}
@@ -158,17 +160,17 @@ public class ManasSkill {
     }
 
     /**
-     * Called when the {@link Player} scrolls the mouse when holding the skill activation buttons.
+     * Called when the {@link Player} owning this Skill scrolls the mouse when holding the skill activation buttons.
      *
      * @param instance Affected {@link ManasSkillInstance}
      * @param player   Affected {@link Player}
-     * @param direction decides if the mouse scroll is scrolled up (positive) or down (negative).
+     * @param delta    The scroll delta of the mouse scroll.
      */
-    public void onScroll(ManasSkillInstance instance, Player player, int direction) {
+    public void onScroll(ManasSkillInstance instance, Player player, double delta) {
     }
 
     /**
-     * Called when the {@link Player} right-clicks a block.
+     * Called when the {@link Player} owning this Skill right-clicks a block.
      *
      * @param instance  Affected {@link ManasSkillInstance}
      * @param player    Affected {@link Player}
@@ -181,8 +183,8 @@ public class ManasSkill {
      * Called when the {@link LivingEntity} owning this Skill starts to be targeted by a mob.
      *
      * @param instance Affected {@link ManasSkillInstance}
-     * @param target   Affected {@link LivingEntity}
-     * @param attacker Affected {@link LivingEntity}
+     * @param target   Affected {@link LivingEntity} owning this instance.
+     * @param attacker Affected {@link LivingEntity} targeting the owner of this instance.
      * @param event    Triggered {@link LivingChangeTargetEvent}
      */
     public void onBeingTargeted(ManasSkillInstance instance, LivingEntity target, LivingEntity attacker, LivingChangeTargetEvent event) {
@@ -194,44 +196,43 @@ public class ManasSkill {
      * Therefore, cancel the hurt sound, animation and knock back, but cannot change the damage amount like {@link LivingHurtEvent}
      *
      * @param instance Affected {@link ManasSkillInstance}
-     * @param entity   Affected {@link LivingEntity}
      * @param event    Triggered {@link LivingAttackEvent}
      */
-    public void onBeingDamaged(ManasSkillInstance instance, LivingEntity entity, LivingAttackEvent event) {
+    public void onBeingDamaged(ManasSkillInstance instance, LivingAttackEvent event) {
     }
 
     /**
-     * Called when the {@link LivingEntity} owning this Skill gets hurt
+     * Called when the {@link LivingEntity} owning this Skill damage another {@link LivingEntity}.
      * Canceling {@link LivingHurtEvent} will not cancel the hurt sound, animation and knock back.
      *
      * @param instance Affected {@link ManasSkillInstance}
-     * @param attacker Affected {@link LivingEntity}
-     * @param entity   Affected {@link LivingEntity}
+     * @param entity   Affected {@link LivingEntity} being attacked by the owner of this SKill.
      * @param event    Triggered {@link LivingHurtEvent}
      */
-    public void onDamageEntity(ManasSkillInstance instance, LivingEntity attacker, LivingEntity entity, LivingHurtEvent event) {
+    public void onDamageEntity(ManasSkillInstance instance, LivingEntity entity, LivingHurtEvent event) {
     }
 
     /**
-     * Called when the {@link LivingEntity} owning this Skill gets hurt (after effects like Barriers is consumed the damage amount)
+     * Called when the {@link LivingEntity} owning this Skill damage another {@link LivingEntity}, triggered after {@link SkillDamageEvent.Barrier}
      * Canceling {@link LivingHurtEvent} will not cancel the hurt sound, animation and knock back.
      *
      * @param instance Affected {@link ManasSkillInstance}
-     * @param attacker Affected {@link LivingEntity}
-     * @param entity   Affected {@link LivingEntity} - Attacked Entity
+     * @param entity   Affected {@link LivingEntity} being attacked by the owner of this SKill.
      * @param event    Triggered {@link LivingHurtEvent}
+     *
+     * @see SkillDamageEvent.Barrier
      */
-    public void onTouchEntity(ManasSkillInstance instance, LivingEntity attacker, LivingEntity entity, LivingHurtEvent event) {
+    public void onTouchEntity(ManasSkillInstance instance, LivingEntity entity, LivingHurtEvent event) {
     }
 
     /**
-     * Called when the {@link LivingEntity} owning this Skill gets damaged (after armor, potion effects, etc. is calculated)
+     * Called when the {@link LivingEntity} owning this Skill takes damage.
+     * Canceling {@link LivingDamageEvent} will not cancel the hurt sound, animation and knock back.
      *
      * @param instance Affected {@link ManasSkillInstance}
-     * @param living   Affected {@link LivingEntity}
      * @param event    Triggered {@link LivingDamageEvent}
      */
-    public void onTakenDamage(ManasSkillInstance instance, LivingEntity living, LivingDamageEvent event) {
+    public void onTakenDamage(ManasSkillInstance instance, LivingDamageEvent event) {
     }
 
     /**
@@ -248,17 +249,16 @@ public class ManasSkill {
      * Called when the {@link LivingEntity} owning this Skill dies
      *
      * @param instance Affected {@link ManasSkillInstance}
-     * @param living   Affected {@link LivingEntity}
      * @param event    Triggered {@link LivingDeathEvent}
      */
-    public void onDeath(ManasSkillInstance instance, LivingEntity living, LivingDeathEvent event) {
+    public void onDeath(ManasSkillInstance instance, LivingDeathEvent event) {
     }
 
     /**
-     * Called when the {@link Player} owning this Skill respawns
+     * {@link PlayerEvent.PlayerRespawnEvent} invoking this callback
      *
      * @param instance Affected {@link ManasSkillInstance}
-     * {@link PlayerEvent.PlayerRespawnEvent} invoking this callback
+     * @param event    Triggered {@link PlayerEvent.PlayerRespawnEvent}
      */
     public void onRespawn(ManasSkillInstance instance, PlayerEvent.PlayerRespawnEvent event) {
     }

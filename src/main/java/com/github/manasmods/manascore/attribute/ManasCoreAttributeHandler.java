@@ -32,7 +32,7 @@ public class ManasCoreAttributeHandler {
 
         final LivingEntity entity = e.getEntity();
         final BlockPos entityPos = entity.blockPosition();
-        //Barrier
+        //Calculation
         double baseJumpPower = instance.getValue();
         float blockModifier0 = entity.level.getBlockState(entityPos).getBlock().getJumpFactor();
         float blockModifier1 = entity.level.getBlockState(new BlockPos(entityPos.getX(), entity.getBoundingBox().minY - 0.5000001D, entityPos.getZ())).getBlock().getJumpFactor();
