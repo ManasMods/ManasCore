@@ -4,15 +4,13 @@ import com.github.manasmods.manascore.api.skills.ManasSkill;
 import com.github.manasmods.manascore.api.skills.ManasSkillInstance;
 import lombok.Getter;
 import lombok.Setter;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.eventbus.api.Cancelable;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
- * This Event is fired right before triggering onRelease method of a {@link ManasSkill}.
- * You can prevent an {@link Entity} from activating the release action by canceling the {@link SkillReleaseEvent}.
- * <p>
+ * This Event is fired right before {@link ManasSkill#onRelease} is invoked.
+ * Cancel this event to prevent the {@link ManasSkill#onRelease} invocation.
  */
 @ApiStatus.AvailableSince("2.0.18.0")
 @Cancelable

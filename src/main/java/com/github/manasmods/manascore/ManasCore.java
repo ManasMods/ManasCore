@@ -5,12 +5,10 @@
 package com.github.manasmods.manascore;
 
 import com.github.manasmods.manascore.attribute.ManasCoreAttributes;
-import com.github.manasmods.manascore.capability.skill.event.TickEventListenerHandler;
 import com.github.manasmods.manascore.config.ManasCoreConfig;
 import com.github.manasmods.manascore.network.ManasCoreNetwork;
 import com.github.manasmods.manascore.skill.SkillRegistry;
 import lombok.Getter;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -33,11 +31,7 @@ public final class ManasCore {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         ManasCoreAttributes.register(modEventBus);
         SkillRegistry.register(modEventBus);
-
         modEventBus.addListener(this::setup);
-
-        final IEventBus forgeEventBus = MinecraftForge.EVENT_BUS;
-        forgeEventBus.addListener(TickEventListenerHandler::onTick);
     }
 
     private void setup(final FMLCommonSetupEvent e) {

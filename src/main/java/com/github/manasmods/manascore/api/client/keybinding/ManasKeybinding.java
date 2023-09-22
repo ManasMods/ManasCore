@@ -113,24 +113,40 @@ public class ManasKeybinding extends KeyMapping {
      */
     public ManasKeybinding(String langKey, InputConstants.Key defaultKey, KeybindingCategory category, KeyBindingAction action, @Nullable KeyBindingRelease release, boolean actionOnce) {
         super(langKey, KeyConflictContext.UNIVERSAL, defaultKey, category.getCategoryString());
-        if (release == null) {
-            this.action = action;
-            this.release = null;
-        } else {
+        if (actionOnce) {
             this.action = () -> {
                 if (!PRESSED_KEYBINDINGS.containsKey(this)) {
                     PRESSED_KEYBINDINGS.put(this, System.currentTimeMillis());
-                    if (actionOnce) action.onPress();
-                }
-                if (!actionOnce) action.onPress();
-            };
-            this.release = () -> {
-                if (PRESSED_KEYBINDINGS.containsKey(this)) {
-                    long start = PRESSED_KEYBINDINGS.remove(this);
-                    long end = System.currentTimeMillis();
-                    release.onRelease(end - start);
+                    action.onPress();
                 }
             };
+
+            if (release == null) {
+                this.release = () -> PRESSED_KEYBINDINGS.remove(this);
+            } else {
+                this.release = () -> {
+                    if (PRESSED_KEYBINDINGS.containsKey(this)) {
+                        long start = PRESSED_KEYBINDINGS.remove(this);
+                        long end = System.currentTimeMillis();
+                        release.onRelease(end - start);
+                    }
+                };
+            }
+
+        } else {
+            this.action = action;
+            if (release == null) {
+                this.release = null;
+            } else {
+
+                this.release = () -> {
+                    if (PRESSED_KEYBINDINGS.containsKey(this)) {
+                        long start = PRESSED_KEYBINDINGS.remove(this);
+                        long end = System.currentTimeMillis();
+                        release.onRelease(end - start);
+                    }
+                };
+            }
         }
     }
 

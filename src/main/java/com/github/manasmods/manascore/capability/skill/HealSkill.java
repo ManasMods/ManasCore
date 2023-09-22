@@ -20,11 +20,10 @@ public class HealSkill extends ManasSkill {
     }
 
     @Override
-    public float onTakenDamage(ManasSkillInstance instance, LivingEntity living, LivingDamageEvent event) {
+    public void onTakenDamage(ManasSkillInstance instance, LivingEntity living, LivingDamageEvent event) {
         float amount = event.getAmount() / 2;
         event.getEntity().heal(amount);
         log.debug("Healed {} by {} health", event.getEntity().getName().getString(), amount);
-        return amount;
     }
 
     private void unlock(final LivingEntityUseItemEvent.Finish e){

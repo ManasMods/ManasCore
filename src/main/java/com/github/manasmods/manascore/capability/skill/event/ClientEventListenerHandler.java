@@ -22,7 +22,7 @@ import java.util.List;
 public class ClientEventListenerHandler {
 
     @SubscribeEvent
-    public static void clientMouseScrolled(InputEvent.MouseScrollingEvent event) {
+    public static void clientMouseScrolled(final InputEvent.MouseScrollingEvent event) {
         var minecraft = Minecraft.getInstance();
         Player player = minecraft.player;
         if (player == null) return;

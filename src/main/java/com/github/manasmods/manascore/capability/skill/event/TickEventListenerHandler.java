@@ -1,5 +1,6 @@
 package com.github.manasmods.manascore.capability.skill.event;
 
+import com.github.manasmods.manascore.ManasCore;
 import com.github.manasmods.manascore.api.skills.ManasSkillInstance;
 import com.github.manasmods.manascore.api.skills.SkillAPI;
 import com.github.manasmods.manascore.api.skills.capability.SkillStorage;
@@ -8,11 +9,15 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
+@Mod.EventBusSubscriber(modid = ManasCore.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class TickEventListenerHandler {
     public static final int INSTANCE_UPDATE = 20;
     public static final int PASSIVE_SKILL = 100;
-    public static void onTick(TickEvent.LevelTickEvent event) {
+    @SubscribeEvent
+    public static void onTick(final TickEvent.LevelTickEvent event) {
         if (event.level.isClientSide) return;
         if (event.phase == TickEvent.Phase.START) return;
 
@@ -23,18 +28,15 @@ public class TickEventListenerHandler {
 
         level.players().forEach(player -> {
             if (player instanceof ServerPlayer serverPlayer) {
-                if (shouldPassiveConsume) {
-                    updateSkillInstance(serverPlayer);
-                    updateTemporarySkill(serverPlayer);
+                if (!shouldPassiveConsume) return;
+                updateSkillInstance(serverPlayer);
+                updateTemporarySkill(serverPlayer);
 
-                    if (passiveSkillActivate) {
-                        SkillStorage skillStorage = SkillAPI.getSkillsFrom(serverPlayer);
-                        for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
-
-                            if (MinecraftForge.EVENT_BUS.post(new SkillTickEvent(skillInstance, serverPlayer))) continue;
-                            skillInstance.onTick(serverPlayer);
-                        }
-                    }
+                if (!passiveSkillActivate) return;
+                SkillStorage skillStorage = SkillAPI.getSkillsFrom(serverPlayer);
+                for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
+                    if (MinecraftForge.EVENT_BUS.post(new SkillTickEvent(skillInstance, serverPlayer))) continue;
+                    skillInstance.onTick(serverPlayer);
                 }
             }
         });
@@ -44,10 +46,9 @@ public class TickEventListenerHandler {
         SkillStorage skillStorage = SkillAPI.getSkillsFrom(serverPlayer);
         for (ManasSkillInstance instance : skillStorage.getLearnedSkills()) {
             if (!instance.onCoolDown()) continue;
-
             instance.decreaseCoolDown(1);
-            skillStorage.syncChanges();
         }
+        skillStorage.syncChanges();
     }
 
     public static void updateTemporarySkill(ServerPlayer serverPlayer) {
@@ -60,7 +61,7 @@ public class TickEventListenerHandler {
 
             skillStorage.forgetSkill(instance);
             skillStorage.syncChanges();
-            return;
+            break;
         }
     }
 }

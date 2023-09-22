@@ -9,6 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
@@ -26,12 +27,13 @@ public class ManasCoreAttributeHandler {
 
     @SubscribeEvent
     public static void modifyJumpPower(final LivingJumpEvent e) {
-        if (e.getEntity().getAttribute(ManasCoreAttributes.JUMP_POWER.get()) == null) return;
+        AttributeInstance instance = e.getEntity().getAttribute(ManasCoreAttributes.JUMP_POWER.get());
+        if (instance == null) return;
 
         final LivingEntity entity = e.getEntity();
         final BlockPos entityPos = entity.blockPosition();
-        //Calculation
-        double baseJumpPower = entity.getAttribute(ManasCoreAttributes.JUMP_POWER.get()).getValue();
+        //Barrier
+        double baseJumpPower = instance.getValue();
         float blockModifier0 = entity.level.getBlockState(entityPos).getBlock().getJumpFactor();
         float blockModifier1 = entity.level.getBlockState(new BlockPos(entityPos.getX(), entity.getBoundingBox().minY - 0.5000001D, entityPos.getZ())).getBlock().getJumpFactor();
         double blockModifier = (double) blockModifier0 == 1.0D ? blockModifier1 : blockModifier0;

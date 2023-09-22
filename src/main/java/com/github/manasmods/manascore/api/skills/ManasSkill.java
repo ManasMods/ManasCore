@@ -9,6 +9,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.living.LivingChangeTargetEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
@@ -45,11 +47,17 @@ public class ManasSkill {
         return new ManasSkillInstance(this);
     }
 
+    /**
+     * Used to get the {@link ResourceLocation} id of this skill.
+     */
     @Nullable
     public ResourceLocation getRegistryName() {
         return SkillAPI.getSkillRegistry().getKey(this);
     }
 
+    /**
+     * Used to get the {@link MutableComponent} name of this skill for translation.
+     */
     @Nullable
     public MutableComponent getName() {
         final ResourceLocation id = getRegistryName();
@@ -66,25 +74,39 @@ public class ManasSkill {
     }
 
     /**
-     * Determine if the skill can be used at all - useful for anti skill/magic.
+     * Determine if the {@link ManasSkillInstance} of this Skill can be used by {@link LivingEntity}.
+     * Returning false will stop {@link LivingEntity} from using any feature of the skill.
+     *
+     * @param instance Affected {@link ManasSkillInstance}
+     * @param living   Affected {@link LivingEntity}
      */
     public boolean canInteractSkill(ManasSkillInstance instance , LivingEntity living) {
         return true;
     }
 
     /**
-     * Determine if the skill is toggleable or equip-able.
+     * Determine if this skill can be toggleable.
+     * Returning false if this skill is not toggleable.
      */
     public boolean canBeToggled() {
         return false;
     }
 
     /**
-     * Skill mastery
+     * Determine if the {@link ManasSkillInstance} of this Skill is mastered.
+     *
+     * @param instance Affected {@link ManasSkillInstance}
      */
     public boolean isMastered(ManasSkillInstance instance) {
         return instance.getMastery() >= 100;
     }
+
+    /**
+     * Increase the mastery points for {@link ManasSkillInstance} of this Skill if not mastered.
+     *
+     * @param instance Affected {@link ManasSkillInstance}
+     * @param player   Affected {@link Player}
+     */
     public void addMasteryPoint(ManasSkillInstance instance, Player player) {
         if (isMastered(instance)) return;
         instance.setMastery(instance.getMastery() + 1);
@@ -94,6 +116,7 @@ public class ManasSkill {
      * Called when the {@link Player} toggles this Skill on.
      *
      * @param instance Affected {@link ManasSkillInstance}
+     * @param player   Affected {@link Player}
      */
     public void onToggleOn(ManasSkillInstance instance, Player player) {
     }
@@ -102,6 +125,7 @@ public class ManasSkill {
      * Called when the {@link Player} toggles this Skill off.
      *
      * @param instance Affected {@link ManasSkillInstance}
+     * @param player   Affected {@link Player}
      */
     public void onToggleOff(ManasSkillInstance instance, Player player) {
     }
@@ -110,6 +134,7 @@ public class ManasSkill {
      * Called every tick if this Skill is obtained.
      *
      * @param instance Affected {@link ManasSkillInstance}
+     * @param player   Affected {@link Player}
      */
     public void onTick(ManasSkillInstance instance, Player player) {
     }
@@ -118,14 +143,16 @@ public class ManasSkill {
      * Called when the {@link Player} presses the skill activation button.
      *
      * @param instance Affected {@link ManasSkillInstance}
+     * @param player   Affected {@link Player}
      */
     public void onActivation(ManasSkillInstance instance, Player player) {
     }
 
     /**
-     * Called when the {@link Player} releases the skill activation button.
+     * Called when the {@link Player} releases the skill activation button after {@param heldTicks}.
      *
-     * @param instance Affected {@link ManasSkillInstance}
+     * @param instance  Affected {@link ManasSkillInstance}
+     * @param player    Affected {@link Player}
      */
     public void onRelease(ManasSkillInstance instance, Player player, int heldTicks) {
     }
@@ -134,6 +161,8 @@ public class ManasSkill {
      * Called when the {@link Player} scrolls the mouse when holding the skill activation buttons.
      *
      * @param instance Affected {@link ManasSkillInstance}
+     * @param player   Affected {@link Player}
+     * @param direction decides if the mouse scroll is scrolled up (positive) or down (negative).
      */
     public void onScroll(ManasSkillInstance instance, Player player, int direction) {
     }
@@ -141,72 +170,95 @@ public class ManasSkill {
     /**
      * Called when the {@link Player} right-clicks a block.
      *
-     * @param instance Affected {@link ManasSkillInstance}
+     * @param instance  Affected {@link ManasSkillInstance}
+     * @param player    Affected {@link Player}
      * @param hitResult Triggered {@link BlockHitResult}
      */
     public void onRightClickBlock(ManasSkillInstance instance, Player player, BlockHitResult hitResult) {
     }
 
     /**
-     * Called when the {@link LivingEntity} owning this Skill gets hurt
-     * Change the amount of the damage that the owner takes.
+     * Called when the {@link LivingEntity} owning this Skill starts to be targeted by a mob.
      *
      * @param instance Affected {@link ManasSkillInstance}
+     * @param target   Affected {@link LivingEntity}
+     * @param attacker Affected {@link LivingEntity}
+     * @param event    Triggered {@link LivingChangeTargetEvent}
+     */
+    public void onBeingTargeted(ManasSkillInstance instance, LivingEntity target, LivingEntity attacker, LivingChangeTargetEvent event) {
+    }
+
+    /**
+     * Called when the {@link LivingEntity} owning this Skill starts to be attacked.
+     * Canceling {@link LivingAttackEvent} will make the owner immune to the Damage Source.
+     * Therefore, cancel the hurt sound, animation and knock back, but cannot change the damage amount like {@link LivingHurtEvent}
+     *
+     * @param instance Affected {@link ManasSkillInstance}
+     * @param entity   Affected {@link LivingEntity}
+     * @param event    Triggered {@link LivingAttackEvent}
+     */
+    public void onBeingDamaged(ManasSkillInstance instance, LivingEntity entity, LivingAttackEvent event) {
+    }
+
+    /**
+     * Called when the {@link LivingEntity} owning this Skill gets hurt
+     * Canceling {@link LivingHurtEvent} will not cancel the hurt sound, animation and knock back.
+     *
+     * @param instance Affected {@link ManasSkillInstance}
+     * @param attacker Affected {@link LivingEntity}
+     * @param entity   Affected {@link LivingEntity}
      * @param event    Triggered {@link LivingHurtEvent}
      */
-    public float onDamageEntity(ManasSkillInstance instance, LivingEntity living, LivingEntity entity, LivingHurtEvent event) {
-        return event.getAmount();
+    public void onDamageEntity(ManasSkillInstance instance, LivingEntity attacker, LivingEntity entity, LivingHurtEvent event) {
     }
 
     /**
      * Called when the {@link LivingEntity} owning this Skill gets hurt (after effects like Barriers is consumed the damage amount)
-     * Change the amount of the damage that the owner takes.
+     * Canceling {@link LivingHurtEvent} will not cancel the hurt sound, animation and knock back.
      *
      * @param instance Affected {@link ManasSkillInstance}
+     * @param attacker Affected {@link LivingEntity}
+     * @param entity   Affected {@link LivingEntity} - Attacked Entity
      * @param event    Triggered {@link LivingHurtEvent}
      */
-    public float onTouchEntity(ManasSkillInstance instance, LivingEntity living, LivingEntity entity, LivingHurtEvent event) {
-        return event.getAmount();
+    public void onTouchEntity(ManasSkillInstance instance, LivingEntity attacker, LivingEntity entity, LivingHurtEvent event) {
     }
 
     /**
      * Called when the {@link LivingEntity} owning this Skill gets damaged (after armor, potion effects, etc. is calculated)
-     * Change the amount of the damage that the owner takes.
      *
      * @param instance Affected {@link ManasSkillInstance}
+     * @param living   Affected {@link LivingEntity}
      * @param event    Triggered {@link LivingDamageEvent}
      */
-    public float onTakenDamage(ManasSkillInstance instance, LivingEntity living, LivingDamageEvent event) {
-        return event.getAmount();
+    public void onTakenDamage(ManasSkillInstance instance, LivingEntity living, LivingDamageEvent event) {
     }
 
     /**
      * Called when the {@link LivingEntity} is hit by a projectile.
-     * Cancel the event when return true.
      *
      * @param instance Affected {@link ManasSkillInstance}
+     * @param living   Affected {@link LivingEntity}
      * @param event    Triggered {@link ProjectileImpactEvent}
      */
-    public boolean onProjectileHit(ManasSkillInstance instance, LivingEntity living, ProjectileImpactEvent event) {
-        return false;
+    public void onProjectileHit(ManasSkillInstance instance, LivingEntity living, ProjectileImpactEvent event) {
     }
 
     /**
      * Called when the {@link LivingEntity} owning this Skill dies
-     * Cancel the death event when return true.
      *
      * @param instance Affected {@link ManasSkillInstance}
+     * @param living   Affected {@link LivingEntity}
      * @param event    Triggered {@link LivingDeathEvent}
      */
-    public boolean onDeath(ManasSkillInstance instance, LivingEntity living, LivingDeathEvent event) {
-        return false;
+    public void onDeath(ManasSkillInstance instance, LivingEntity living, LivingDeathEvent event) {
     }
 
     /**
      * Called when the {@link Player} owning this Skill respawns
      *
      * @param instance Affected {@link ManasSkillInstance}
-     * @param event    Triggered {@link PlayerEvent.PlayerRespawnEvent}
+     * {@link PlayerEvent.PlayerRespawnEvent} invoking this callback
      */
     public void onRespawn(ManasSkillInstance instance, PlayerEvent.PlayerRespawnEvent event) {
     }
