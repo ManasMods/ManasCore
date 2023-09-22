@@ -5,6 +5,7 @@ import com.github.manasmods.manascore.api.skills.ManasSkillInstance;
 import com.github.manasmods.manascore.api.skills.SkillAPI;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
@@ -16,6 +17,19 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 public class HealSkill extends ManasSkill {
     public HealSkill(){
         MinecraftForge.EVENT_BUS.addListener(this::unlock);
+    }
+
+    public void onPressed(ManasSkillInstance instance, Player player) {
+        log.debug("I'm pressed");
+    }
+
+    public boolean onHeld(ManasSkillInstance instance, Player player, int heldTicks) {
+        log.debug("I'm ticking");
+        return true;
+    }
+
+    public void onRelease(ManasSkillInstance instance, Player player, int heldTicks) {
+        log.debug("I'm released");
     }
 
     @Override

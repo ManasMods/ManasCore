@@ -305,7 +305,7 @@ public class ManasSkillInstance implements Cloneable {
     }
 
     /**
-     * Called when the {@link Player} toggles this {@link ManasSkill} type of this instance on.
+     * Called when the {@link Player} owning this Skill toggles this {@link ManasSkill} type of this instance on.
      *
      * @param player   Affected {@link Player}
      */
@@ -314,7 +314,7 @@ public class ManasSkillInstance implements Cloneable {
     }
 
     /**
-     * Called when the {@link Player} toggles this {@link ManasSkill} type of this instance off.
+     * Called when the {@link Player} owning this Skill toggles this {@link ManasSkill} type of this instance off.
      *
      * @param player   Affected {@link Player}
      */
@@ -332,16 +332,26 @@ public class ManasSkillInstance implements Cloneable {
     }
 
     /**
-     * Called when the {@link Player} presses the skill activation button.
+     * Called when the {@link Player} owning this Skill presses the skill activation button.
      *
      * @param player   Affected {@link Player}
      */
-    public void onActivation(Player player) {
-        this.getSkill().onActivation(this, player);
+    public void onPressed(Player player) {
+        this.getSkill().onPressed(this, player);
     }
 
     /**
-     * Called when the {@link Player} releases the skill activation button after {@param heldTicks}.
+     * Called when the {@link Player} owning this Skill holds the skill activation button.
+     * @return true to continue ticking this instance.
+     *
+     * @param player   Affected {@link Player}
+     */
+    public boolean onHeld(Player player, int heldTicks) {
+        return this.getSkill().onHeld(this, player, heldTicks);
+    }
+
+    /**
+     * Called when the {@link Player} owning this Skill releases the skill activation button after {@param heldTicks}.
      *
      * @param player    Affected {@link Player}
      * @param heldTicks - the number of ticks the skill activation button is held down.
@@ -351,7 +361,7 @@ public class ManasSkillInstance implements Cloneable {
     }
 
     /**
-     * Called when the {@link Player} scrolls the mouse when holding the skill activation buttons.
+     * Called when the {@link Player} owning this Skill scrolls the mouse when holding the skill activation buttons.
      *
      * @param player   Affected {@link Player}
      * @param delta    The scroll delta of the mouse scroll.
@@ -361,7 +371,7 @@ public class ManasSkillInstance implements Cloneable {
     }
 
     /**
-     * Called when the {@link Player} right-clicks a block.
+     * Called when the {@link Player} owning this Skill right-clicks a block.
      *
      * @param player    Affected {@link Player}
      * @param hitResult Triggered {@link BlockHitResult}
@@ -425,7 +435,7 @@ public class ManasSkillInstance implements Cloneable {
     }
 
     /**
-     * Called when the {@link LivingEntity} is hit by a projectile.
+     * Called when the {@link LivingEntity} owning this Skill is hit by a projectile.
      * Cancel the event when return true.
      *
      * @param living   Affected {@link LivingEntity}

@@ -147,7 +147,18 @@ public class ManasSkill {
      * @param instance Affected {@link ManasSkillInstance}
      * @param player   Affected {@link Player}
      */
-    public void onActivation(ManasSkillInstance instance, Player player) {
+    public void onPressed(ManasSkillInstance instance, Player player) {
+    }
+
+    /**
+     * Called when the {@link Player} owning this Skill holds the skill activation button.
+     * @return true to continue ticking this Skill.
+     *
+     * @param instance Affected {@link ManasSkillInstance}
+     * @param player   Affected {@link Player}
+     */
+    public boolean onHeld(ManasSkillInstance instance, Player player, int heldTicks) {
+        return false;
     }
 
     /**

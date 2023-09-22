@@ -3,7 +3,9 @@ package com.github.manasmods.manascore.network.toserver;
 import com.github.manasmods.manascore.api.skills.ManasSkill;
 import com.github.manasmods.manascore.api.skills.ManasSkillInstance;
 import com.github.manasmods.manascore.api.skills.SkillAPI;
+import com.github.manasmods.manascore.api.skills.TickingSkill;
 import com.github.manasmods.manascore.api.skills.capability.SkillStorage;
+import com.github.manasmods.manascore.capability.skill.event.TickEventListenerHandler;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -46,7 +48,8 @@ public class RequestSkillActivationPacket {
 
                     if (!skillInstance.canInteractSkill(player)) continue;
                     if (skillInstance.onCoolDown()) continue;
-                    skillInstance.onActivation(player);
+                    skillInstance.onPressed(player);
+                    TickEventListenerHandler.tickingSkills.put(player.getUUID(), new TickingSkill(skillInstance.getSkillId()));
                 }
                 storage.syncChanges();
             }
