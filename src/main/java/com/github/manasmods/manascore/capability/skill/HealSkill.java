@@ -29,7 +29,7 @@ public class HealSkill extends ManasSkill {
     }
 
     public void onRelease(ManasSkillInstance instance, Player player, int heldTicks) {
-        log.debug("I'm released");
+        log.debug("I'm released after {} ticks", heldTicks);
     }
 
     @Override

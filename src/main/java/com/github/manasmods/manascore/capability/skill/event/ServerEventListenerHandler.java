@@ -60,14 +60,13 @@ public class ServerEventListenerHandler {
 
     @SubscribeEvent
     public static void onBeingTargeted(final LivingChangeTargetEvent e) {
-        LivingEntity living = e.getEntity();
         LivingEntity target = e.getNewTarget();
         if (target == null) return;
 
         SkillStorage skillStorage = SkillAPI.getSkillsFrom(target);
         for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
             if (!skillInstance.canInteractSkill(target)) continue;
-            skillInstance.onBeingTargeted(target, living, e);
+            skillInstance.onBeingTargeted(target, e);
         }
         skillStorage.syncChanges();
     }

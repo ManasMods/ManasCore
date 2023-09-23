@@ -24,7 +24,6 @@ import java.util.UUID;
 public class TickEventListenerHandler {
     public static final int INSTANCE_UPDATE = 20;
     public static final int PASSIVE_SKILL = 100;
-
     public static Multimap<UUID, TickingSkill> tickingSkills = ArrayListMultimap.create();
     @SubscribeEvent
     public static void skillHeldTick(final TickEvent.PlayerTickEvent event) {
@@ -49,20 +48,18 @@ public class TickEventListenerHandler {
         boolean shouldPassiveConsume = level.getServer().getTickCount() % INSTANCE_UPDATE == 0;
         boolean passiveSkillActivate = level.getServer().getTickCount() % PASSIVE_SKILL == 0;
 
-        level.players().forEach(player -> {
-            if (player instanceof ServerPlayer serverPlayer) {
-                if (!shouldPassiveConsume) return;
-                updateSkillInstance(serverPlayer);
-                updateTemporarySkill(serverPlayer);
+        if (!shouldPassiveConsume) return;
+        if (entity instanceof ServerPlayer serverPlayer) {
+            updateSkillInstance(serverPlayer);
+            updateTemporarySkill(serverPlayer);
+        }
 
-                if (!passiveSkillActivate) return;
-                SkillStorage skillStorage = SkillAPI.getSkillsFrom(serverPlayer);
-                for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
-                    if (MinecraftForge.EVENT_BUS.post(new SkillTickEvent(skillInstance, serverPlayer))) continue;
-                    skillInstance.onTick(serverPlayer);
-                }
-            }
-        });
+        if (!passiveSkillActivate) return;
+        SkillStorage skillStorage = SkillAPI.getSkillsFrom(entity);
+        for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
+            if (MinecraftForge.EVENT_BUS.post(new SkillTickEvent(skillInstance, entity))) continue;
+            skillInstance.onTick(entity);
+        }
     }
 
     private static void updateSkillInstance(ServerPlayer serverPlayer) {

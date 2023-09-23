@@ -3,8 +3,7 @@ package com.github.manasmods.manascore.client.keybinding;
 import com.github.manasmods.manascore.ManasCore;
 import com.github.manasmods.manascore.api.client.keybinding.KeybindingCategory;
 import com.github.manasmods.manascore.api.client.keybinding.ManasKeybinding;
-import com.github.manasmods.manascore.capability.skill.event.InternalSkillPacketActions;
-import com.mojang.blaze3d.platform.InputConstants;
+import com.github.manasmods.manascore.api.skills.SkillAPI;
 import lombok.extern.log4j.Log4j2;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
@@ -32,11 +31,11 @@ public class KeybindingRegistry {
             ));
             keybindings.add(new ManasKeybinding("manascore.keybinding.test_press", category, () -> log.info("Pressed")));
 
-            keybindings.add(new ManasKeybinding("manascore.keybinding.skill", InputConstants.KEY_X, category,
-                    () -> InternalSkillPacketActions.sendSkillActivationPacket(0),
-                    duration -> InternalSkillPacketActions.sendSkillReleasePacket(0, (int) (duration / 50))
+            keybindings.add(new ManasKeybinding("manascore.keybinding.skill", category,
+                    () -> SkillAPI.skillActivationPacket(0),
+                    duration -> SkillAPI.skillReleasePacket(0, (int) (duration / 50))
             ));
-            keybindings.add(new ManasKeybinding("manascore.keybinding.skill_toggle", category, InternalSkillPacketActions::sendSkillTogglePacket));
+            keybindings.add(new ManasKeybinding("manascore.keybinding.skill_toggle", category, SkillAPI::skillTogglePacket));
         }
     }
 

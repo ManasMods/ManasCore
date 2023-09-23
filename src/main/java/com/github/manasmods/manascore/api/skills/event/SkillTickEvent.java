@@ -3,7 +3,7 @@ package com.github.manasmods.manascore.api.skills.event;
 import com.github.manasmods.manascore.api.skills.ManasSkill;
 import com.github.manasmods.manascore.api.skills.ManasSkillInstance;
 import lombok.Getter;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.eventbus.api.Cancelable;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -15,9 +15,9 @@ import org.jetbrains.annotations.ApiStatus;
 @Cancelable
 public class SkillTickEvent extends SkillEvent {
     @Getter
-    private final Player entity;
+    private final LivingEntity entity;
 
-    public SkillTickEvent(ManasSkillInstance skillInstance, Player entity) {
+    public SkillTickEvent(ManasSkillInstance skillInstance, LivingEntity entity) {
         super(skillInstance);
         this.entity = entity;
     }
