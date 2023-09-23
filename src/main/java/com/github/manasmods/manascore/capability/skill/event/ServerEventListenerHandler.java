@@ -36,24 +36,22 @@ public class ServerEventListenerHandler {
 
     @SubscribeEvent
     public static void onPreBarrierDamage(final SkillDamageEvent.PreBarrier e) {
-        final LivingEntity entity = e.getEntity();
         if (e.getSource().getEntity() instanceof LivingEntity living) {
             SkillStorage skillStorage = SkillAPI.getSkillsFrom(living);
             for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
                 if (!skillInstance.canInteractSkill(living)) continue;
-                skillInstance.onDamageEntity(entity, e.getEvent());
+                skillInstance.onDamageEntity(living, e.getEvent());
             }
         }
     }
 
     @SubscribeEvent
     public static void onPostBarrierDamage(final SkillDamageEvent.PostBarrier e) {
-        final LivingEntity entity = e.getEntity();
         if (e.getSource().getEntity() instanceof LivingEntity living) {
             SkillStorage skillStorage = SkillAPI.getSkillsFrom(living);
             for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
                 if (!skillInstance.canInteractSkill(living)) continue;
-                skillInstance.onTouchEntity(entity, e.getEvent());
+                skillInstance.onTouchEntity(living, e.getEvent());
             }
         }
     }

@@ -220,7 +220,7 @@ public class ManasSkill {
      * Executing Order: This method gets invoked after {@link ManasSkill#onBeingDamaged}
      *
      * @param instance Affected {@link ManasSkillInstance}
-     * @param entity   Affected {@link LivingEntity} being attacked by the owner of this SKill.
+     * @param entity   Affected {@link LivingEntity} owning this SKill.
      * @param event    Triggered {@link LivingHurtEvent}
      */
     public void onDamageEntity(ManasSkillInstance instance, LivingEntity entity, LivingHurtEvent event) {
@@ -233,7 +233,7 @@ public class ManasSkill {
      * Executing Order: This method gets invoked after {@link ManasSkill#onDamageEntity}
      *
      * @param instance Affected {@link ManasSkillInstance}
-     * @param entity   Affected {@link LivingEntity} being attacked by the owner of this SKill.
+     * @param entity   Affected {@link LivingEntity} owning this Skill.
      * @param event    Triggered {@link LivingHurtEvent}
      *
      * @see SkillDamageEvent.Barrier
@@ -257,7 +257,7 @@ public class ManasSkill {
      * Called when the {@link LivingEntity} is hit by a projectile.
      *
      * @param instance Affected {@link ManasSkillInstance}
-     * @param living   Affected {@link LivingEntity}
+     * @param living   Affected {@link LivingEntity} owning this instance.
      * @param event    Triggered {@link ProjectileImpactEvent}
      */
     public void onProjectileHit(ManasSkillInstance instance, LivingEntity living, ProjectileImpactEvent event) {

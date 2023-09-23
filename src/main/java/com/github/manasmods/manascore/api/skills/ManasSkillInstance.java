@@ -412,7 +412,7 @@ public class ManasSkillInstance implements Cloneable {
      * <p>
      * Executing Order: This method gets invoked after {@link ManasSkillInstance#onBeingDamaged}
      *
-     * @param entity   Affected {@link LivingEntity} being attacked by the owner of this SKill.
+     * @param entity   Affected {@link LivingEntity} owning this instance.
      * @param event    Triggered {@link LivingHurtEvent}
      */
     public void onDamageEntity(LivingEntity entity, LivingHurtEvent event) {
@@ -425,7 +425,7 @@ public class ManasSkillInstance implements Cloneable {
      * <p>
      * Executing Order: This method gets invoked after {@link ManasSkillInstance#onDamageEntity}
      *
-     * @param entity   Affected {@link LivingEntity} being attacked by the owner of this SKill.
+     * @param entity   Affected {@link LivingEntity} owning this instance.
      * @param event    Triggered {@link LivingHurtEvent}
      */
     public void onTouchEntity(LivingEntity entity, LivingHurtEvent event) {
@@ -446,7 +446,7 @@ public class ManasSkillInstance implements Cloneable {
      * Called when the {@link LivingEntity} owning this Skill is hit by a projectile.
      * Cancel the event when return true.
      *
-     * @param living   Affected {@link LivingEntity}
+     * @param living   Affected {@link LivingEntity} owning this instance.
      * @param event    Triggered {@link ProjectileImpactEvent}
      */
     public void onProjectileHit(LivingEntity living, ProjectileImpactEvent event) {
