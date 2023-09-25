@@ -3,8 +3,10 @@ package com.github.manasmods.manascore.capability.skill.event;
 import com.github.manasmods.manascore.ManasCore;
 import com.github.manasmods.manascore.api.skills.ManasSkillInstance;
 import com.github.manasmods.manascore.api.skills.SkillAPI;
+import com.github.manasmods.manascore.api.skills.TickingSkill;
 import com.github.manasmods.manascore.api.skills.capability.SkillStorage;
 import com.github.manasmods.manascore.api.skills.event.SkillDamageEvent;
+import com.google.common.collect.Multimap;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.EntityHitResult;
@@ -20,6 +22,8 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 
+import java.util.UUID;
+
 @EventBusSubscriber(modid = ManasCore.MOD_ID, bus = EventBusSubscriber.Bus.FORGE)
 public class ServerEventListenerHandler {
 
@@ -27,15 +31,15 @@ public class ServerEventListenerHandler {
     public static void onEntityHurt(final LivingHurtEvent e) {
         if (e.getEntity().getLevel().isClientSide()) return;
 
-        MinecraftForge.EVENT_BUS.post(new SkillDamageEvent.PreBarrier(e));
-        MinecraftForge.EVENT_BUS.post(new SkillDamageEvent.Barrier(e));
-        MinecraftForge.EVENT_BUS.post(new SkillDamageEvent.PostBarrier(e));
+        MinecraftForge.EVENT_BUS.post(new SkillDamageEvent.PreCalculation(e));
+        MinecraftForge.EVENT_BUS.post(new SkillDamageEvent.Calculation(e));
+        MinecraftForge.EVENT_BUS.post(new SkillDamageEvent.PostCalculation(e));
 
         SkillAPI.getSkillsFrom(e.getEntity()).syncChanges();
     }
 
     @SubscribeEvent
-    public static void onPreBarrierDamage(final SkillDamageEvent.PreBarrier e) {
+    public static void onPreBarrierDamage(final SkillDamageEvent.PreCalculation e) {
         if (e.getSource().getEntity() instanceof LivingEntity living) {
             SkillStorage skillStorage = SkillAPI.getSkillsFrom(living);
             for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
@@ -46,7 +50,7 @@ public class ServerEventListenerHandler {
     }
 
     @SubscribeEvent
-    public static void onPostBarrierDamage(final SkillDamageEvent.PostBarrier e) {
+    public static void onPostBarrierDamage(final SkillDamageEvent.PostCalculation e) {
         if (e.getSource().getEntity() instanceof LivingEntity living) {
             SkillStorage skillStorage = SkillAPI.getSkillsFrom(living);
             for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
@@ -142,5 +146,12 @@ public class ServerEventListenerHandler {
             if (!skillInstance.canInteractSkill(living)) continue;
             skillInstance.onDeath(e);
         }
+    }
+
+    @SubscribeEvent
+    public static void onLogOut(final PlayerEvent.PlayerLoggedOutEvent e) {
+        Player player = e.getEntity();
+        Multimap<UUID, TickingSkill> multimap = TickEventListenerHandler.tickingSkills;
+        if (multimap.containsKey(player.getUUID())) multimap.removeAll(player.getUUID());
     }
 }

@@ -47,6 +47,7 @@ public final class SkillAPI {
 
     /**
      * Send {@link InternalSkillPacketActions#sendSkillActivationPacket} with a DistExecutor on client side.
+     * Used when player press a skill activation key bind.
      *
      * @see InternalSkillPacketActions#sendSkillActivationPacket
      */
@@ -56,6 +57,7 @@ public final class SkillAPI {
 
     /**
      * Send {@link InternalSkillPacketActions#sendSkillReleasePacket} with a DistExecutor on client side.
+     * Used when player release a skill activation key bind.
      *
      * @see InternalSkillPacketActions#sendSkillReleasePacket
      */
@@ -65,6 +67,7 @@ public final class SkillAPI {
 
     /**
      * Send {@link InternalSkillPacketActions#sendSkillTogglePacket} with a DistExecutor on client side.
+     * Used when player press a skill toggle key bind.
      *
      * @see InternalSkillPacketActions#sendSkillTogglePacket
      */

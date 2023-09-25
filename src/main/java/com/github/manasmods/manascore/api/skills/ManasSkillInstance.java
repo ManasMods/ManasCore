@@ -83,7 +83,7 @@ public class ManasSkillInstance implements Cloneable {
      * @param tag Tag with data from {@link ManasSkillInstance#fromNBT(CompoundTag)}
      */
     public CompoundTag serialize(CompoundTag tag) {
-        tag.putByte("Mode", (byte) this.mode);
+        tag.putInt("Mode", this.mode);
         tag.putInt("CoolDown", this.coolDown);
         tag.putInt("RemoveTime", this.removeTime);
         tag.putInt("Mastery", this.masteryPoint);
@@ -96,7 +96,7 @@ public class ManasSkillInstance implements Cloneable {
      * Can be used to load custom data.
      */
     public void deserialize(CompoundTag tag) {
-        this.mode = tag.getByte("Mode");
+        this.mode = tag.getInt("Mode");
         this.coolDown = tag.getInt("CoolDown");
         this.removeTime = tag.getInt("RemoveTime");
         this.masteryPoint = tag.getInt("Mastery");
@@ -158,6 +158,14 @@ public class ManasSkillInstance implements Cloneable {
      */
     public boolean canInteractSkill(LivingEntity living) {
         return this.getSkill().canInteractSkill(this, living);
+    }
+
+    /**
+     * @return the maximum number of ticks that this skill can be held down with the skill activation button.
+     * </p>
+     */
+    public int getMaxHeldTime() {
+        return this.getSkill().getMaxHeldTime();
     }
 
     /**

@@ -58,7 +58,7 @@ public class RequestSkillReleasePacket {
 
                     Multimap<UUID, TickingSkill> multimap = TickEventListenerHandler.tickingSkills;
                     if (multimap.containsKey(player.getUUID())) {
-                        multimap.get(player.getUUID()).removeIf(tickingSkill -> tickingSkill.getSkillId() == skillInstance.getSkillId());
+                        multimap.get(player.getUUID()).removeIf(tickingSkill -> tickingSkill.getSkill() == skillInstance.getSkill());
                     }
                 }
                 storage.syncChanges();

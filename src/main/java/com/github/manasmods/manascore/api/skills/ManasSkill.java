@@ -85,6 +85,14 @@ public class ManasSkill {
     }
 
     /**
+     * @return the maximum number of ticks that this skill can be held down with the skill activation button.
+     * </p>
+     */
+    public int getMaxHeldTime() {
+        return 72000;
+    }
+
+    /**
      * Determine if this skill can be toggled.
      * @return false if this skill is not toggleable.
      */
@@ -227,7 +235,7 @@ public class ManasSkill {
     }
 
     /**
-     * Called when the {@link LivingEntity} owning this Skill damage another {@link LivingEntity}, triggered after {@link SkillDamageEvent.Barrier}
+     * Called when the {@link LivingEntity} owning this Skill damage another {@link LivingEntity}, triggered after {@link SkillDamageEvent.Calculation}
      * Canceling {@link LivingHurtEvent} will not cancel the hurt sound, animation and knock back.
      * <p>
      * Executing Order: This method gets invoked after {@link ManasSkill#onDamageEntity}
@@ -236,7 +244,7 @@ public class ManasSkill {
      * @param entity   Affected {@link LivingEntity} owning this Skill.
      * @param event    Triggered {@link LivingHurtEvent}
      *
-     * @see SkillDamageEvent.Barrier
+     * @see SkillDamageEvent.Calculation
      */
     public void onTouchEntity(ManasSkillInstance instance, LivingEntity entity, LivingHurtEvent event) {
     }

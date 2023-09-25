@@ -37,19 +37,19 @@ public class SkillDamageEvent extends Event {
      * Canceling this event will cancel {@link LivingHurtEvent} and every event following after it.
      * <p>
      */
-    public static class PreBarrier extends SkillDamageEvent {
-        public PreBarrier(LivingHurtEvent event) {
+    public static class PreCalculation extends SkillDamageEvent {
+        public PreCalculation(LivingHurtEvent event) {
             super(event);
         }
     }
 
     /**
-     * This Event is fired by {@link LivingHurtEvent} after {@link PreBarrier} and before {@link PostBarrier}.
+     * This Event is fired by {@link LivingHurtEvent} after {@link PreCalculation} and before {@link PostCalculation}.
      * Canceling this event will cancel the Damage reduction.
      * <p>
      */
-    public static class Barrier extends SkillDamageEvent {
-        public Barrier(LivingHurtEvent event) {
+    public static class Calculation extends SkillDamageEvent {
+        public Calculation(LivingHurtEvent event) {
             super(event);
         }
     }
@@ -59,8 +59,8 @@ public class SkillDamageEvent extends Event {
      * Canceling this event will cancel {@link LivingHurtEvent} and every event following after it.
      * <p>
      */
-    public static class PostBarrier extends SkillDamageEvent {
-        public PostBarrier(LivingHurtEvent event) {
+    public static class PostCalculation extends SkillDamageEvent {
+        public PostCalculation(LivingHurtEvent event) {
             super(event);
         }
     }
