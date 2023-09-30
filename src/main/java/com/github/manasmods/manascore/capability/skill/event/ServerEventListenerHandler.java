@@ -6,7 +6,9 @@ import com.github.manasmods.manascore.api.skills.SkillAPI;
 import com.github.manasmods.manascore.api.skills.TickingSkill;
 import com.github.manasmods.manascore.api.skills.capability.SkillStorage;
 import com.github.manasmods.manascore.api.skills.event.SkillDamageEvent;
+import com.github.manasmods.manascore.api.skills.event.UnlockSkillEvent;
 import com.google.common.collect.Multimap;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.EntityHitResult;
@@ -26,6 +28,18 @@ import java.util.UUID;
 
 @EventBusSubscriber(modid = ManasCore.MOD_ID, bus = EventBusSubscriber.Bus.FORGE)
 public class ServerEventListenerHandler {
+
+    @SubscribeEvent
+    public static void onUnlockSkill(final UnlockSkillEvent e) {
+        Entity entity = e.getEntity();
+        if (entity.getLevel().isClientSide()) return;
+        if (!(entity instanceof LivingEntity living)) return;
+
+        SkillStorage skillStorage = SkillAPI.getSkillsFrom(living);
+        for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
+            skillInstance.onLearnSkill(living);
+        }
+    }
 
     @SubscribeEvent
     public static void onEntityHurt(final LivingHurtEvent e) {

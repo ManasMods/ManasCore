@@ -189,6 +189,15 @@ public class ManasSkill {
     }
 
     /**
+     * Called when the {@link LivingEntity} learns this Skill.
+     *
+     * @param instance Affected {@link ManasSkillInstance}
+     * @param living   Affected {@link LivingEntity} learning this Skill.
+     */
+    public void onLearnSkill(ManasSkillInstance instance, LivingEntity living) {
+    }
+
+    /**
      * Called when the {@link LivingEntity} owning this Skill right-clicks a block.
      *
      * @param instance  Affected {@link ManasSkillInstance}
