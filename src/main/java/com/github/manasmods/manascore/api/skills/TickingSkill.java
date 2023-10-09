@@ -21,7 +21,7 @@ public class TickingSkill {
         if (optional.isEmpty()) return false;
 
         if (reachedMaxDuration()) return false;
-        return optional.get().onHeld(entity, ++this.duration / 2);
+        return optional.get().onHeld(entity, this.duration++);
     }
 
     public boolean reachedMaxDuration() {
