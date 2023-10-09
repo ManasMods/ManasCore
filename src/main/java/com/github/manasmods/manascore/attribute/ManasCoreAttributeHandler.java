@@ -6,13 +6,14 @@ package com.github.manasmods.manascore.attribute;
 
 import com.github.manasmods.manascore.ManasCore;
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingJumpEvent;
+import net.minecraftforge.event.entity.living.LivingFallEvent;
 import net.minecraftforge.event.entity.player.CriticalHitEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -26,12 +27,13 @@ public class ManasCoreAttributeHandler {
 
     @SubscribeEvent
     public static void modifyJumpPower(final LivingJumpEvent e) {
-        if (e.getEntity().getAttribute(ManasCoreAttributes.JUMP_POWER.get()) == null) return;
+        AttributeInstance instance = e.getEntity().getAttribute(ManasCoreAttributes.JUMP_POWER.get());
+        if (instance == null) return;
 
         final LivingEntity entity = e.getEntity();
         final BlockPos entityPos = entity.blockPosition();
         //Calculation
-        double baseJumpPower = entity.getAttribute(ManasCoreAttributes.JUMP_POWER.get()).getValue();
+        double baseJumpPower = instance.getValue();
         float blockModifier0 = entity.level.getBlockState(entityPos).getBlock().getJumpFactor();
         float blockModifier1 = entity.level.getBlockState(new BlockPos(entityPos.getX(), entity.getBoundingBox().minY - 0.5000001D, entityPos.getZ())).getBlock().getJumpFactor();
         double blockModifier = (double) blockModifier0 == 1.0D ? blockModifier1 : blockModifier0;
@@ -40,11 +42,17 @@ public class ManasCoreAttributeHandler {
         //Apply velocity
         Vec3 vec3 = entity.getDeltaMovement();
         entity.setDeltaMovement(vec3.x, verticalVelocity, vec3.z);
-        if (entity.isSprinting()) {
-            float f = entity.getYRot() * ((float) Math.PI / 180F);
-            entity.setDeltaMovement(entity.getDeltaMovement().add(-Mth.sin(f) * 0.2F, 0.0D, Mth.cos(f) * 0.2F));
-        }
         entity.hasImpulse = true;
+    }
+
+    @SubscribeEvent
+    public static void modifyFallDamage(final LivingFallEvent e) {
+        AttributeInstance instance = e.getEntity().getAttribute(ManasCoreAttributes.JUMP_POWER.get());
+        if (instance == null) return;
+        if (instance.getValue() == 0.42) return;
+
+        double additionalJumpBlock = (instance.getValue() - 0.42) / 0.2;
+        e.setDistance((float) (e.getDistance() - additionalJumpBlock));
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)

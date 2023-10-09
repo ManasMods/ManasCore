@@ -31,7 +31,6 @@ public final class ManasCore {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         ManasCoreAttributes.register(modEventBus);
         SkillRegistry.register(modEventBus);
-
         modEventBus.addListener(this::setup);
     }
 

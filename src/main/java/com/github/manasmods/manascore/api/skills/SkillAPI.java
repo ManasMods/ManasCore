@@ -2,9 +2,12 @@ package com.github.manasmods.manascore.api.skills;
 
 import com.github.manasmods.manascore.api.skills.capability.SkillStorage;
 import com.github.manasmods.manascore.capability.skill.EntitySkillCapability;
+import com.github.manasmods.manascore.capability.skill.event.InternalSkillPacketActions;
 import com.github.manasmods.manascore.skill.SkillRegistry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.IForgeRegistry;
 import org.jetbrains.annotations.ApiStatus;
@@ -40,5 +43,35 @@ public final class SkillAPI {
     @NotNull
     public static SkillStorage getSkillsFrom(Entity entity) {
         return EntitySkillCapability.load(entity);
+    }
+
+    /**
+     * Send {@link InternalSkillPacketActions#sendSkillActivationPacket} with a DistExecutor on client side.
+     * Used when player press a skill activation key bind.
+     *
+     * @see InternalSkillPacketActions#sendSkillActivationPacket
+     */
+    public static void skillActivationPacket(int keyNumber) {
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> InternalSkillPacketActions.sendSkillActivationPacket(keyNumber));
+    }
+
+    /**
+     * Send {@link InternalSkillPacketActions#sendSkillReleasePacket} with a DistExecutor on client side.
+     * Used when player release a skill activation key bind.
+     *
+     * @see InternalSkillPacketActions#sendSkillReleasePacket
+     */
+    public static void skillReleasePacket(int keyNumber, int heldTicks) {
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> InternalSkillPacketActions.sendSkillReleasePacket(keyNumber, heldTicks));
+    }
+
+    /**
+     * Send {@link InternalSkillPacketActions#sendSkillTogglePacket} with a DistExecutor on client side.
+     * Used when player press a skill toggle key bind.
+     *
+     * @see InternalSkillPacketActions#sendSkillTogglePacket
+     */
+    public static void skillTogglePacket() {
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> InternalSkillPacketActions::sendSkillTogglePacket);
     }
 }
