@@ -2,6 +2,7 @@ package com.github.manasmods.manascore.api.skills;
 
 import com.github.manasmods.manascore.api.skills.capability.SkillStorage;
 import com.github.manasmods.manascore.api.skills.event.SkillDamageEvent;
+import com.github.manasmods.manascore.api.skills.event.UnlockSkillEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -193,8 +194,9 @@ public class ManasSkill {
      *
      * @param instance Affected {@link ManasSkillInstance}
      * @param living   Affected {@link LivingEntity} learning this Skill.
+     * @param event    Triggered {@link UnlockSkillEvent}
      */
-    public void onLearnSkill(ManasSkillInstance instance, LivingEntity living) {
+    public void onLearnSkill(ManasSkillInstance instance, LivingEntity living, UnlockSkillEvent event) {
     }
 
     /**

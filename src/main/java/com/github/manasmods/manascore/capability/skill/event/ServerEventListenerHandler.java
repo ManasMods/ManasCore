@@ -33,12 +33,7 @@ public class ServerEventListenerHandler {
     public static void onUnlockSkill(final UnlockSkillEvent e) {
         Entity entity = e.getEntity();
         if (entity.getLevel().isClientSide()) return;
-        if (!(entity instanceof LivingEntity living)) return;
-
-        SkillStorage skillStorage = SkillAPI.getSkillsFrom(living);
-        for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
-            skillInstance.onLearnSkill(living);
-        }
+        if (entity instanceof LivingEntity living) e.getSkillInstance().onLearnSkill(living, e);
     }
 
     @SubscribeEvent

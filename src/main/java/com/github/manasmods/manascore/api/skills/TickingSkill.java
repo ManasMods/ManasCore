@@ -1,7 +1,6 @@
 package com.github.manasmods.manascore.api.skills;
 
 import com.github.manasmods.manascore.api.skills.capability.SkillStorage;
-import com.github.manasmods.manascore.capability.skill.event.TickEventListenerHandler;
 import lombok.Getter;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -21,11 +20,8 @@ public class TickingSkill {
         Optional<ManasSkillInstance> optional = storage.getSkill(skill);
         if (optional.isEmpty()) return false;
 
-        if (reachedMaxDuration()) {
-            TickEventListenerHandler.tickingSkills.get(entity.getUUID()).remove(this);
-            return false;
-        }
-        return optional.get().onHeld(entity, this.duration++);
+        if (reachedMaxDuration()) return false;
+        return optional.get().onHeld(entity, ++this.duration / 2);
     }
 
     public boolean reachedMaxDuration() {

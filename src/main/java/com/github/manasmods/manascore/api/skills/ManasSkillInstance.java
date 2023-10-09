@@ -1,5 +1,6 @@
 package com.github.manasmods.manascore.api.skills;
 
+import com.github.manasmods.manascore.api.skills.event.UnlockSkillEvent;
 import com.github.manasmods.manascore.network.toclient.SyncSkillsPacket;
 import lombok.Getter;
 import net.minecraft.core.Holder.Reference;
@@ -386,8 +387,8 @@ public class ManasSkillInstance implements Cloneable {
      *
      * @param living   Affected {@link LivingEntity} learning this instance.
      */
-    public void onLearnSkill(LivingEntity living) {
-        this.getSkill().onLearnSkill(this, living);
+    public void onLearnSkill(LivingEntity living, UnlockSkillEvent event) {
+        this.getSkill().onLearnSkill(this, living, event);
     }
 
     /**

@@ -3,7 +3,7 @@ package com.github.manasmods.manascore.skill;
 import com.github.manasmods.manascore.ManasCore;
 import com.github.manasmods.manascore.api.skills.ManasSkill;
 import com.github.manasmods.manascore.capability.skill.EntitySkillCapability;
-import com.github.manasmods.manascore.capability.skill.HealSkill;
+import com.github.manasmods.manascore.capability.skill.TestSkill;
 import com.github.manasmods.manascore.core.RegistryBuilderAccessor;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -30,7 +30,7 @@ public class SkillRegistry {
         EntitySkillCapability.init(modEventBus);
         //Register Example in Dev env
         if (!FMLEnvironment.production) {
-            SKILLS.register("example_self_heal", HealSkill::new);
+            SKILLS.register("example_test_skill", TestSkill::new);
         }
         //Register Registry to Forge
         SKILLS.register(modEventBus);

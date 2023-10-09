@@ -18,6 +18,7 @@ import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import java.util.Iterator;
 import java.util.UUID;
 
 @Mod.EventBusSubscriber(modid = ManasCore.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
@@ -34,7 +35,10 @@ public class TickEventListenerHandler {
         if (!tickingSkills.containsKey(player.getUUID())) return;
 
         SkillStorage storage = SkillAPI.getSkillsFrom(player);
-        tickingSkills.get(player.getUUID()).removeIf(tickingSkill -> !tickingSkill.tick(storage, player));
+        Iterator<TickingSkill> iterator = tickingSkills.get(player.getUUID()).iterator();
+        while (iterator.hasNext()) {
+            if (!iterator.next().tick(storage, player)) iterator.remove();
+        }
         storage.syncChanges();
     }
 
