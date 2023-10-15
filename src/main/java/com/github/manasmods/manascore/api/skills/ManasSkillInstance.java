@@ -192,6 +192,7 @@ public class ManasSkillInstance implements Cloneable {
      */
     public void setMode(int mode) {
         this.mode = mode;
+        markDirty();
     }
 
     /**
@@ -224,6 +225,7 @@ public class ManasSkillInstance implements Cloneable {
      */
     public void setMastery(int point) {
         this.masteryPoint = point;
+        markDirty();
     }
 
     /**
@@ -238,6 +240,7 @@ public class ManasSkillInstance implements Cloneable {
      */
     public void setCoolDown(int coolDown) {
         this.coolDown = coolDown;
+        markDirty();
     }
 
     /**
@@ -245,6 +248,7 @@ public class ManasSkillInstance implements Cloneable {
      */
     public void decreaseCoolDown(int coolDown) {
         this.coolDown -= coolDown;
+        markDirty();
     }
 
     /**
@@ -266,6 +270,7 @@ public class ManasSkillInstance implements Cloneable {
      */
     public void setRemoveTime(int removeTime) {
         this.removeTime = removeTime;
+        markDirty();
     }
 
     /**
@@ -273,6 +278,7 @@ public class ManasSkillInstance implements Cloneable {
      */
     public void decreaseRemoveTime(int time) {
         this.removeTime -= time;
+        markDirty();
     }
 
     /**
@@ -287,6 +293,7 @@ public class ManasSkillInstance implements Cloneable {
      */
     public void setToggled(boolean toggled) {
         this.toggled = toggled;
+        markDirty();
     }
 
     /**
@@ -314,6 +321,7 @@ public class ManasSkillInstance implements Cloneable {
      */
     public void setTag(@Nullable CompoundTag tag) {
         this.tag = tag;
+        markDirty();
     }
 
     /**
