@@ -2,6 +2,7 @@ package com.github.manasmods.manascore.capability.skill;
 
 import com.github.manasmods.manascore.api.skills.ManasSkill;
 import com.github.manasmods.manascore.api.skills.ManasSkillInstance;
+import com.github.manasmods.manascore.api.skills.event.RemoveSkillEvent;
 import com.github.manasmods.manascore.api.skills.event.UnlockSkillEvent;
 import lombok.Getter;
 import lombok.Setter;
@@ -64,6 +65,32 @@ public class EntitySkillCapabilityStorage implements InternalSkillStorage {
                 .parallelStream()
                 .filter(skillInstance -> skillInstance.getSkill().equals(skill))
                 .findFirst();
+    }
+
+    @Override
+    public void forgetSkill(ManasSkillInstance instance) {
+        if (this.owner == null) return;
+        if (!this.skillInstances.containsKey(instance.getSkillId())) return;
+
+        if (!MinecraftForge.EVENT_BUS.post(new RemoveSkillEvent(instance, this.owner))) {
+            instance.markDirty();
+            getLearnedSkills().remove(instance);
+            syncChanges();
+        }
+    }
+
+    @Override
+    public void forgetSkill(ManasSkill skill) {
+        if (this.owner == null) return;
+
+        Optional<ManasSkillInstance> optional = getSkill(skill);
+        if (optional.isEmpty()) return;
+
+        if (!MinecraftForge.EVENT_BUS.post(new RemoveSkillEvent(optional.get(), this.owner))) {
+            optional.get().markDirty();
+            getLearnedSkills().remove(optional.get());
+            syncChanges();
+        }
     }
 
     @Override
