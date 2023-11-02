@@ -12,7 +12,7 @@ import org.jetbrains.annotations.ApiStatus;
  * You can prevent an {@link Entity} from forgetting that {@link ManasSkill} by canceling the {@link RemoveSkillEvent}.
  * <p>
  */
-@ApiStatus.AvailableSince("1.0.2.0")
+@ApiStatus.AvailableSince("2.1.0.2")
 @Cancelable
 public class RemoveSkillEvent extends SkillEvent {
     @Getter
