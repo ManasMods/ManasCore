@@ -15,6 +15,7 @@ import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingJumpEvent;
 import net.minecraftforge.event.entity.living.LivingFallEvent;
 import net.minecraftforge.event.entity.player.CriticalHitEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -83,5 +84,12 @@ public class ManasCoreAttributeHandler {
             arrow.setCritArrow(rand.nextDouble() <= critChance);
         }
         arrow.getPersistentData().putBoolean("manascore.crit.calc.done", true);
+    }
+
+    @SubscribeEvent
+    public static void modifyMiningSpeed(final PlayerEvent.BreakSpeed e) {
+        AttributeInstance instance = e.getEntity().getAttribute(ManasCoreAttributes.MINING_SPEED_MULTIPLIER.get());
+        if (instance == null) return;
+        e.setNewSpeed((float) (e.getOriginalSpeed() * instance.getValue()));
     }
 }
