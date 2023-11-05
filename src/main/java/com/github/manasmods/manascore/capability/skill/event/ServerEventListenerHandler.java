@@ -24,6 +24,8 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @EventBusSubscriber(modid = ManasCore.MOD_ID, bus = EventBusSubscriber.Bus.FORGE)
@@ -51,8 +53,14 @@ public class ServerEventListenerHandler {
     public static void onPreBarrierDamage(final SkillDamageEvent.PreCalculation e) {
         if (e.getSource().getEntity() instanceof LivingEntity living) {
             SkillStorage skillStorage = SkillAPI.getSkillsFrom(living);
-            for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
+
+            for (ManasSkillInstance instance : List.copyOf(skillStorage.getLearnedSkills())) {
+                Optional<ManasSkillInstance> optional = skillStorage.getSkill(instance.getSkill());
+                if (optional.isEmpty()) continue;
+
+                ManasSkillInstance skillInstance = optional.get();
                 if (!skillInstance.canInteractSkill(living)) continue;
+
                 skillInstance.onDamageEntity(living, e.getEvent());
             }
         }
@@ -62,8 +70,14 @@ public class ServerEventListenerHandler {
     public static void onPostBarrierDamage(final SkillDamageEvent.PostCalculation e) {
         if (e.getSource().getEntity() instanceof LivingEntity living) {
             SkillStorage skillStorage = SkillAPI.getSkillsFrom(living);
-            for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
+
+            for (ManasSkillInstance instance : List.copyOf(skillStorage.getLearnedSkills())) {
+                Optional<ManasSkillInstance> optional = skillStorage.getSkill(instance.getSkill());
+                if (optional.isEmpty()) continue;
+
+                ManasSkillInstance skillInstance = optional.get();
                 if (!skillInstance.canInteractSkill(living)) continue;
+
                 skillInstance.onTouchEntity(living, e.getEvent());
             }
         }
@@ -73,10 +87,15 @@ public class ServerEventListenerHandler {
     public static void onBeingTargeted(final LivingChangeTargetEvent e) {
         LivingEntity target = e.getNewTarget();
         if (target == null) return;
-
         SkillStorage skillStorage = SkillAPI.getSkillsFrom(target);
-        for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
+
+        for (ManasSkillInstance instance : List.copyOf(skillStorage.getLearnedSkills())) {
+            Optional<ManasSkillInstance> optional = skillStorage.getSkill(instance.getSkill());
+            if (optional.isEmpty()) continue;
+
+            ManasSkillInstance skillInstance = optional.get();
             if (!skillInstance.canInteractSkill(target)) continue;
+
             skillInstance.onBeingTargeted(target, e);
         }
         skillStorage.syncChanges();
@@ -86,8 +105,14 @@ public class ServerEventListenerHandler {
     public static void onBeingDamaged(final LivingAttackEvent e) {
         final LivingEntity living = e.getEntity();
         SkillStorage skillStorage = SkillAPI.getSkillsFrom(living);
-        for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
+
+        for (ManasSkillInstance instance : List.copyOf(skillStorage.getLearnedSkills())) {
+            Optional<ManasSkillInstance> optional = skillStorage.getSkill(instance.getSkill());
+            if (optional.isEmpty()) continue;
+
+            ManasSkillInstance skillInstance = optional.get();
             if (!skillInstance.canInteractSkill(living)) continue;
+
             skillInstance.onBeingDamaged(e);
         }
         skillStorage.syncChanges();
@@ -97,8 +122,14 @@ public class ServerEventListenerHandler {
     public static void onTakingReducedDamage(final LivingDamageEvent e) { //after applied everything, including armor, effects, etc.
         final LivingEntity living = e.getEntity();
         SkillStorage skillStorage = SkillAPI.getSkillsFrom(living);
-        for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
+
+        for (ManasSkillInstance instance : List.copyOf(skillStorage.getLearnedSkills())) {
+            Optional<ManasSkillInstance> optional = skillStorage.getSkill(instance.getSkill());
+            if (optional.isEmpty()) continue;
+
+            ManasSkillInstance skillInstance = optional.get();
             if (!skillInstance.canInteractSkill(living)) continue;
+
             skillInstance.onTakenDamage(e);
         }
         skillStorage.syncChanges();
@@ -108,12 +139,18 @@ public class ServerEventListenerHandler {
     public static void onProjectileHit(final ProjectileImpactEvent e) {
         if (!(e.getRayTraceResult() instanceof EntityHitResult result)) return;
         if (!(result.getEntity() instanceof LivingEntity living)) return;
-
         SkillStorage skillStorage = SkillAPI.getSkillsFrom(living);
-        for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
+
+        for (ManasSkillInstance instance : List.copyOf(skillStorage.getLearnedSkills())) {
+            Optional<ManasSkillInstance> optional = skillStorage.getSkill(instance.getSkill());
+            if (optional.isEmpty()) continue;
+
+            ManasSkillInstance skillInstance = optional.get();
             if (!skillInstance.canInteractSkill(living)) continue;
+
             skillInstance.onProjectileHit(living, e);
         }
+        skillStorage.syncChanges();
     }
 
     @SubscribeEvent
@@ -123,8 +160,13 @@ public class ServerEventListenerHandler {
         if (player.getLevel().isClientSide()) return;
         // Get all listening skills and invoke their event consumer
         SkillStorage skillStorage = SkillAPI.getSkillsFrom(player);
-        for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
+        for (ManasSkillInstance instance : List.copyOf(skillStorage.getLearnedSkills())) {
+            Optional<ManasSkillInstance> optional = skillStorage.getSkill(instance.getSkill());
+            if (optional.isEmpty()) continue;
+
+            ManasSkillInstance skillInstance = optional.get();
             if (!skillInstance.canInteractSkill(player)) continue;
+
             skillInstance.onRightClickBlock(player, e.getHitVec());
         }
         //Sync changed Skills
@@ -135,13 +177,17 @@ public class ServerEventListenerHandler {
     public static void onRespawn(final PlayerEvent.PlayerRespawnEvent e) {
         final Player player = e.getEntity();
         if (player.getLevel().isClientSide()) return;
-
         SkillStorage skillStorage = SkillAPI.getSkillsFrom(player);
-        for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
+
+        for (ManasSkillInstance instance : List.copyOf(skillStorage.getLearnedSkills())) {
+            Optional<ManasSkillInstance> optional = skillStorage.getSkill(instance.getSkill());
+            if (optional.isEmpty()) continue;
+
+            ManasSkillInstance skillInstance = optional.get();
             if (!skillInstance.canInteractSkill(player)) continue;
+
             skillInstance.onRespawn(e);
         }
-
         skillStorage.syncChanges();
     }
 
@@ -151,10 +197,17 @@ public class ServerEventListenerHandler {
         if (living.getLevel().isClientSide()) return;
 
         SkillStorage skillStorage = SkillAPI.getSkillsFrom(living);
-        for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
+
+        for (ManasSkillInstance instance : List.copyOf(skillStorage.getLearnedSkills())) {
+            Optional<ManasSkillInstance> optional = skillStorage.getSkill(instance.getSkill());
+            if (optional.isEmpty()) continue;
+
+            ManasSkillInstance skillInstance = optional.get();
             if (!skillInstance.canInteractSkill(living)) continue;
+
             skillInstance.onDeath(e);
         }
+        skillStorage.syncChanges();
     }
 
     @SubscribeEvent

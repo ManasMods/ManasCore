@@ -9,6 +9,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.entity.monster.Spider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ThrownTrident;
 import net.minecraft.world.item.Items;
@@ -70,7 +71,8 @@ public class TestSkill extends ManasSkill {
     }
 
     public void onBeingTargeted(ManasSkillInstance instance, LivingEntity target, LivingChangeTargetEvent event) {
-        log.debug("Targeted by {}", event.getEntity().getName());
+        if (event.getEntity() instanceof Spider)
+            log.debug("Targeted by {}", event.getEntity().getName());
     }
 
     public void onBeingDamaged(ManasSkillInstance instance, LivingAttackEvent event) {
@@ -85,6 +87,11 @@ public class TestSkill extends ManasSkill {
             creeper.kill();
             log.debug("No creeper");
         }
+    }
+
+    public void onTouchEntity(ManasSkillInstance instance, LivingEntity entity, LivingHurtEvent event) {
+        instance.setMastery(instance.getMastery() + 1);
+        log.debug("My mastery is {}", instance.getMastery());
     }
 
     public void onTakenDamage(ManasSkillInstance instance, LivingDamageEvent event) {

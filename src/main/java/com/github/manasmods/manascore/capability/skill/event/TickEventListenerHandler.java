@@ -18,6 +18,8 @@ import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Mod.EventBusSubscriber(modid = ManasCore.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
@@ -57,7 +59,14 @@ public class TickEventListenerHandler {
 
         if (!passiveSkillActivate) return;
         SkillStorage skillStorage = SkillAPI.getSkillsFrom(entity);
-        for (ManasSkillInstance skillInstance : skillStorage.getLearnedSkills()) {
+
+        for (ManasSkillInstance instance : List.copyOf(skillStorage.getLearnedSkills())) {
+            Optional<ManasSkillInstance> optional = skillStorage.getSkill(instance.getSkill());
+            if (optional.isEmpty()) continue;
+
+            ManasSkillInstance skillInstance = optional.get();
+            if (!skillInstance.canInteractSkill(entity)) continue;
+
             if (MinecraftForge.EVENT_BUS.post(new SkillTickEvent(skillInstance, entity))) continue;
             skillInstance.onTick(entity);
         }

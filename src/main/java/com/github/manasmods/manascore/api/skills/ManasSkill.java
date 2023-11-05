@@ -96,8 +96,11 @@ public class ManasSkill {
     /**
      * Determine if this skill can be toggled.
      * @return false if this skill is not toggleable.
+     *
+     * @param instance Affected {@link ManasSkillInstance}
+     * @param entity   Affected {@link LivingEntity} owning this Skill.
      */
-    public boolean canBeToggled() {
+    public boolean canBeToggled(ManasSkillInstance instance, LivingEntity entity) {
         return false;
     }
 

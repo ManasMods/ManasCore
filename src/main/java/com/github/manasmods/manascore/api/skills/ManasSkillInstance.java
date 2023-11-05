@@ -172,9 +172,11 @@ public class ManasSkillInstance implements Cloneable {
     /**
      * Determine if the {@link ManasSkill} type of this instance can be toggled.
      * @return false if this skill is not toggleable.
+     *
+     * @param entity   Affected {@link LivingEntity} owning this Skill.
      */
-    public boolean canBeToggled() {
-        return this.getSkill().canBeToggled();
+    public boolean canBeToggled(LivingEntity entity) {
+        return this.getSkill().canBeToggled(this, entity);
     }
 
     /**
