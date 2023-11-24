@@ -66,6 +66,7 @@ public class TickEventListenerHandler {
 
             ManasSkillInstance skillInstance = optional.get();
             if (!skillInstance.canInteractSkill(entity)) continue;
+            if (!skillInstance.getSkill().canTick(skillInstance, entity)) continue;
 
             if (MinecraftForge.EVENT_BUS.post(new SkillTickEvent(skillInstance, entity))) continue;
             skillInstance.onTick(entity);

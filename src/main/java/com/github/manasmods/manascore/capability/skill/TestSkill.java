@@ -31,7 +31,9 @@ public class TestSkill extends ManasSkill {
     public TestSkill(){
         MinecraftForge.EVENT_BUS.addListener(this::unlock);
     }
-
+    public boolean canTick(ManasSkillInstance instance, LivingEntity entity) {
+        return instance.isToggled();
+    }
     public void onToggleOn(ManasSkillInstance instance, LivingEntity entity) {
         log.debug("Toggled On");
     }
