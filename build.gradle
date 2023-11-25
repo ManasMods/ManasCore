@@ -295,5 +295,6 @@ sonar {
     property "sonar.projectKey", "ManasMods_ManasCore"
     property "sonar.organization", "manasmods"
     property "sonar.host.url", "https://sonarcloud.io"
+    property "sonar.gradle.skipCompile", true
   }
 }
