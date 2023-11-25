@@ -21,7 +21,10 @@ public class TickingSkill {
         if (optional.isEmpty()) return false;
 
         if (reachedMaxDuration()) return false;
-        return optional.get().onHeld(entity, this.duration++);
+        ManasSkillInstance instance = optional.get();
+
+        if (!instance.canInteractSkill(entity)) return false;
+        return instance.onHeld(entity, this.duration++);
     }
 
     public boolean reachedMaxDuration() {

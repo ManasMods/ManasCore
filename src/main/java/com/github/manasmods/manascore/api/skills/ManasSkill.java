@@ -105,6 +105,17 @@ public class ManasSkill {
     }
 
     /**
+     * Determine if this skill's {@link ManasSkill#onTick} can be executed.
+     * @return false if this skill cannot tick.
+     *
+     * @param instance Affected {@link ManasSkillInstance}
+     * @param entity   Affected {@link LivingEntity} owning this Skill.
+     */
+    public boolean canTick(ManasSkillInstance instance, LivingEntity entity) {
+        return false;
+    }
+
+    /**
      * Determine if the {@link ManasSkillInstance} of this Skill is mastered by {@link LivingEntity} owning it.
      * @return true to will mark this Skill is mastered, which can be used for increase stats or additional features/modes.
      *
