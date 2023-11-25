@@ -16,6 +16,7 @@ plugins {
     id "com.modrinth.minotaur" version "2.+"
     id 'maven-publish'
     id "io.freefair.lombok" version "6.6-rc1"
+    id "org.sonarqube" version "4.4.1.3373"
 }
 
 apply plugin: 'org.spongepowered.mixin'
@@ -287,4 +288,12 @@ publishing {
             }
         }
     }
+}
+
+sonar {
+  properties {
+    property "sonar.projectKey", "ManasMods_ManasCore"
+    property "sonar.organization", "manasmods"
+    property "sonar.host.url", "https://sonarcloud.io"
+  }
 }
