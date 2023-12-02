@@ -71,16 +71,17 @@ public class ManasSkill {
      */
     @Nullable
     public ResourceLocation getSkillIcon() {
-        return null;
+        ResourceLocation id = this.getRegistryName();
+        if (id == null) return null;
+        return new ResourceLocation(id.getNamespace() + ":icons/skills/" + id.getPath());
     }
 
     /**
      * Used to get the {@link MutableComponent} description of this skill for translation.
      */
-    @Nullable
     public Component getSkillDescription() {
         ResourceLocation id = this.getRegistryName();
-        if (id == null) return null;
+        if (id == null) return Component.empty();
         return Component.translatable(String.format("%s.skill.%s.description", id.getNamespace(), id.getPath().replace('/', '.')));
     }
 
