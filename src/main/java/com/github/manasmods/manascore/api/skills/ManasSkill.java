@@ -66,6 +66,24 @@ public class ManasSkill {
         return Component.translatable(String.format("%s.skill.%s", id.getNamespace(), id.getPath().replace('/', '.')));
     }
 
+    /**
+     * Used to get the {@link ResourceLocation} of this skill's icon texture.
+     */
+    @Nullable
+    public ResourceLocation getSkillIcon() {
+        return null;
+    }
+
+    /**
+     * Used to get the {@link MutableComponent} description of this skill for translation.
+     */
+    @Nullable
+    public Component getSkillDescription() {
+        ResourceLocation id = this.getRegistryName();
+        if (id == null) return null;
+        return Component.translatable(String.format("%s.skill.%s.description", id.getNamespace(), id.getPath().replace('/', '.')));
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -135,6 +153,7 @@ public class ManasSkill {
     public void addMasteryPoint(ManasSkillInstance instance, LivingEntity entity) {
         if (isMastered(instance, entity)) return;
         instance.setMastery(instance.getMastery() + 1);
+        if (isMastered(instance, entity)) onSkillMastered(instance, entity);
     }
 
     /**
@@ -211,6 +230,15 @@ public class ManasSkill {
      * @param event    Triggered {@link UnlockSkillEvent}
      */
     public void onLearnSkill(ManasSkillInstance instance, LivingEntity living, UnlockSkillEvent event) {
+    }
+
+    /**
+     * Called when the {@link LivingEntity} masters this skill.
+     *
+     * @param instance Affected {@link ManasSkillInstance}
+     * @param living   Affected {@link LivingEntity} owning this Skill.
+     */
+    public void onSkillMastered(ManasSkillInstance instance, LivingEntity living) {
     }
 
     /**

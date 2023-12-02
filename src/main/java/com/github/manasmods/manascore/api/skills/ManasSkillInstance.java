@@ -402,6 +402,15 @@ public class ManasSkillInstance implements Cloneable {
     }
 
     /**
+     * Called when the {@link LivingEntity} masters this instance.
+     *
+     * @param living   Affected {@link LivingEntity} owning this Skill.
+     */
+    public void onSkillMastered(LivingEntity living) {
+        this.getSkill().onSkillMastered(this, living);
+    }
+
+    /**
      * Called when the {@link LivingEntity} owning this Skill right-clicks a block.
      *
      * @param entity    Affected {@link LivingEntity} owning this instance.
