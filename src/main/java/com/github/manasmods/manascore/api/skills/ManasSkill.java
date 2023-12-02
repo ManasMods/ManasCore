@@ -73,7 +73,7 @@ public class ManasSkill {
     public ResourceLocation getSkillIcon() {
         ResourceLocation id = this.getRegistryName();
         if (id == null) return null;
-        return new ResourceLocation(id.getNamespace() + ":icons/skills/" + id.getPath());
+        return new ResourceLocation(id.getNamespace(), "icons/skills/" + id.getPath());
     }
 
     /**
