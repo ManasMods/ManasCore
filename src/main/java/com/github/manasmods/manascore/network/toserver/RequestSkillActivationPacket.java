@@ -47,7 +47,7 @@ public class RequestSkillActivationPacket {
                     ManasSkillInstance skillInstance = optional.get();
 
                     if (!skillInstance.canInteractSkill(player)) continue;
-                    if (skillInstance.onCoolDown()) continue;
+                    if (skillInstance.onCoolDown() && !skillInstance.canIgnoreCoolDown(player)) continue;
                     skillInstance.onPressed(player);
                     TickEventListenerHandler.tickingSkills.put(player.getUUID(), new TickingSkill(skillInstance.getSkill()));
                 }

@@ -124,6 +124,17 @@ public class ManasSkill {
     }
 
     /**
+     * Determine if this skill can still be activated when on cooldown.
+     * @return false if this skill cannot ignore cooldown.
+     *
+     * @param instance Affected {@link ManasSkillInstance}
+     * @param entity   Affected {@link LivingEntity} owning this Skill.
+     */
+    public boolean canIgnoreCoolDown(ManasSkillInstance instance, LivingEntity entity) {
+        return false;
+    }
+
+    /**
      * Determine if this skill's {@link ManasSkill#onTick} can be executed.
      * @return false if this skill cannot tick.
      *
@@ -135,6 +146,14 @@ public class ManasSkill {
     }
 
     /**
+     * @return the maximum mastery points that this skill can have.
+     * </p>
+     */
+    public int getMaxMastery() {
+        return 100;
+    }
+
+    /**
      * Determine if the {@link ManasSkillInstance} of this Skill is mastered by {@link LivingEntity} owning it.
      * @return true to will mark this Skill is mastered, which can be used for increase stats or additional features/modes.
      *
@@ -142,7 +161,7 @@ public class ManasSkill {
      * @param entity   Affected {@link LivingEntity} owning this Skill.
      */
     public boolean isMastered(ManasSkillInstance instance, LivingEntity entity) {
-        return instance.getMastery() >= 100;
+        return instance.getMastery() >= getMaxMastery();
     }
 
     /**
