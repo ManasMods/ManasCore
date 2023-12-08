@@ -180,6 +180,26 @@ public class ManasSkillInstance implements Cloneable {
     }
 
     /**
+     * Determine if the {@link ManasSkill} type of this instance can still be activated when on cooldown.
+     * @return false if this skill cannot ignore cooldown.
+     *
+     * @param entity   Affected {@link LivingEntity} owning this Skill.
+     */
+    public boolean canIgnoreCoolDown(LivingEntity entity) {
+        return this.getSkill().canIgnoreCoolDown(this, entity);
+    }
+
+    /**
+     * Determine if this instance's {@link ManasSkillInstance#onTick} can be executed.
+     * @return false if this skill cannot tick.
+     *
+     * @param entity   Affected {@link LivingEntity} owning this Skill.
+     */
+    public boolean canTick(LivingEntity entity) {
+        return this.getSkill().canTick(this, entity);
+    }
+
+    /**
      * One skill can have many modes at once and each mode can have their own different features.
      * @return the current mode of this instance.
      */
@@ -195,6 +215,14 @@ public class ManasSkillInstance implements Cloneable {
     public void setMode(int mode) {
         this.mode = mode;
         markDirty();
+    }
+
+    /**
+     * @return the maximum mastery points that this skill instance can have.
+     * </p>
+     */
+    public int getMaxMastery() {
+        return this.getSkill().getMaxMastery();
     }
 
     /**
@@ -228,6 +256,13 @@ public class ManasSkillInstance implements Cloneable {
     public void setMastery(int point) {
         this.masteryPoint = point;
         markDirty();
+    }
+
+    /**
+     * @return the cooldown of this instance.
+     */
+    public int getCoolDown() {
+        return this.coolDown;
     }
 
     /**

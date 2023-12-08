@@ -53,7 +53,7 @@ public class RequestSkillReleasePacket {
                     ManasSkillInstance skillInstance = optional.get();
 
                     if (!skillInstance.canInteractSkill(player)) continue;
-                    if (skillInstance.onCoolDown()) continue;
+                    if (skillInstance.onCoolDown() && !skillInstance.canIgnoreCoolDown(player)) continue;
                     skillInstance.onRelease(player, this.heldTick);
 
                     Multimap<UUID, TickingSkill> multimap = TickEventListenerHandler.tickingSkills;
