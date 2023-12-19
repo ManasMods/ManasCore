@@ -23,11 +23,19 @@ You only need to add our maven repository and dependency to your build.gradle fi
 repositories {
     //...
     maven { url "https://dl.cloudsmith.io/public/manasmods/manascore/maven/" }
+    maven { url = "https://maven.firstdarkdev.xyz/snapshots" }
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
     //...
-    implementation fg.deobf("com.github.manasmods:ManasCore:${minecraftVersion}-${manasCoreVersion}")
+    // ManasCore (without runtime dependencies)
+    implementation fg.deobf("com.github.manasmods:ManasCore:${minecraftVersion}-${manasCoreVersion}:slim")
+    // Runtime dependencies provided by ManasCore
+    implementation fg.deobf("com.lowdragmc.photon:photon-forge-${minecraftVersion}:${photonVersion}")
+    implementation fg.deobf("com.lowdragmc.ldlib:ldlib-forge-${minecraftVersion}:${ldlibVersion}")
+    implementation(annotationProcessor("com.github.llamalad7.mixinextras:mixinextras-common:${mixinExtrasVersion}"))
+    implementation("com.github.llamalad7.mixinextras:mixinextras-forge:${mixinExtrasVersion}")
 }
 ```
 

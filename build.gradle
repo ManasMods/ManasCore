@@ -164,6 +164,7 @@ repositories {
     }
 
     maven { url 'https://jitpack.io' }
+    maven { url = "https://maven.firstdarkdev.xyz/snapshots" } // LDLib, Photon
 }
 
 dependencies {
@@ -175,26 +176,33 @@ dependencies {
     }
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
-    runtimeOnly fg.deobf("curse.maven:TargetDummy-225738:4293885")
     // https://www.curseforge.com/minecraft/mc-mods/mmmmmmmmmmmm/files/4293885
-    runtimeOnly fg.deobf("curse.maven:MoonlightLib-499980:4377790")
+    runtimeOnly fg.deobf("curse.maven:TargetDummy-225738:4293885")
     // https://www.curseforge.com/minecraft/mc-mods/selene/files/4377790
+    runtimeOnly fg.deobf("curse.maven:MoonlightLib-499980:4377790")
+    // Photon https://www.curseforge.com/minecraft/mc-mods/photon/files?page=1&pageSize=20&version=1.19.2&gameVersionTypeId=1
+    implementation(jarJar("com.lowdragmc.photon:photon-forge-${minecraftVersion}:${photonVersion}")) {
+        transitive = false
+        jarJar.ranged(it, "[${photonVersion},)")
+    }
+    // LDLib https://www.curseforge.com/minecraft/mc-mods/ldlib/files?page=1&pageSize=20&version=1.19.2&gameVersionTypeId=1
+    implementation(jarJar("com.lowdragmc.ldlib:ldlib-forge-${minecraftVersion}:${ldlibVersion}")) {
+        transitive = false
+        jarJar.ranged(it, "[${ldlibVersion},)")
+    }
 }
 
 jarJar.enable()
 
-tasks.jarJar.configure {
-    classifier ''
+tasks.named('jarJar') {
+    archiveClassifier = ''
 }
 
-reobf {
-    jarJar {}
-}
 tasks.jarJar.finalizedBy('reobfJarJar')
 
 // Example for how to get properties into the manifest for reading at runtime.
 jar {
-    classifier 'slim'
+    archiveClassifier = 'slim'
 
     manifest {
         attributes([
@@ -207,9 +215,9 @@ jar {
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
-}
 
-jar.finalizedBy('reobfJar')
+    finalizedBy('reobfJar')
+}
 
 def replaceResources = tasks.register("replaceResources", Copy) {
     it.outputs.upToDateWhen { false }
@@ -278,8 +286,13 @@ modrinth {
 
 publishing {
     publications {
-        mavenJava(MavenPublication) {
-            jarJar.component(it, tasks.jarJar)
+        // With dependencies
+        register('mavenJava', MavenPublication) {
+            artifact tasks.jarJar
+        }
+        // Without dependencies
+        register('mavenJavaSlim', MavenPublication) {
+            artifact tasks.jar
         }
     }
     repositories {
@@ -291,6 +304,9 @@ publishing {
                 password = project.findProperty("cloudsmith_password") ?: System.getenv("CLOUDSMITH_PASSWORD")
             }
         }
+//        maven {
+//            url "file://${project.projectDir}/mcmodsrepo"
+//        }
     }
 }
 
