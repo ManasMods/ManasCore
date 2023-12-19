@@ -15,6 +15,7 @@ plugins {
     id 'net.darkhax.curseforgegradle' version '1.0.11'
     id "com.modrinth.minotaur" version "2.+"
     id 'maven-publish'
+    id 'idea'
     id "io.freefair.lombok" version "6.6-rc1"
     id "org.sonarqube" version "4.4.1.3373"
 }
@@ -170,8 +171,8 @@ repositories {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraftVersion}-${forgeVersion}"
 
-    implementation(annotationProcessor("com.github.llamalad7.mixinextras:mixinextras-common:${mixinExtrasVersion}"))
-    implementation(jarJar("com.github.llamalad7.mixinextras:mixinextras-forge:${mixinExtrasVersion}")) {
+    implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:${mixinExtrasVersion}"))
+    implementation(jarJar("io.github.llamalad7:mixinextras-forge:${mixinExtrasVersion}")) {
         jarJar.ranged(it, "[${mixinExtrasVersion},)")
     }
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
@@ -286,13 +287,9 @@ modrinth {
 
 publishing {
     publications {
-        // With dependencies
         register('mavenJava', MavenPublication) {
-            artifact tasks.jarJar
-        }
-        // Without dependencies
-        register('mavenJavaSlim', MavenPublication) {
-            artifact tasks.jar
+            artifact(tasks.jar)
+            artifact(tasks.jarJar)
         }
     }
     repositories {

@@ -34,8 +34,8 @@ dependencies {
     // Runtime dependencies provided by ManasCore
     implementation fg.deobf("com.lowdragmc.photon:photon-forge-${minecraftVersion}:${photonVersion}")
     implementation fg.deobf("com.lowdragmc.ldlib:ldlib-forge-${minecraftVersion}:${ldlibVersion}")
-    implementation(annotationProcessor("com.github.llamalad7.mixinextras:mixinextras-common:${mixinExtrasVersion}"))
-    implementation("com.github.llamalad7.mixinextras:mixinextras-forge:${mixinExtrasVersion}")
+    implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:${mixinExtrasVersion}"))
+    implementation("io.github.llamalad7:mixinextras-forge:${mixinExtrasVersion}")
 }
 ```
 
