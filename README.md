@@ -32,8 +32,12 @@ dependencies {
     // ManasCore (without runtime dependencies)
     implementation fg.deobf("com.github.manasmods:ManasCore:${minecraftVersion}-${manasCoreVersion}:slim")
     // Runtime dependencies provided by ManasCore
-    implementation fg.deobf("com.lowdragmc.photon:photon-forge-${minecraftVersion}:${photonVersion}")
-    implementation fg.deobf("com.lowdragmc.ldlib:ldlib-forge-${minecraftVersion}:${ldlibVersion}")
+    implementation fg.deobf("com.lowdragmc.photon:photon-forge-${minecraftVersion}:${photonVersion}") {
+        transitive = false
+    }
+    implementation fg.deobf("com.lowdragmc.ldlib:ldlib-forge-${minecraftVersion}:${ldlibVersion}") {
+        transitive = false
+    }
     implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:${mixinExtrasVersion}"))
     implementation("io.github.llamalad7:mixinextras-forge:${mixinExtrasVersion}")
 }

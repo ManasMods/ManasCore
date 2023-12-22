@@ -144,7 +144,6 @@ minecraft {
 
 mixin {
     add sourceSets.main, "${modId}.refmap.json"
-
     config "${modId}.mixins.json"
 }
 
@@ -182,12 +181,12 @@ dependencies {
     // https://www.curseforge.com/minecraft/mc-mods/selene/files/4377790
     runtimeOnly fg.deobf("curse.maven:MoonlightLib-499980:4377790")
     // Photon https://www.curseforge.com/minecraft/mc-mods/photon/files?page=1&pageSize=20&version=1.19.2&gameVersionTypeId=1
-    implementation(jarJar("com.lowdragmc.photon:photon-forge-${minecraftVersion}:${photonVersion}")) {
+    implementation fg.deobf(jarJar("com.lowdragmc.photon:photon-forge-${minecraftVersion}:${photonVersion}")) {
         transitive = false
         jarJar.ranged(it, "[${photonVersion},)")
     }
     // LDLib https://www.curseforge.com/minecraft/mc-mods/ldlib/files?page=1&pageSize=20&version=1.19.2&gameVersionTypeId=1
-    implementation(jarJar("com.lowdragmc.ldlib:ldlib-forge-${minecraftVersion}:${ldlibVersion}")) {
+    implementation fg.deobf(jarJar("com.lowdragmc.ldlib:ldlib-forge-${minecraftVersion}:${ldlibVersion}")) {
         transitive = false
         jarJar.ranged(it, "[${ldlibVersion},)")
     }
