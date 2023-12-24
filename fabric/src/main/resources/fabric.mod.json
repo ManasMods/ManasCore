@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "manascore",
+  "version": "${version}",
+
+  "name": "ManasCore",
+  "description": "Utility and Core Library for Manas Mods",
+  "authors": [],
+  "contact": {},
+
+  "license": "GNU GPL 3.0",
+  "icon": "icon.png",
+
+  "environment": "*",
+  "entrypoints": {},
+  "mixins": [
+    "manascore.mixins.json",
+    "manascore-common.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.15.3",
+    "minecraft": ">=1.20.4"
+  }
+}

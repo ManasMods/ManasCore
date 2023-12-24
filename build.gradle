@@ -1,316 +1,52 @@
-buildscript {
-    repositories {
-        // These repositories are only for Gradle plugins, put any other repositories in the repository block further below
-        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
-    }
-}
-
 plugins {
-    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
-    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
-    id 'net.darkhax.curseforgegradle' version '1.0.11'
-    id "com.modrinth.minotaur" version "2.+"
-    id 'maven-publish'
-    id 'idea'
-    id "io.freefair.lombok" version "6.6-rc1"
-    id "org.sonarqube" version "4.4.1.3373"
+    id "architectury-plugin" version "3.4-SNAPSHOT"
+    id "dev.architectury.loom" version "1.1-SNAPSHOT" apply false
+    id "io.freefair.lombok" version "8.4"
 }
 
-apply plugin: 'org.spongepowered.mixin'
+architectury {
+    minecraft = rootProject.minecraft_version
+}
 
-group = 'com.github.manasmods'
-version = "${minecraftVersion}-${modVersion}"
-archivesBaseName = modId
+subprojects {
+    apply plugin: "dev.architectury.loom"
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+    loom {
+        silentMojangMappingsLicense()
+    }
 
-minecraft {
-    mappings channel: 'parchment', version: "${parchmentVersion}-${minecraftVersion}"
-    // enableEclipsePrepareRuns = true
-    // enableIdeaPrepareRuns = true
-    copyIdeResources = true
-    // generateRunFolders = true
-
-    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
-
-    runs {
-        client {
-            workingDirectory project.file('run')
-
-            // Recommended logging data for a userdev environment
-            // The markers can be added/removed as needed separated by commas.
-            // "SCAN": For mods scan.
-            // "REGISTRIES": For firing of registry events.
-            // "REGISTRYDUMP": For getting the contents of all registries.
-            property 'forge.logging.markers', 'REGISTRIES'
-
-            // Recommended logging level for the console
-            // You can set various levels here.
-            // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
-            property 'forge.logging.console.level', 'debug'
-
-            property 'forge.enabledGameTestNamespaces', "${modId}"
-
-            property 'mixin.debug.export', 'true'
-
-            mods {
-                manascore {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        server {
-            workingDirectory project.file('runServer')
-
-            // Recommended logging data for a userdev environment
-            // The markers can be added/removed as needed separated by commas.
-            // "SCAN": For mods scan.
-            // "REGISTRIES": For firing of registry events.
-            // "REGISTRYDUMP": For getting the contents of all registries.
-            property 'forge.logging.markers', 'REGISTRIES'
-
-            // Recommended logging level for the console
-            // You can set various levels here.
-            // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
-            property 'forge.logging.console.level', 'debug'
-
-            property 'forge.enabledGameTestNamespaces', "${modId}"
-            arg "nogui"
-
-            mods {
-                manascore {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        gameTestServer {
-            workingDirectory project.file('run')
-
-            // Recommended logging data for a userdev environment
-            // The markers can be added/remove as needed separated by commas.
-            // "SCAN": For mods scan.
-            // "REGISTRIES": For firing of registry events.
-            // "REGISTRYDUMP": For getting the contents of all registries.
-            property 'forge.logging.markers', 'REGISTRIES'
-
-            // Recommended logging level for the console
-            // You can set various levels here.
-            // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
-            property 'forge.logging.console.level', 'debug'
-
-            // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
-            property 'forge.enabledGameTestNamespaces', "${modId}"
-
-            mods {
-                manascore {
-                    source sourceSets.main
-                    source sourceSets.test
-                }
-            }
-        }
-
-        data {
-            workingDirectory project.file('run')
-
-            // Recommended logging data for a userdev environment
-            // The markers can be added/removed as needed separated by commas.
-            // "SCAN": For mods scan.
-            // "REGISTRIES": For firing of registry events.
-            // "REGISTRYDUMP": For getting the contents of all registries.
-            property 'forge.logging.markers', 'REGISTRIES'
-
-            // Recommended logging level for the console
-            // You can set various levels here.
-            // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
-            property 'forge.logging.console.level', 'debug'
-
-            // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
-            args '--mod', "${modId}", '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
-
-            mods {
-                manascore {
-                    source sourceSets.main
-                }
-            }
-        }
+    dependencies {
+        minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
+        // The following line declares the mojmap mappings, you may use other mappings as well
+        mappings loom.officialMojangMappings()
+        // The following line declares the yarn mappings you may select this one as well.
+        // mappings "net.fabricmc:yarn:@YARN_MAPPINGS@:v2"
     }
 }
 
-mixin {
-    add sourceSets.main, "${modId}.refmap.json"
-    config "${modId}.mixins.json"
-}
+allprojects {
+    apply plugin: "java"
+    apply plugin: "architectury-plugin"
+    apply plugin: "maven-publish"
 
-// Include resources generated by data generators.
-sourceSets.main.resources { srcDir 'src/generated/resources' }
+    archivesBaseName = rootProject.archives_base_name
+    version = rootProject.mod_version
+    group = rootProject.maven_group
 
-repositories {
-    // If you have mod jar dependencies in ./libs, you can declare them as a repository like so:
-    // flatDir {
-    //     dir 'libs'
-    // }
-
-    maven {
-        url "https://cursemaven.com"
-        content {
-            includeGroup "curse.maven"
-        }
-    }
-
-    maven { url 'https://jitpack.io' }
-    maven { url = "https://maven.firstdarkdev.xyz/snapshots" } // LDLib, Photon
-}
-
-dependencies {
-    minecraft "net.minecraftforge:forge:${minecraftVersion}-${forgeVersion}"
-
-    implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:${mixinExtrasVersion}"))
-    implementation(jarJar("io.github.llamalad7:mixinextras-forge:${mixinExtrasVersion}")) {
-        jarJar.ranged(it, "[${mixinExtrasVersion},)")
-    }
-    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-
-    // https://www.curseforge.com/minecraft/mc-mods/mmmmmmmmmmmm/files/4293885
-    runtimeOnly fg.deobf("curse.maven:TargetDummy-225738:4293885")
-    // https://www.curseforge.com/minecraft/mc-mods/selene/files/4377790
-    runtimeOnly fg.deobf("curse.maven:MoonlightLib-499980:4377790")
-    // Photon https://www.curseforge.com/minecraft/mc-mods/photon/files?page=1&pageSize=20&version=1.19.2&gameVersionTypeId=1
-    implementation fg.deobf(jarJar("com.lowdragmc.photon:photon-forge-${minecraftVersion}:${photonVersion}")) {
-        transitive = false
-        jarJar.ranged(it, "[${photonVersion},)")
-    }
-    // LDLib https://www.curseforge.com/minecraft/mc-mods/ldlib/files?page=1&pageSize=20&version=1.19.2&gameVersionTypeId=1
-    implementation fg.deobf(jarJar("com.lowdragmc.ldlib:ldlib-forge-${minecraftVersion}:${ldlibVersion}")) {
-        transitive = false
-        jarJar.ranged(it, "[${ldlibVersion},)")
-    }
-}
-
-jarJar.enable()
-
-tasks.named('jarJar') {
-    archiveClassifier = ''
-}
-
-tasks.jarJar.finalizedBy('reobfJarJar')
-
-// Example for how to get properties into the manifest for reading at runtime.
-jar {
-    archiveClassifier = 'slim'
-
-    manifest {
-        attributes([
-                "Specification-Title"     : "manascore",
-                "Specification-Vendor"    : "ManasMods",
-                "Specification-Version"   : "1", // We are version 1 of ourselves
-                "Implementation-Title"    : project.name,
-                "Implementation-Version"  : project.jar.archiveVersion,
-                "Implementation-Vendor"   : "ManasMods",
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
-        ])
-    }
-
-    finalizedBy('reobfJar')
-}
-
-def replaceResources = tasks.register("replaceResources", Copy) {
-    it.outputs.upToDateWhen { false }
-    //Copy it into the build dir
-    it.from(sourceSets.main.resources) {
-        def forgeLoaderVersion = forgeVersion.substring(0, forgeVersion.indexOf('.'))
-        def nextMinecraftVersion = getNextMajorMinecraftVersion(minecraftVersion)
-        def minecraftVersionCheck = "[${minecraftVersion},${nextMinecraftVersion})"
-
-        include "META-INF/mods.toml"
-        expand 'modVersion': "${modVersion}",
-                'forgeLoaderVersion': "[${forgeLoaderVersion},)",
-                'minecraftVersionCheck': "${minecraftVersionCheck}",
-                'modId': "${modId}",
-                'mixinExtrasVersion': "${mixinExtrasVersion}"
-    }
-    it.into "$buildDir/resources/main/"
-}
-
-static String getNextMajorMinecraftVersion(String currentVersion) {
-    def version = currentVersion.substring(0, currentVersion.indexOf('.'))
-    def majorVersion = currentVersion.substring(currentVersion.indexOf('.') + 1, currentVersion.indexOf('.', currentVersion.indexOf('.') + 1))
-    def majorInt = Integer.valueOf(majorVersion)
-    majorInt++
-    majorVersion = majorInt.toString()
-    return "${version}.${majorVersion}"
-}
-
-processResources {
-    duplicatesStrategy(DuplicatesStrategy.FAIL)
-    exclude('META-INF/mods.toml')
-    configure { finalizedBy(replaceResources) }
-}
-
-classes.configure {
-    dependsOn(replaceResources)
-}
-
-tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
-}
-
-task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
-    dependsOn build
-
-    apiToken = project.findProperty('curseforge_apikey') ?: System.getenv('CF_TOKEN')
-    def mainFile = upload(619025, tasks.jarJar)
-    mainFile.releaseType = 'release'
-    mainFile.displayName = "${minecraftVersion}-${modVersion}"
-    mainFile.changelog = file('CHANGELOG.md')
-    mainFile.changelogType = 'markdown'
-    mainFile.addModLoader('Forge')
-    mainFile.addGameVersion(minecraftVersion)
-}
-
-modrinth {
-    token = project.findProperty('modrinth_apikey') ?: System.getenv('MODRINTH_TOKEN')
-    projectId = "wRRSWpd1"
-    versionType = "release"
-    versionName = "${minecraftVersion}-${modVersion}"
-    uploadFile = tasks.jarJar
-    gameVersions = [project.minecraftVersion]
-    loaders = ["forge"]
-    changelog = file('CHANGELOG.md').text
-}
-
-publishing {
-    publications {
-        register('mavenJava', MavenPublication) {
-            artifact(tasks.jar)
-            artifact(tasks.jarJar)
-        }
-    }
     repositories {
-        maven {
-            name = "ManasCore"
-            url "https://api-g.cloudsmith.io/maven/manasmods/manascore/"
-            credentials {
-                username = project.findProperty("cloudsmith_user") ?: System.getenv("CLOUDSMITH_USER")
-                password = project.findProperty("cloudsmith_password") ?: System.getenv("CLOUDSMITH_PASSWORD")
-            }
-        }
-//        maven {
-//            url "file://${project.projectDir}/mcmodsrepo"
-//        }
+        // Add repositories to retrieve artifacts from in here.
+        // You should only use this when depending on other mods because
+        // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
+        // See https://docs.gradle.org/current/userguide/declaring_repositories.html
+        // for more information about repositories.
     }
-}
 
-sonar {
-    properties {
-        property "sonar.projectKey", "ManasMods_ManasCore"
-        property "sonar.organization", "manasmods"
-        property "sonar.host.url", "https://sonarcloud.io"
-        property "sonar.gradle.skipCompile", "true"
+    tasks.withType(JavaCompile) {
+        options.encoding = "UTF-8"
+        options.release.set(17)
+    }
+
+    java {
+        withSourcesJar()
     }
 }
