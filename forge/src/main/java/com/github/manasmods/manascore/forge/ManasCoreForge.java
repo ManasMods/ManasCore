@@ -1,7 +1,7 @@
-package de.blutmondgilde.manascore.forge;
+package com.github.manasmods.manascore.forge;
 
 import dev.architectury.platform.forge.EventBuses;
-import de.blutmondgilde.manascore.ManasCore;
+import com.github.manasmods.manascore.ManasCore;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 

@@ -1,6 +1,6 @@
-package de.blutmondgilde.manascore.fabric;
+package com.github.manasmods.manascore.fabric;
 
-import de.blutmondgilde.manascore.ManasCore;
+import com.github.manasmods.manascore.ManasCore;
 import net.fabricmc.api.ModInitializer;
 
 public class ManasCoreFabric implements ModInitializer {
