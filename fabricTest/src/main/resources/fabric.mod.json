@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "testmod",
+  "version": "${version}",
+  "name": "ManasCore Test",
+  "description": "Utility and Core Library for Manas Mods",
+  "authors": [],
+  "contact": {},
+  "license": "GNU GPL 3.0",
+  "icon": "icon.jpg",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.github.manasmods.testmod.TestMod"
+    ],
+    "client": [
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.15.3",
+    "minecraft": ">=1.20.4",
+    "manascore": ">=${version}"
+  }
+}

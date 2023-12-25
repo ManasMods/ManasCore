@@ -7,10 +7,11 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
-
+// Common Code
 include("common")
-
+// Platform inidividual code
 include("fabric")
-
 include("forge")
 include("neoforge")
+// Test Mods
+include("fabricTest")
