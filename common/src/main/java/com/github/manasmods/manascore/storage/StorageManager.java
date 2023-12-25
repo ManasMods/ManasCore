@@ -29,8 +29,12 @@ public final class StorageManager {
         }
     }
 
-    @ExpectPlatform
     public static void syncTracking(Entity source) {
+        syncTracking(source, false);
+    }
+
+    @ExpectPlatform
+    public static void syncTracking(Entity source, boolean update) {
         throw new AssertionError();
     }
 

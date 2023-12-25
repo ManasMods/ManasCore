@@ -13,8 +13,9 @@ import java.util.Deque;
 import java.util.List;
 
 public class StorageManagerImpl {
-    public static void syncTracking(Entity entity) {
-        getTrackingEntitiesOf(entity).forEach(player -> syncTarget(entity, player));
+    public static void syncTracking(Entity entity, boolean update) {
+        final FriendlyByteBuf buf = createPacketBuffer(entity);
+        getTrackingEntitiesOf(entity).forEach(player -> syncTarget(player, buf));
     }
 
     private static Iterable<ServerPlayer> getTrackingEntitiesOf(Entity entity) {
@@ -31,13 +32,18 @@ public class StorageManagerImpl {
     }
 
     public static void syncTarget(Entity source, ServerPlayer target) {
-        FriendlyByteBuf buf = PacketByteBufs.create();
-        buf.writeInt(source.getId());
-        buf.writeNbt(source.manasCore$getStorage());
-        syncTarget(source, target, buf);
+        syncTarget(target, createPacketBuffer(source));
     }
 
-    private static void syncTarget(final Entity source, final ServerPlayer target, final FriendlyByteBuf buf) {
+    private static FriendlyByteBuf createPacketBuffer(final Entity source) {
+        FriendlyByteBuf buf = PacketByteBufs.create();
+        buf.writeEnum(source.manasCore$getStorageType());
+        buf.writeInt(source.getId());
+        buf.writeNbt(source.manasCore$getStorage());
+        return buf;
+    }
+
+    private static void syncTarget(final ServerPlayer target, final FriendlyByteBuf buf) {
         ServerPlayNetworking.send(target, NetworkManager.CHANNEL, buf);
     }
 }
