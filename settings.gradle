@@ -15,3 +15,5 @@ include("forge")
 include("neoforge")
 // Test Mods
 include("fabricTest")
+include("forgeTest")
+include("neoforgeTest")
