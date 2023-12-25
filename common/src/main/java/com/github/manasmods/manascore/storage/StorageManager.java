@@ -23,8 +23,10 @@ public final class StorageManager {
         StorageEvents.REGISTER_ENTITY_STORAGE.invoker().register(ENTITY_STORAGE_REGISTRY);
     }
 
-    public static void initialStorageFilling(StorageHolder entity) {
-        ENTITY_STORAGE_REGISTRY.attach(entity);
+    public static void initialStorageFilling(StorageHolder holder) {
+        switch (holder.getStorageType()) {
+            case ENTITY -> ENTITY_STORAGE_REGISTRY.attach((Entity) holder);
+        }
     }
 
     @ExpectPlatform
