@@ -42,8 +42,8 @@ public class MixinEntity implements StorageHolder {
     }
 
     @Override
-    public void manasCore$sync() {
-        StorageManager.syncTracking((Entity) (Object) this);
+    public void manasCore$sync(boolean update) {
+        StorageManager.syncTracking((Entity) (Object) this, update);
     }
 
     @Override
@@ -59,6 +59,11 @@ public class MixinEntity implements StorageHolder {
     @Override
     public @NotNull StorageType manasCore$getStorageType() {
         return StorageType.ENTITY;
+    }
+
+    @Override
+    public @NotNull CombinedStorage manasCore$getCombinedStorage() {
+        return this.storage;
     }
 
     @Inject(method = "<init>", at = @At("RETURN"))

@@ -1,6 +1,7 @@
 package com.github.manasmods.manascore.core.injection;
 
 import com.github.manasmods.manascore.api.storage.Storage;
+import com.github.manasmods.manascore.storage.CombinedStorage;
 import com.github.manasmods.manascore.storage.StorageManager.StorageKey;
 import com.github.manasmods.manascore.storage.StorageManager.StorageType;
 import net.minecraft.nbt.CompoundTag;
@@ -27,7 +28,12 @@ public interface StorageHolder {
         return Optional.ofNullable(this.manasCore$getStorage(storageKey));
     }
 
+    default void manasCore$sync(boolean update) {
+
+    }
+
     default void manasCore$sync() {
+        this.manasCore$sync(false);
     }
 
     default void manasCore$sync(@NotNull ServerPlayer target) {
@@ -39,5 +45,10 @@ public interface StorageHolder {
     @NotNull
     default StorageType manasCore$getStorageType() {
         throw new AssertionError();
+    }
+
+    @NotNull
+    default CombinedStorage manasCore$getCombinedStorage() {
+        return new CombinedStorage(this);
     }
 }

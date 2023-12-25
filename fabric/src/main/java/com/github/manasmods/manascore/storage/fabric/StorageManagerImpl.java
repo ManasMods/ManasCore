@@ -1,6 +1,7 @@
 package com.github.manasmods.manascore.storage.fabric;
 
 import com.github.manasmods.manascore.network.NetworkManager;
+import com.github.manasmods.manascore.storage.CombinedStorage;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.FriendlyByteBuf;
@@ -14,7 +15,7 @@ import java.util.List;
 
 public class StorageManagerImpl {
     public static void syncTracking(Entity entity, boolean update) {
-        final FriendlyByteBuf buf = createPacketBuffer(entity);
+        final FriendlyByteBuf buf = createPacketBuffer(entity, update);
         getTrackingEntitiesOf(entity).forEach(player -> syncTarget(player, buf));
     }
 
@@ -32,14 +33,20 @@ public class StorageManagerImpl {
     }
 
     public static void syncTarget(Entity source, ServerPlayer target) {
-        syncTarget(target, createPacketBuffer(source));
+        syncTarget(target, createPacketBuffer(source, false));
     }
 
-    private static FriendlyByteBuf createPacketBuffer(final Entity source) {
+    private static FriendlyByteBuf createPacketBuffer(final Entity source, boolean update) {
         FriendlyByteBuf buf = PacketByteBufs.create();
+
+        buf.writeBoolean(update);
+
         buf.writeEnum(source.manasCore$getStorageType());
         buf.writeInt(source.getId());
-        buf.writeNbt(source.manasCore$getStorage());
+
+        CombinedStorage storage = source.manasCore$getCombinedStorage();
+        buf.writeNbt(update ? storage.createUpdatePacket() : storage.toNBT());
+
         return buf;
     }
 
