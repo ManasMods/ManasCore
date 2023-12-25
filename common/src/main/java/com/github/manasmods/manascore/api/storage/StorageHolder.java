@@ -1,6 +1,5 @@
-package com.github.manasmods.manascore.core.injection;
+package com.github.manasmods.manascore.api.storage;
 
-import com.github.manasmods.manascore.api.storage.Storage;
 import com.github.manasmods.manascore.storage.CombinedStorage;
 import com.github.manasmods.manascore.storage.StorageManager.StorageKey;
 import com.github.manasmods.manascore.storage.StorageManager.StorageType;

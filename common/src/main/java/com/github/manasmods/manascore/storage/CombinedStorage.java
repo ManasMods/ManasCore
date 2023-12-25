@@ -2,7 +2,7 @@ package com.github.manasmods.manascore.storage;
 
 import com.github.manasmods.manascore.ManasCore;
 import com.github.manasmods.manascore.api.storage.Storage;
-import com.github.manasmods.manascore.core.injection.StorageHolder;
+import com.github.manasmods.manascore.api.storage.StorageHolder;
 import com.github.manasmods.manascore.storage.StorageManager.StorageType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;

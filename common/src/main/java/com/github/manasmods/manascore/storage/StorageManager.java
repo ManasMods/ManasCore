@@ -4,7 +4,7 @@ import com.github.manasmods.manascore.api.storage.Storage;
 import com.github.manasmods.manascore.api.storage.StorageEvents;
 import com.github.manasmods.manascore.api.storage.StorageEvents.StoraceFactory;
 import com.github.manasmods.manascore.api.storage.StorageEvents.StorageRegistry;
-import com.github.manasmods.manascore.core.injection.StorageHolder;
+import com.github.manasmods.manascore.api.storage.StorageHolder;
 import com.mojang.datafixers.util.Pair;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.resources.ResourceLocation;
