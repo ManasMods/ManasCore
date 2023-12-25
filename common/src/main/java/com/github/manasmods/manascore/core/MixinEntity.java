@@ -16,10 +16,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.List;
-
 @Mixin(Entity.class)
 public class MixinEntity implements StorageHolder {
     @Shadow
@@ -47,20 +43,6 @@ public class MixinEntity implements StorageHolder {
     @Override
     public void manasCore$sync(ServerPlayer target) {
         StorageManager.syncTarget((Entity) (Object) this, target);
-    }
-
-    @Override
-    public Iterable<ServerPlayer> getTrackingEntities() {
-        Entity holder = (Entity) (Object) this;
-        if (this.level != null && !this.level.isClientSide()) {
-            // Get all players tracking this entity
-            Deque<ServerPlayer> watchers = new ArrayDeque<>();
-            // Add self when it's a player
-            if (holder instanceof ServerPlayer player && player.connection != null) watchers.addFirst(player);
-            return watchers;
-        }
-
-        return List.of();
     }
 
     @Inject(method = "<init>", at = @At("RETURN"))
