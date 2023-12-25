@@ -30,10 +30,10 @@ public interface StorageHolder {
     default void manasCore$sync() {
     }
 
-    default void manasCore$sync(ServerPlayer target) {
+    default void manasCore$sync(@NotNull ServerPlayer target) {
     }
 
-    default void manasCore$attachStorage(ResourceLocation id, Storage storage){
+    default void manasCore$attachStorage(@NotNull ResourceLocation id,@NotNull Storage storage){
     }
 
     @NotNull

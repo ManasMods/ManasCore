@@ -47,12 +47,12 @@ public class MixinEntity implements StorageHolder {
     }
 
     @Override
-    public void manasCore$sync(ServerPlayer target) {
+    public void manasCore$sync(@NotNull ServerPlayer target) {
         StorageManager.syncTarget((Entity) (Object) this, target);
     }
 
     @Override
-    public void manasCore$attachStorage(ResourceLocation id, Storage storage) {
+    public void manasCore$attachStorage(@NotNull ResourceLocation id, @NotNull Storage storage) {
         this.storage.add(id, storage);
     }
 
