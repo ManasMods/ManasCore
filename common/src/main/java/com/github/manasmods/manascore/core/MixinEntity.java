@@ -38,7 +38,7 @@ public class MixinEntity implements StorageHolder {
     @Nullable
     @Override
     public <T extends Storage> T manasCore$getStorage(StorageKey<T> storageKey) {
-        return (T) this.storage.get(storageKey.getId());
+        return (T) this.storage.get(storageKey.id());
     }
 
     @Override

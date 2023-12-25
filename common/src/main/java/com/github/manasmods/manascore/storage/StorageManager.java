@@ -71,22 +71,7 @@ public final class StorageManager {
         }
     }
 
-    public static class StorageKey<T extends Storage> {
-        private final ResourceLocation id;
-        private final Class<T> type;
-
-        public StorageKey(ResourceLocation id, Class<T> type) {
-            this.id = id;
-            this.type = type;
-        }
-
-        public ResourceLocation getId() {
-            return id;
-        }
-
-        public Class<T> getType() {
-            return type;
-        }
+    public record StorageKey<T extends Storage>(ResourceLocation id, Class<T> type) {
     }
 
     public enum StorageType {
