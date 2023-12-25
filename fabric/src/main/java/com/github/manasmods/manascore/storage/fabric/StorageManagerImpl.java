@@ -1,5 +1,9 @@
 package com.github.manasmods.manascore.storage.fabric;
 
+import com.github.manasmods.manascore.network.NetworkManager;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
@@ -27,6 +31,13 @@ public class StorageManagerImpl {
     }
 
     public static void syncTarget(Entity source, ServerPlayer target) {
-        //TODO create & send packet
+        FriendlyByteBuf buf = PacketByteBufs.create();
+        buf.writeInt(source.getId());
+        buf.writeNbt(source.manasCore$getStorage());
+        syncTarget(source, target, buf);
+    }
+
+    private static void syncTarget(final Entity source, final ServerPlayer target, final FriendlyByteBuf buf) {
+        ServerPlayNetworking.send(target, NetworkManager.CHANNEL, buf);
     }
 }

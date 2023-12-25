@@ -2,17 +2,21 @@
   "schemaVersion": 1,
   "id": "manascore",
   "version": "${version}",
-
   "name": "ManasCore",
   "description": "Utility and Core Library for Manas Mods",
   "authors": [],
   "contact": {},
-
   "license": "GNU GPL 3.0",
   "icon": "icon.jpg",
-
   "environment": "*",
-  "entrypoints": {},
+  "entrypoints": {
+    "main": [
+      "com.github.manasmods.manascore.fabric.ManasCoreFabric"
+    ],
+    "client": [
+      "com.github.manasmods.manascore.fabric.client.ManasCoreFabricClient"
+    ]
+  },
   "mixins": [
     "manascore.mixins.json",
     "manascore-common.mixins.json"

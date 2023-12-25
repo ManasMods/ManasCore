@@ -36,7 +36,6 @@ public final class StorageManager {
         throw new AssertionError();
     }
 
-
     private static class StorageRegistryImpl<T extends StorageHolder> implements StorageRegistry<T> {
         private final Map<ResourceLocation, Pair<Predicate<T>, StoraceFactory<T>>> registry = new HashMap<>();
 
