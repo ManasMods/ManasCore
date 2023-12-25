@@ -6,9 +6,13 @@ import com.github.manasmods.manascore.storage.StorageManager.StorageType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
+
 public interface StorageHolder {
+    @NotNull
     default CompoundTag manasCore$getStorage() {
         return new CompoundTag();
     }
@@ -16,6 +20,11 @@ public interface StorageHolder {
     @Nullable
     default <T extends Storage> T manasCore$getStorage(StorageKey<T> storageKey) {
         return null;
+    }
+
+    @NotNull
+    default <T extends Storage> Optional<T> manasCore$getStorageOptional(StorageKey<T> storageKey) {
+        return Optional.ofNullable(this.manasCore$getStorage(storageKey));
     }
 
     default void manasCore$sync() {
@@ -27,7 +36,8 @@ public interface StorageHolder {
     default void manasCore$attachStorage(ResourceLocation id, Storage storage){
     }
 
+    @NotNull
     default StorageType manasCore$getStorageType() {
-        return null;
+        throw new AssertionError();
     }
 }
