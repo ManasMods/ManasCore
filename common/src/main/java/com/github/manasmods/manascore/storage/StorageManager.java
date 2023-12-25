@@ -27,7 +27,7 @@ public final class StorageManager {
     }
 
     @ExpectPlatform
-    public static void syncTracking(Entity entity) {
+    public static void syncTracking(Entity source) {
         throw new AssertionError();
     }
 
@@ -48,7 +48,7 @@ public final class StorageManager {
             this.registry.forEach((id, checkAndFactory) -> {
                 if (!checkAndFactory.getFirst().test(target)) return;
                 CompoundTag entryTag = new CompoundTag();
-
+                checkAndFactory.getSecond().create(target);
             });
         }
     }

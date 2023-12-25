@@ -3,7 +3,7 @@ package com.github.manasmods.manascore.core.injection;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 
-public interface StorageHolder<T> {
+public interface StorageHolder {
     default CompoundTag manasCore$getStorage() {
         return new CompoundTag();
     }
