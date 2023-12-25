@@ -1,15 +1,16 @@
 package com.github.manasmods.manascore.storage;
 
+import com.github.manasmods.manascore.api.storage.Storage;
 import com.github.manasmods.manascore.api.storage.StorageEvents;
 import com.github.manasmods.manascore.api.storage.StorageEvents.StoraceFactory;
 import com.github.manasmods.manascore.api.storage.StorageEvents.StorageRegistry;
 import com.github.manasmods.manascore.core.injection.StorageHolder;
 import com.mojang.datafixers.util.Pair;
 import dev.architectury.injectables.annotations.ExpectPlatform;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,8 +23,8 @@ public final class StorageManager {
         StorageEvents.REGISTER_ENTITY_STORAGE.invoker().register(ENTITY_STORAGE_REGISTRY);
     }
 
-    public static void constructEntityStorage(Entity entity, CompoundTag storageTag) {
-        ENTITY_STORAGE_REGISTRY.attach(entity, storageTag);
+    public static void constructEntityStorage(Entity entity) {
+        ENTITY_STORAGE_REGISTRY.attach(entity);
     }
 
     @ExpectPlatform
@@ -36,6 +37,13 @@ public final class StorageManager {
         throw new AssertionError();
     }
 
+    @Nullable
+    public static Storage constructCombinedStorage(StorageType type, ResourceLocation id, StorageHolder holder) {
+        return switch (type) {
+            case ENTITY -> ENTITY_STORAGE_REGISTRY.registry.get(id).getSecond().create((Entity) holder);
+        };
+    }
+
     private static class StorageRegistryImpl<T extends StorageHolder> implements StorageRegistry<T> {
         private final Map<ResourceLocation, Pair<Predicate<T>, StoraceFactory<T>>> registry = new HashMap<>();
 
@@ -44,12 +52,17 @@ public final class StorageManager {
             this.registry.put(id, Pair.of(attachCheck, factory));
         }
 
-        public void attach(T target, CompoundTag storageTag) {
+        public void attach(T target) {
             this.registry.forEach((id, checkAndFactory) -> {
                 if (!checkAndFactory.getFirst().test(target)) return;
-                CompoundTag entryTag = new CompoundTag();
-                checkAndFactory.getSecond().create(target);
+                Storage storage = checkAndFactory.getSecond().create(target);
+                target.manasCore$attachStorage(id, storage);
             });
         }
+    }
+
+    public enum StorageType {
+        ENTITY,
+
     }
 }
