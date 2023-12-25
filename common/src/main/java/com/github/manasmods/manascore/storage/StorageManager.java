@@ -52,7 +52,7 @@ public final class StorageManager {
                 Entity sourceEntity = (Entity) source;
                 yield new SyncEntityStoragePacket(
                         update,
-                        sourceEntity.getId(),
+                        sourceEntity.getId(), // TODO this id wrong?
                         update ? sourceEntity.manasCore$getCombinedStorage().createUpdatePacket(true)
                                 : sourceEntity.manasCore$getCombinedStorage().toNBT()
                 );

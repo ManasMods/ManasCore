@@ -11,6 +11,8 @@ loom {
     runConfigs.each {
         it.setIdeConfigGenerated(false)
     }
+
+    accessWidenerPath = project(":common").loom.accessWidenerPath
 }
 
 configurations {

@@ -8,9 +8,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 
 class ClientAccess {
-
     static void handle(SyncEntityStoragePacket packet) {
-        ManasCore.Logger.info("Handling packet: {}", packet);
         Level level = Minecraft.getInstance().level;
         if (level == null) return;
         Entity entity = level.getEntity(packet.getEntityId());
@@ -21,5 +19,6 @@ class ClientAccess {
         } else {
             entity.manasCore$setCombinedStorage(new CombinedStorage(entity, tag));
         }
+        ManasCore.Logger.info("Handled packet for {}", entity);
     }
 }

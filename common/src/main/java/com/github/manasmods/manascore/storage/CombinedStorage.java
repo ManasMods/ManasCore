@@ -3,7 +3,7 @@ package com.github.manasmods.manascore.storage;
 import com.github.manasmods.manascore.ManasCore;
 import com.github.manasmods.manascore.api.storage.Storage;
 import com.github.manasmods.manascore.api.storage.StorageHolder;
-import com.github.manasmods.manascore.storage.StorageManager.StorageType;
+import com.github.manasmods.manascore.api.storage.StorageType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
