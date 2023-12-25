@@ -45,7 +45,7 @@ public class StorageManagerImpl {
         buf.writeInt(source.getId());
 
         CombinedStorage storage = source.manasCore$getCombinedStorage();
-        buf.writeNbt(update ? storage.createUpdatePacket() : storage.toNBT());
+        buf.writeNbt(update ? storage.createUpdatePacket(true) : storage.toNBT());
 
         return buf;
     }

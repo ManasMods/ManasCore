@@ -86,7 +86,7 @@ public class CombinedStorage {
         return this.storages.get(id);
     }
 
-    public CompoundTag createUpdatePacket() {
+    public CompoundTag createUpdatePacket(boolean clean) {
         CompoundTag tag = new CompoundTag();
 
         ListTag entriesTag = new ListTag();
@@ -96,9 +96,17 @@ public class CombinedStorage {
             entryTag.putString("manascore_registry_storage_id", id.toString());
             storage.saveOutdated(entryTag);
             entriesTag.add(entryTag);
+            if (clean) storage.clearDirty();
         });
 
         tag.put("manascore_registry_storage", entriesTag);
         return tag;
+    }
+
+    public boolean isDirty() {
+        for (Storage storage : this.storages.values()) {
+            if (storage.isDirty()) return true;
+        }
+        return false;
     }
 }
