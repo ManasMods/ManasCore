@@ -11,7 +11,7 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.github.manasmods.testmod.TestMod"
+      "com.github.manasmods.testmod.TestModFabric"
     ],
     "client": [
     ]

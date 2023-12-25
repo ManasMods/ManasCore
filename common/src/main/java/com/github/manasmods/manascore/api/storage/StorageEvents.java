@@ -9,7 +9,7 @@ import net.minecraft.world.entity.Entity;
 import java.util.function.Predicate;
 
 public interface StorageEvents {
-    Event<RegisterStorage<Entity>> REGISTER_ENTITY_STORAGE = EventFactory.createEventResult();
+    Event<RegisterStorage<Entity>> REGISTER_ENTITY_STORAGE = EventFactory.createLoop();
 
     @FunctionalInterface
     interface RegisterStorage<T extends StorageHolder> {
