@@ -1,6 +1,7 @@
 package com.github.manasmods.manascore.core.injection;
 
 import com.github.manasmods.manascore.api.storage.Storage;
+import com.github.manasmods.manascore.storage.StorageManager.StorageType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,5 +18,9 @@ public interface StorageHolder {
     }
 
     default void manasCore$attachStorage(ResourceLocation id, Storage storage){
+    }
+
+    default StorageType getStorageType() {
+        return null;
     }
 }

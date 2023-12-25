@@ -47,10 +47,17 @@ public class MixinEntity implements StorageHolder {
         this.storage.add(id, storage);
     }
 
+    @Override
+    public StorageType getStorageType() {
+        return StorageType.ENTITY;
+    }
+
     @Inject(method = "<init>", at = @At("RETURN"))
     void initStorage(EntityType entityType, Level level, CallbackInfo ci) {
-        this.storage = new CombinedStorage(StorageType.ENTITY, this);
-        StorageManager.constructEntityStorage((Entity) (Object) this);
+        // Create empty storage
+        this.storage = new CombinedStorage(this);
+        // Fill storage with data
+        StorageManager.initialStorageFilling(this);
     }
 
     @Inject(method = "saveWithoutId", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;addAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V", shift = Shift.AFTER), cancellable = true)

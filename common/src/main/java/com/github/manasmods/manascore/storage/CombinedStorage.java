@@ -14,15 +14,14 @@ import java.util.Map;
 public class CombinedStorage {
     private final Map<ResourceLocation, Storage> storages = new HashMap<>();
     private final StorageType type;
-    private final StorageHolder holder;
 
-    public CombinedStorage(StorageType type, StorageHolder holder) {
-        this.type = type;
-        this.holder = holder;
+    public CombinedStorage(StorageHolder holder) {
+        this.type = holder.getStorageType();
     }
 
     public CombinedStorage(StorageHolder holder, CompoundTag tag) {
-        this(StorageType.valueOf(tag.getString("type")), holder);
+        this(holder);
+
         if (tag.contains("manascore_registry_storage")) {
             ListTag entriesTag = tag.getList("manascore_registry_storage", ListTag.TAG_COMPOUND);
 
@@ -47,7 +46,6 @@ public class CombinedStorage {
 
     public CompoundTag toNBT() {
         CompoundTag tag = new CompoundTag();
-        tag.putString("type", this.type.name());
 
         ListTag entriesTag = new ListTag();
         this.storages.forEach((id, storage) -> {

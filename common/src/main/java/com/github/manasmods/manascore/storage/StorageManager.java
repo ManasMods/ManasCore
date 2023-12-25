@@ -23,7 +23,7 @@ public final class StorageManager {
         StorageEvents.REGISTER_ENTITY_STORAGE.invoker().register(ENTITY_STORAGE_REGISTRY);
     }
 
-    public static void constructEntityStorage(Entity entity) {
+    public static void initialStorageFilling(StorageHolder entity) {
         ENTITY_STORAGE_REGISTRY.attach(entity);
     }
 
