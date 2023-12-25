@@ -12,6 +12,10 @@ loom {
         mixinConfig "manascore.mixins.json"
         mixinConfig "manascore-common.mixins.json"
     }
+
+    runConfigs.each {
+        it.setIdeConfigGenerated(false)
+    }
 }
 
 configurations {
