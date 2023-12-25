@@ -1,5 +1,6 @@
 package com.github.manasmods.manascore.network.toclient;
 
+import com.github.manasmods.manascore.ManasCore;
 import com.github.manasmods.manascore.storage.CombinedStorage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
@@ -9,6 +10,7 @@ import net.minecraft.world.level.Level;
 class ClientAccess {
 
     static void handle(SyncEntityStoragePacket packet) {
+        ManasCore.Logger.info("Handling packet: {}", packet);
         Level level = Minecraft.getInstance().level;
         if (level == null) return;
         Entity entity = level.getEntity(packet.getEntityId());

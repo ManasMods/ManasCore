@@ -4,6 +4,8 @@ import dev.architectury.networking.NetworkManager.PacketContext;
 import dev.architectury.utils.Env;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
+import lombok.ToString.Exclude;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 
@@ -11,9 +13,11 @@ import java.util.function.Supplier;
 
 @RequiredArgsConstructor
 @Getter
+@ToString
 public class SyncEntityStoragePacket {
     private final boolean update;
     private final int entityId;
+    @Exclude
     private final CompoundTag storageTag;
 
     public SyncEntityStoragePacket(FriendlyByteBuf buf) {
