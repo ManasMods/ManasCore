@@ -6,6 +6,7 @@ import com.github.manasmods.manascore.api.storage.StorageEvents.StoraceFactory;
 import com.github.manasmods.manascore.api.storage.StorageEvents.StorageRegistry;
 import com.github.manasmods.manascore.api.storage.StorageHolder;
 import com.mojang.datafixers.util.Pair;
+import dev.architectury.event.events.common.PlayerEvent;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -21,6 +22,7 @@ public final class StorageManager {
 
     public static void init() {
         StorageEvents.REGISTER_ENTITY_STORAGE.invoker().register(ENTITY_STORAGE_REGISTRY);
+        PlayerEvent.PLAYER_JOIN.register(StorageManager::syncTracking);
     }
 
     public static void initialStorageFilling(StorageHolder holder) {

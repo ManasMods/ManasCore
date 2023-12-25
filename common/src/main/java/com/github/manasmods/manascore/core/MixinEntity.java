@@ -66,6 +66,11 @@ public class MixinEntity implements StorageHolder {
         return this.storage;
     }
 
+    @Override
+    public void manasCore$setCombinedStorage(@NotNull CombinedStorage storage) {
+        this.storage = storage;
+    }
+
     @Inject(method = "<init>", at = @At("RETURN"))
     void initStorage(EntityType entityType, Level level, CallbackInfo ci) {
         // Create empty storage

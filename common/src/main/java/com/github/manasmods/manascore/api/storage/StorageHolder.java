@@ -50,4 +50,8 @@ public interface StorageHolder {
     default CombinedStorage manasCore$getCombinedStorage() {
         return new CombinedStorage(this);
     }
+
+    default void manasCore$setCombinedStorage(@NotNull CombinedStorage storage) {
+        throw new AssertionError();
+    }
 }

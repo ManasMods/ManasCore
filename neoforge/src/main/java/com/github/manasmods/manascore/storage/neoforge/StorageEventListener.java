@@ -9,13 +9,6 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 @EventBusSubscriber
 public class StorageEventListener {
     @SubscribeEvent
-    static void onPlayerLogin(final PlayerEvent.PlayerLoggedInEvent e) {
-        if (e.getEntity() instanceof ServerPlayer player) {
-            StorageManager.syncTarget(player, player);
-        }
-    }
-
-    @SubscribeEvent
     static void onPlayerRespawn(final PlayerEvent.Clone e) {
         if (e.getEntity() instanceof ServerPlayer player) {
             StorageManager.syncTarget(e.getOriginal(), player);
