@@ -1,5 +1,6 @@
 package com.github.manasmods.manascore;
 
+import com.github.manasmods.manascore.network.NetworkManager;
 import com.github.manasmods.manascore.storage.StorageManager;
 import dev.architectury.event.events.common.LifecycleEvent;
 import org.apache.logging.log4j.LogManager;
@@ -11,5 +12,6 @@ public class ManasCore {
 
     public static void init() {
         LifecycleEvent.SETUP.register(StorageManager::init);
+        NetworkManager.init();
     }
 }

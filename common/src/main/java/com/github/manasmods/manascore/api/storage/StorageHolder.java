@@ -2,7 +2,6 @@ package com.github.manasmods.manascore.api.storage;
 
 import com.github.manasmods.manascore.storage.CombinedStorage;
 import com.github.manasmods.manascore.storage.StorageManager.StorageKey;
-import com.github.manasmods.manascore.storage.StorageManager.StorageType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -38,7 +37,7 @@ public interface StorageHolder {
     default void manasCore$sync(@NotNull ServerPlayer target) {
     }
 
-    default void manasCore$attachStorage(@NotNull ResourceLocation id,@NotNull Storage storage){
+    default void manasCore$attachStorage(@NotNull ResourceLocation id, @NotNull Storage storage) {
     }
 
     @NotNull
@@ -52,6 +51,10 @@ public interface StorageHolder {
     }
 
     default void manasCore$setCombinedStorage(@NotNull CombinedStorage storage) {
+        throw new AssertionError();
+    }
+
+    default Iterable<ServerPlayer> manasCore$getTrackingPlayers() {
         throw new AssertionError();
     }
 }

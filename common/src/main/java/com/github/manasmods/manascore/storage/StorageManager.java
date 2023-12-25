@@ -5,9 +5,11 @@ import com.github.manasmods.manascore.api.storage.StorageEvents;
 import com.github.manasmods.manascore.api.storage.StorageEvents.StoraceFactory;
 import com.github.manasmods.manascore.api.storage.StorageEvents.StorageRegistry;
 import com.github.manasmods.manascore.api.storage.StorageHolder;
+import com.github.manasmods.manascore.api.storage.StorageType;
+import com.github.manasmods.manascore.network.NetworkManager;
+import com.github.manasmods.manascore.network.toclient.SyncEntityStoragePacket;
 import com.mojang.datafixers.util.Pair;
 import dev.architectury.event.events.common.PlayerEvent;
-import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -31,18 +33,31 @@ public final class StorageManager {
         }
     }
 
-    public static void syncTracking(Entity source) {
+    public static void syncTracking(StorageHolder source) {
         syncTracking(source, false);
     }
 
-    @ExpectPlatform
-    public static void syncTracking(Entity source, boolean update) {
-        throw new AssertionError();
+    public static void syncTracking(StorageHolder source, boolean update) {
+        NetworkManager.CHANNEL.sendToPlayers(source.manasCore$getTrackingPlayers(), createSyncPacket(source, update));
     }
 
-    @ExpectPlatform
-    public static void syncTarget(Entity source, ServerPlayer target) {
-        throw new AssertionError();
+    public static void syncTarget(StorageHolder source, ServerPlayer target) {
+        NetworkManager.CHANNEL.sendToPlayer(target, createSyncPacket(source, false));
+    }
+
+    // TODO think about generic typing for this method instead of Object
+    private static Object createSyncPacket(StorageHolder source, boolean update) {
+        return switch (source.manasCore$getStorageType()) {
+            case ENTITY -> {
+                Entity sourceEntity = (Entity) source;
+                yield new SyncEntityStoragePacket(
+                        update,
+                        sourceEntity.getId(),
+                        update ? sourceEntity.manasCore$getCombinedStorage().createUpdatePacket(true)
+                                : sourceEntity.manasCore$getCombinedStorage().toNBT()
+                );
+            }
+        };
     }
 
     @Nullable
@@ -78,10 +93,5 @@ public final class StorageManager {
     }
 
     public record StorageKey<T extends Storage>(ResourceLocation id, Class<T> type) {
-    }
-
-    public enum StorageType {
-        ENTITY,
-
     }
 }

@@ -2,10 +2,11 @@ package com.github.manasmods.manascore.core;
 
 import com.github.manasmods.manascore.api.storage.Storage;
 import com.github.manasmods.manascore.api.storage.StorageHolder;
+import com.github.manasmods.manascore.api.storage.StorageType;
 import com.github.manasmods.manascore.storage.CombinedStorage;
 import com.github.manasmods.manascore.storage.StorageManager;
 import com.github.manasmods.manascore.storage.StorageManager.StorageKey;
-import com.github.manasmods.manascore.storage.StorageManager.StorageType;
+import com.github.manasmods.manascore.utils.PlayerLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -69,6 +70,11 @@ public class MixinEntity implements StorageHolder {
     @Override
     public void manasCore$setCombinedStorage(@NotNull CombinedStorage storage) {
         this.storage = storage;
+    }
+
+    @Override
+    public Iterable<ServerPlayer> manasCore$getTrackingPlayers() {
+        return PlayerLookup.tracking((Entity) (Object) this);
     }
 
     @Inject(method = "<init>", at = @At("RETURN"))
