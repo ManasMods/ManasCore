@@ -24,7 +24,7 @@ public final class StorageManager {
     }
 
     public static void initialStorageFilling(StorageHolder holder) {
-        switch (holder.getStorageType()) {
+        switch (holder.manasCore$getStorageType()) {
             case ENTITY -> ENTITY_STORAGE_REGISTRY.attach((Entity) holder);
         }
     }
@@ -40,18 +40,26 @@ public final class StorageManager {
     }
 
     @Nullable
-    public static Storage constructCombinedStorage(StorageType type, ResourceLocation id, StorageHolder holder) {
+    public static Storage constructStorageFor(StorageType type, ResourceLocation id, StorageHolder holder) {
         return switch (type) {
             case ENTITY -> ENTITY_STORAGE_REGISTRY.registry.get(id).getSecond().create((Entity) holder);
         };
     }
 
+    @Nullable
+    public static <T extends Storage> T getStorage(StorageHolder holder, StorageKey<T> storageKey) {
+        return switch (holder.manasCore$getStorageType()) {
+            case ENTITY -> holder.manasCore$getStorage(storageKey);
+        };
+    }
+
     private static class StorageRegistryImpl<T extends StorageHolder> implements StorageRegistry<T> {
-        private final Map<ResourceLocation, Pair<Predicate<T>, StoraceFactory<T>>> registry = new HashMap<>();
+        private final Map<ResourceLocation, Pair<Predicate<T>, StoraceFactory<T, ?>>> registry = new HashMap<>();
 
         @Override
-        public void register(ResourceLocation id, Predicate<T> attachCheck, StoraceFactory<T> factory) {
+        public <S extends Storage> StorageKey<S> register(ResourceLocation id, Class<S> storageClass, Predicate<T> attachCheck, StoraceFactory<T, S> factory) {
             this.registry.put(id, Pair.of(attachCheck, factory));
+            return new StorageKey<>(id, storageClass);
         }
 
         public void attach(T target) {
@@ -60,6 +68,24 @@ public final class StorageManager {
                 Storage storage = checkAndFactory.getSecond().create(target);
                 target.manasCore$attachStorage(id, storage);
             });
+        }
+    }
+
+    public static class StorageKey<T extends Storage> {
+        private final ResourceLocation id;
+        private final Class<T> type;
+
+        public StorageKey(ResourceLocation id, Class<T> type) {
+            this.id = id;
+            this.type = type;
+        }
+
+        public ResourceLocation getId() {
+            return id;
+        }
+
+        public Class<T> getType() {
+            return type;
         }
     }
 

@@ -7,6 +7,7 @@ import com.github.manasmods.manascore.storage.StorageManager.StorageType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +17,7 @@ public class CombinedStorage {
     private final StorageType type;
 
     public CombinedStorage(StorageHolder holder) {
-        this.type = holder.getStorageType();
+        this.type = holder.manasCore$getStorageType();
     }
 
     public CombinedStorage(StorageHolder holder, CompoundTag tag) {
@@ -31,7 +32,7 @@ public class CombinedStorage {
                 // Get storage id
                 ResourceLocation id = new ResourceLocation(entryTag.getString("manascore_registry_storage_id"));
                 // Construct storage
-                Storage storage = StorageManager.constructCombinedStorage(this.type, id, holder);
+                Storage storage = StorageManager.constructStorageFor(this.type, id, holder);
                 if (storage == null) {
                     ManasCore.Logger.warn("Failed to construct storage for id {}. All information about this storage will be dropped!", id);
                     return;
@@ -61,5 +62,10 @@ public class CombinedStorage {
 
     public void add(ResourceLocation id, Storage storage) {
         this.storages.put(id, storage);
+    }
+
+    @Nullable
+    public Storage get(ResourceLocation id) {
+        return this.storages.get(id);
     }
 }

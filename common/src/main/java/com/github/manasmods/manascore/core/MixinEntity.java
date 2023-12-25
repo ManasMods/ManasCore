@@ -4,6 +4,7 @@ import com.github.manasmods.manascore.api.storage.Storage;
 import com.github.manasmods.manascore.core.injection.StorageHolder;
 import com.github.manasmods.manascore.storage.CombinedStorage;
 import com.github.manasmods.manascore.storage.StorageManager;
+import com.github.manasmods.manascore.storage.StorageManager.StorageKey;
 import com.github.manasmods.manascore.storage.StorageManager.StorageType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -11,6 +12,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -32,6 +34,12 @@ public class MixinEntity implements StorageHolder {
         return this.storage.toNBT();
     }
 
+    @Nullable
+    @Override
+    public <T extends Storage> T manasCore$getStorage(StorageKey<T> storageKey) {
+        return (T) this.storage.get(storageKey.getId());
+    }
+
     @Override
     public void manasCore$sync() {
         StorageManager.syncTracking((Entity) (Object) this);
@@ -48,7 +56,7 @@ public class MixinEntity implements StorageHolder {
     }
 
     @Override
-    public StorageType getStorageType() {
+    public StorageType manasCore$getStorageType() {
         return StorageType.ENTITY;
     }
 
