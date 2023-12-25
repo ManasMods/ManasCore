@@ -84,4 +84,12 @@ public class MixinEntity implements StorageHolder {
     void loadStorage(CompoundTag compound, CallbackInfo ci) {
         this.storage = new CombinedStorage(this, compound.getCompound("ManasCoreStorage"));
     }
+
+    @Inject(method = "tick", at = @At("RETURN"))
+    void onTickSyncCheck(CallbackInfo ci) {
+        if (this.level.isClientSide()) return;
+        this.level.getProfiler().push("manasCoreSyncCheck");
+        if (this.storage.isDirty()) StorageManager.syncTracking((Entity) (Object) this, true);
+        this.level.getProfiler().pop();
+    }
 }
