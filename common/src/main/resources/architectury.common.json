@@ -1,5 +1,8 @@
 {
   "injected_interfaces": {
+    "net/minecraft/class_1297": [
+      "com/github/manasmods/manascore/core/injection/StorageHolder"
+    ]
   },
-  "accessWidener": "manasource.accesswidener"
+  "accessWidener": "manascore.accesswidener"
 }
