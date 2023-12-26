@@ -7,6 +7,8 @@ import com.github.manasmods.manascore.api.storage.StorageEvents.StorageRegistry;
 import com.github.manasmods.manascore.api.storage.StorageHolder;
 import com.github.manasmods.manascore.api.storage.StorageType;
 import com.github.manasmods.manascore.network.NetworkManager;
+import com.github.manasmods.manascore.network.toclient.StorageSyncPacket;
+import com.github.manasmods.manascore.network.toclient.SyncChunkStoragePacket;
 import com.github.manasmods.manascore.network.toclient.SyncEntityStoragePacket;
 import com.mojang.datafixers.util.Pair;
 import dev.architectury.event.events.client.ClientPlayerEvent;
@@ -63,7 +65,7 @@ public final class StorageManager {
         NetworkManager.CHANNEL.sendToPlayer(target, createSyncPacket(source, false));
     }
 
-    private static Object createSyncPacket(StorageHolder source, boolean update) {
+    private static StorageSyncPacket createSyncPacket(StorageHolder source, boolean update) {
         return switch (source.manasCore$getStorageType()) {
             case ENTITY -> {
                 Entity sourceEntity = (Entity) source;
@@ -76,8 +78,12 @@ public final class StorageManager {
             }
             case CHUNK -> {
                 LevelChunk sourceChunk = (LevelChunk) source;
-                // TODO implement chunk sync
-                yield null;
+                yield new SyncChunkStoragePacket(
+                        update,
+                        sourceChunk.getPos(),
+                        update ? sourceChunk.manasCore$getCombinedStorage().createUpdatePacket(true)
+                                : sourceChunk.manasCore$getCombinedStorage().toNBT()
+                );
             }
         };
     }

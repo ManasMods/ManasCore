@@ -7,32 +7,33 @@ import lombok.ToString;
 import lombok.ToString.Exclude;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.ChunkPos;
 
 import java.util.function.Supplier;
 
 @Getter
 @ToString
-public class SyncEntityStoragePacket implements StorageSyncPacket {
+public class SyncChunkStoragePacket implements StorageSyncPacket {
     private final boolean update;
-    private final int entityId;
+    private final ChunkPos chunkPos;
     @Exclude
     private final CompoundTag storageTag;
 
-    public SyncEntityStoragePacket(boolean update, int entityId, CompoundTag storageTag) {
+    public SyncChunkStoragePacket(boolean update, ChunkPos chunkPos, CompoundTag storageTag) {
         this.update = update;
-        this.entityId = entityId;
+        this.chunkPos = chunkPos;
         this.storageTag = storageTag;
     }
 
-    public SyncEntityStoragePacket(FriendlyByteBuf buf) {
+    public SyncChunkStoragePacket(FriendlyByteBuf buf) {
         this.update = buf.readBoolean();
-        this.entityId = buf.readInt();
+        this.chunkPos = buf.readChunkPos();
         this.storageTag = buf.readNbt();
     }
 
     public void encode(FriendlyByteBuf buf) {
         buf.writeBoolean(update);
-        buf.writeInt(entityId);
+        buf.writeChunkPos(chunkPos);
         buf.writeNbt(storageTag);
     }
 
