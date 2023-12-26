@@ -9,10 +9,12 @@ import com.github.manasmods.manascore.api.storage.StorageType;
 import com.github.manasmods.manascore.network.NetworkManager;
 import com.github.manasmods.manascore.network.toclient.SyncEntityStoragePacket;
 import com.mojang.datafixers.util.Pair;
+import dev.architectury.event.events.client.ClientPlayerEvent;
 import dev.architectury.event.events.common.PlayerEvent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -28,13 +30,15 @@ public final class StorageManager {
         PlayerEvent.PLAYER_JOIN.register(StorageManager::syncTracking);
         // Copy storage from old player to new player
         PlayerEvent.PLAYER_CLONE.register(StorageManager::clonePlayerStorage);
+        ClientPlayerEvent.CLIENT_PLAYER_RESPAWN.register(StorageManager::clonePlayerStorage);
     }
 
-    private static void clonePlayerStorage(ServerPlayer oldPlayer, ServerPlayer newPlayer, boolean wonGame) {
-        // Copy storage from old player to new player
+    private static void clonePlayerStorage(Player oldPlayer, Player newPlayer, boolean wonGame) {
+        clonePlayerStorage(oldPlayer, newPlayer);
+    }
+
+    private static void clonePlayerStorage(Player oldPlayer, Player newPlayer) {
         newPlayer.manasCore$setCombinedStorage(oldPlayer.manasCore$getCombinedStorage());
-        // Sync new player storage to client
-        syncTracking(newPlayer);
     }
 
     public static void initialStorageFilling(StorageHolder holder) {

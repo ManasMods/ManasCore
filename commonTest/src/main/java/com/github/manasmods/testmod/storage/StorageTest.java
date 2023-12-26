@@ -37,16 +37,16 @@ public class StorageTest {
         });
 
         BlockEvent.BREAK.register((level, pos, state, player, xp) -> {
-            ManasCore.Logger.info("Drop count on {}: {} ", level.isClientSide ? "client" : "server", player.manasCore$getStorage(KEY).dropCount);
+            ManasCore.Logger.info("Drop count of {} on {}: {} ", player.getId(), level.isClientSide ? "client" : "server", player.manasCore$getStorage(KEY).dropCount);
             return EventResult.pass();
         });
 
         ClientChatEvent.SEND.register((message, component) -> {
             Level level = Minecraft.getInstance().level;
-            if(level == null) return EventResult.pass();
+            if (level == null) return EventResult.pass();
             Player player = Minecraft.getInstance().player;
-            if(player == null) return EventResult.pass();
-            ManasCore.Logger.info("Drop count on {}: {} ", level.isClientSide ? "client" : "server", player.manasCore$getStorage(KEY).dropCount);
+            if (player == null) return EventResult.pass();
+            ManasCore.Logger.info("Drop count of {} on {}: {} ", player.getId(), level.isClientSide ? "client" : "server", player.manasCore$getStorage(KEY).dropCount);
             return EventResult.pass();
         });
     }
