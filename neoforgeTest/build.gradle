@@ -24,9 +24,9 @@ dependencies {
     // Remove the next line if you don't want to depend on the API
     modApi "dev.architectury:architectury-neoforge:${rootProject.architectury_version}"
 
-    implementation(project(path: ':common', configuration: 'namedElements')) { transitive = false }
+    implementation(project(path: ':common', configuration: 'transformProductionNeoForge')) { transitive = false }
     implementation(project(path: ':neoforge', configuration: 'namedElements')) { transitive = false }
-    implementation(project(path: ':commonTest', configuration: 'namedElements')) { transitive = false }
+    common(project(path: ':commonTest', configuration: 'namedElements')) { transitive = false }
 }
 
 processResources {
