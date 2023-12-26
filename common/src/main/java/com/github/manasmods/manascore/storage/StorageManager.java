@@ -15,6 +15,7 @@ import com.mojang.datafixers.util.Pair;
 import dev.architectury.event.events.client.ClientPlayerEvent;
 import dev.architectury.event.events.common.PlayerEvent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -36,7 +37,12 @@ public final class StorageManager {
         StorageEvents.REGISTER_CHUNK_STORAGE.invoker().register(CHUNK_STORAGE_REGISTRY);
         StorageEvents.REGISTER_ENTITY_STORAGE.invoker().register(ENTITY_STORAGE_REGISTRY);
         // Initial client syncronization
-        PlayerEvent.PLAYER_JOIN.register(StorageManager::syncTracking);
+        PlayerEvent.PLAYER_JOIN.register(player -> {
+            player.manasCore$sync(player);
+            ServerLevel level = player.serverLevel();
+            level.getChunkAt(player.blockPosition()).manasCore$sync(player);
+            level.manasCore$sync(player);
+        });
         // Copy storage from old player to new player
         PlayerEvent.PLAYER_CLONE.register(StorageManager::clonePlayerStorage);
         ClientPlayerEvent.CLIENT_PLAYER_RESPAWN.register(StorageManager::clonePlayerStorage);
