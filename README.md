@@ -3,24 +3,35 @@
 This Mod doesn't provide any new functionality for Minecraft itself. It is required by other Mods and provides useful utilities for your Mod Development.
 
 # Features
+
 - Storage API
     - Works on Fabric, Forge and NeoForge
     - Supports data storage for Entities, Chunks and Worlds (Dimensions)
     - Automatically saves and loads data
     - Automatically syncs data between server and client
 - Events
-  - ChunkEvents
-    - CHUNK_TICK -> Called every tick for every loaded chunk
+    - ChunkEvents
+        - CHUNK_TICK -> Called every tick for every loaded chunk
+- Extended Keybindings
+    - Works on Fabric, Forge and NeoForge
+    - Automatically runs an action when a key is pressed (no need to check for key presses every tick)
+    - 2 Action Modes
+        - VANILLA -> Action is run every tick while the key is pressed
+        - ON_CHANCE -> A `onPress` Action is executed when the key is pressed and a `onRelease` Action is executed when
+          the key is released
 
 ## Development Setup
+
 TBD
 
 # Notes
+
 See [LICENCE](https://github.com/ManasMods/ManasCore/blob/master/LICENSE) for ManasCore license.
 
 For a list of all authors, see [CONTRIBUTORS](https://github.com/ManasMods/ManasCore/graphs/contributors) graph.
 
 # Supporting Companies
+
 [<img src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.png" width="200">](https://jb.gg/OpenSourceSupport)
 [<img src="https://user-images.githubusercontent.com/35544624/202033667-5064bf39-f8a0-46ec-9ddd-bcbb313e1d26.png" width="200">](https://bisecthosting.com/bloodmoon)
 

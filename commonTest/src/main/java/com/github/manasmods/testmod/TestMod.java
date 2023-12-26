@@ -1,5 +1,6 @@
 package com.github.manasmods.testmod;
 
+import com.github.manasmods.testmod.client.KeybindingTest;
 import com.github.manasmods.testmod.storage.StorageTest;
 
 public class TestMod {
@@ -7,5 +8,6 @@ public class TestMod {
 
     public static void init() {
         StorageTest.init();
+        KeybindingTest.init();
     }
 }
