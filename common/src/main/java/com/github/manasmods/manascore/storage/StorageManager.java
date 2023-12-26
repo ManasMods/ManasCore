@@ -25,6 +25,14 @@ public final class StorageManager {
     public static void init() {
         StorageEvents.REGISTER_ENTITY_STORAGE.invoker().register(ENTITY_STORAGE_REGISTRY);
         PlayerEvent.PLAYER_JOIN.register(StorageManager::syncTracking);
+        PlayerEvent.PLAYER_CLONE.register(StorageManager::clonePlayerStorage);
+    }
+
+    private static void clonePlayerStorage(ServerPlayer oldPlayer, ServerPlayer newPlayer, boolean wonGame) {
+        // Copy storage from old player to new player
+        newPlayer.manasCore$setCombinedStorage(oldPlayer.manasCore$getCombinedStorage());
+        // Sync new player storage to client
+        syncTracking(newPlayer);
     }
 
     public static void initialStorageFilling(StorageHolder holder) {
