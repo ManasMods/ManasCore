@@ -7,14 +7,14 @@ import com.github.manasmods.manascore.storage.StorageManager.StorageKey;
 import com.github.manasmods.testmod.TestMod;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.ClientChatEvent;
-import dev.architectury.event.events.common.BlockEvent;
+import dev.architectury.event.events.common.ChatEvent;
+import dev.architectury.event.events.common.EntityEvent;
 import dev.architectury.event.events.common.PlayerEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
 
 public class StorageTest {
     private static StorageKey<TestStorage> KEY = null;
@@ -36,33 +36,53 @@ public class StorageTest {
             return EventResult.pass();
         });
 
-        BlockEvent.BREAK.register((level, pos, state, player, xp) -> {
-            ManasCore.Logger.info("Drop count of {} on {}: {} ", player.getId(), level.isClientSide ? "client" : "server", player.manasCore$getStorage(KEY).dropCount);
+        EntityEvent.LIVING_DEATH.register((entity, source) -> {
+            if (entity instanceof ServerPlayer serverPlayer) {
+                serverPlayer.manasCore$getStorageOptional(KEY).ifPresent(storage -> {
+                    storage.deathCount++;
+                    storage.markDirty();
+                });
+            }
+
             return EventResult.pass();
         });
 
         ClientChatEvent.SEND.register((message, component) -> {
-            Level level = Minecraft.getInstance().level;
-            if (level == null) return EventResult.pass();
             Player player = Minecraft.getInstance().player;
-            if (player == null) return EventResult.pass();
-            ManasCore.Logger.info("Drop count of {} on {}: {} ", player.getId(), level.isClientSide ? "client" : "server", player.manasCore$getStorage(KEY).dropCount);
+            if (player != null) printTestStorage(player);
+            return EventResult.pass();
+        });
+        ChatEvent.RECEIVED.register((player, component) -> {
+            if (player != null) printTestStorage(player);
             return EventResult.pass();
         });
     }
 
+    private static void printTestStorage(Player player) {
+        boolean isClientSide = player.level().isClientSide();
+        ManasCore.Logger.info("Storage of {} on {}:\n{} ", player.getId(), isClientSide ? "client" : "server", player.manasCore$getStorage(KEY));
+    }
+
     public static class TestStorage extends Storage {
-        private int dropCount;
+        private int dropCount = 0;
+        private int deathCount = 0;
 
 
         @Override
         public void save(CompoundTag data) {
             data.putInt("dropCount", dropCount);
+            data.putInt("deathCount", deathCount);
         }
 
         @Override
         public void load(CompoundTag data) {
             this.dropCount = data.getInt("dropCount");
+            this.deathCount = data.getInt("deathCount");
+        }
+
+        @Override
+        public String toString() {
+            return String.format("TestStorage{\n%s\n%s\n}", "dropCount=" + dropCount, "deathCount=" + deathCount);
         }
     }
 }
