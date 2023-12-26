@@ -28,20 +28,14 @@ public class StorageTest {
         // Register event listeners that change the storage
         PlayerEvent.DROP_ITEM.register((player, entity) -> {
             if (player instanceof ServerPlayer serverPlayer) {
-                serverPlayer.manasCore$getStorageOptional(KEY).ifPresent(storage -> {
-                    storage.dropCount++;
-                    storage.markDirty();
-                });
+                serverPlayer.manasCore$getStorageOptional(KEY).ifPresent(TestStorage::increaseDropCount);
             }
 
             return EventResult.pass();
         });
         EntityEvent.LIVING_DEATH.register((entity, source) -> {
             if (entity instanceof ServerPlayer serverPlayer) {
-                serverPlayer.manasCore$getStorageOptional(KEY).ifPresent(storage -> {
-                    storage.deathCount++;
-                    storage.markDirty();
-                });
+                serverPlayer.manasCore$getStorageOptional(KEY).ifPresent(TestStorage::increaseDeathCount);
             }
 
             return EventResult.pass();
@@ -69,6 +63,15 @@ public class StorageTest {
         private int dropCount = 0;
         private int deathCount = 0;
 
+        public void increaseDropCount() {
+            dropCount++;
+            markDirty();
+        }
+
+        public void increaseDeathCount() {
+            deathCount++;
+            markDirty();
+        }
 
         @Override
         public void save(CompoundTag data) {
