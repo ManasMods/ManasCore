@@ -10,6 +10,7 @@ import com.github.manasmods.manascore.network.NetworkManager;
 import com.github.manasmods.manascore.network.toclient.StorageSyncPacket;
 import com.github.manasmods.manascore.network.toclient.SyncChunkStoragePacket;
 import com.github.manasmods.manascore.network.toclient.SyncEntityStoragePacket;
+import com.github.manasmods.manascore.network.toclient.SyncWorldStoragePacket;
 import com.mojang.datafixers.util.Pair;
 import dev.architectury.event.events.client.ClientPlayerEvent;
 import dev.architectury.event.events.common.PlayerEvent;
@@ -17,6 +18,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,10 +29,12 @@ import java.util.function.Predicate;
 public final class StorageManager {
     private static final StorageRegistryImpl<Entity> ENTITY_STORAGE_REGISTRY = new StorageRegistryImpl<>();
     private static final StorageRegistryImpl<LevelChunk> CHUNK_STORAGE_REGISTRY = new StorageRegistryImpl<>();
+    private static final StorageRegistryImpl<Level> LEVEL_STORAGE_REGISTRY = new StorageRegistryImpl<>();
 
     public static void init() {
-        StorageEvents.REGISTER_ENTITY_STORAGE.invoker().register(ENTITY_STORAGE_REGISTRY);
+        StorageEvents.REGISTER_WORLD_STORAGE.invoker().register(LEVEL_STORAGE_REGISTRY);
         StorageEvents.REGISTER_CHUNK_STORAGE.invoker().register(CHUNK_STORAGE_REGISTRY);
+        StorageEvents.REGISTER_ENTITY_STORAGE.invoker().register(ENTITY_STORAGE_REGISTRY);
         // Initial client syncronization
         PlayerEvent.PLAYER_JOIN.register(StorageManager::syncTracking);
         // Copy storage from old player to new player
@@ -50,6 +54,7 @@ public final class StorageManager {
         switch (holder.manasCore$getStorageType()) {
             case ENTITY -> ENTITY_STORAGE_REGISTRY.attach((Entity) holder);
             case CHUNK -> CHUNK_STORAGE_REGISTRY.attach((LevelChunk) holder);
+            case WORLD -> LEVEL_STORAGE_REGISTRY.attach((Level) holder);
         }
     }
 
@@ -85,6 +90,11 @@ public final class StorageManager {
                                 : sourceChunk.manasCore$getCombinedStorage().toNBT()
                 );
             }
+            case WORLD -> new SyncWorldStoragePacket(
+                    update,
+                    update ? source.manasCore$getCombinedStorage().createUpdatePacket(true)
+                            : source.manasCore$getCombinedStorage().toNBT()
+            );
         };
     }
 
@@ -93,6 +103,7 @@ public final class StorageManager {
         return switch (type) {
             case ENTITY -> ENTITY_STORAGE_REGISTRY.registry.get(id).getSecond().create((Entity) holder);
             case CHUNK -> CHUNK_STORAGE_REGISTRY.registry.get(id).getSecond().create((LevelChunk) holder);
+            case WORLD -> LEVEL_STORAGE_REGISTRY.registry.get(id).getSecond().create((Level) holder);
         };
     }
 

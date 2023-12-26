@@ -5,7 +5,7 @@ This Mod doesn't provide any new functionality for Minecraft itself. It is requi
 # Features
 - Storage API
     - Works on Fabric, Forge and NeoForge
-    - Supports data storage for Entities and Chunks
+    - Supports data storage for Entities, Chunks, Worlds (Dimensions) and Saves
     - Automatically saves and loads data
     - Automatically syncs data between server and client
 - Events

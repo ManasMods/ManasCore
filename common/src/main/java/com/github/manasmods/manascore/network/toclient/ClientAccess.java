@@ -39,6 +39,15 @@ class ClientAccess {
         handleUpdatePacket(chunk, packet);
     }
 
+    static void handle(SyncWorldStoragePacket packet) {
+        Level level = Minecraft.getInstance().level;
+        if (level == null) {
+            ManasCore.Logger.warn("Level is null. SyncWorldStoragePacket gets ignored!");
+            return;
+        }
+        handleUpdatePacket(level, packet);
+    }
+
     static void handleUpdatePacket(StorageHolder holder, StorageSyncPacket packet) {
         if (packet.isUpdate()) {
             holder.manasCore$getCombinedStorage().handleUpdatePacket(packet.getStorageTag());

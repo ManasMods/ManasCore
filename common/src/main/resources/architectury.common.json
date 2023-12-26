@@ -5,6 +5,9 @@
     ],
     "net/minecraft/class_2818": [
       "com/github/manasmods/manascore/api/storage/StorageHolder"
+    ],
+    "net/minecraft/class_1937": [
+      "com/github/manasmods/manascore/api/storage/StorageHolder"
     ]
   },
   "accessWidener": "manascore.accesswidener"
