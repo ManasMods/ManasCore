@@ -97,7 +97,7 @@ public class StorageTest {
 
         @Override
         public String toString() {
-            return String.format("TestStorage{\n%s\n%s\n}", "dropCount=" + dropCount, "deathCount=" + deathCount);
+            return String.format("TestStorage{\n  %s\n  %s\n}", "dropCount=" + dropCount, "deathCount=" + deathCount);
         }
     }
 }

@@ -4,6 +4,7 @@ import com.github.manasmods.manascore.api.storage.Storage;
 import com.github.manasmods.manascore.api.storage.StorageHolder;
 import com.github.manasmods.manascore.api.storage.StorageType;
 import com.github.manasmods.manascore.storage.CombinedStorage;
+import com.github.manasmods.manascore.storage.StorageManager;
 import com.github.manasmods.manascore.storage.StorageManager.StorageKey;
 import com.github.manasmods.manascore.utils.PlayerLookup;
 import net.minecraft.core.Registry;
@@ -76,6 +77,9 @@ public abstract class MixinLevelChunk extends ChunkAccess implements StorageHold
 
     @Inject(method = "<init>(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/level/ChunkPos;Lnet/minecraft/world/level/chunk/UpgradeData;Lnet/minecraft/world/ticks/LevelChunkTicks;Lnet/minecraft/world/ticks/LevelChunkTicks;J[Lnet/minecraft/world/level/chunk/LevelChunkSection;Lnet/minecraft/world/level/chunk/LevelChunk$PostLoadProcessor;Lnet/minecraft/world/level/levelgen/blending/BlendingData;)V", at = @At("RETURN"))
     void initStorage(Level level, ChunkPos pos, UpgradeData data, LevelChunkTicks blockTicks, LevelChunkTicks fluidTicks, long inhabitedTime, LevelChunkSection[] sections, PostLoadProcessor postLoad, BlendingData blendingData, CallbackInfo ci) {
-        this.storage = new CombinedStorage(this);
+        if (this.storage == null) {
+            this.storage = new CombinedStorage(this);
+            StorageManager.initialStorageFilling(this);
+        }
     }
 }

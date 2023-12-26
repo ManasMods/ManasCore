@@ -24,26 +24,24 @@ public class CombinedStorage {
     public CombinedStorage(StorageHolder holder, CompoundTag tag) {
         this(holder);
 
-        if (tag.contains("manascore_registry_storage")) {
-            ListTag entriesTag = tag.getList("manascore_registry_storage", ListTag.TAG_COMPOUND);
+        ListTag entriesTag = tag.getList("manascore_registry_storage", ListTag.TAG_COMPOUND);
 
-            entriesTag.forEach(t -> {
-                // Get serialized storage data
-                CompoundTag entryTag = (CompoundTag) t;
-                // Get storage id
-                ResourceLocation id = new ResourceLocation(entryTag.getString("manascore_registry_storage_id"));
-                // Construct storage
-                Storage storage = StorageManager.constructStorageFor(this.type, id, holder);
-                if (storage == null) {
-                    ManasCore.Logger.warn("Failed to construct storage for id {}. All information about this storage will be dropped!", id);
-                    return;
-                }
-                // Load storage data
-                storage.load(entryTag);
-                // Put storage into map
-                this.storages.put(id, storage);
-            });
-        }
+        entriesTag.forEach(t -> {
+            // Get serialized storage data
+            CompoundTag entryTag = (CompoundTag) t;
+            // Get storage id
+            ResourceLocation id = new ResourceLocation(entryTag.getString("manascore_registry_storage_id"));
+            // Construct storage
+            Storage storage = StorageManager.constructStorageFor(this.type, id, holder);
+            if (storage == null) {
+                ManasCore.Logger.warn("Failed to construct storage for id {}. All information about this storage will be dropped!", id);
+                return;
+            }
+            // Load storage data
+            storage.load(entryTag);
+            // Put storage into map
+            this.storages.put(id, storage);
+        });
     }
 
     public CompoundTag toNBT() {
