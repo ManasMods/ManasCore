@@ -15,6 +15,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.chunk.LevelChunk;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -23,9 +24,11 @@ import java.util.function.Predicate;
 
 public final class StorageManager {
     private static final StorageRegistryImpl<Entity> ENTITY_STORAGE_REGISTRY = new StorageRegistryImpl<>();
+    private static final StorageRegistryImpl<LevelChunk> CHUNK_STORAGE_REGISTRY = new StorageRegistryImpl<>();
 
     public static void init() {
         StorageEvents.REGISTER_ENTITY_STORAGE.invoker().register(ENTITY_STORAGE_REGISTRY);
+        StorageEvents.REGISTER_CHUNK_STORAGE.invoker().register(CHUNK_STORAGE_REGISTRY);
         // Initial client syncronization
         PlayerEvent.PLAYER_JOIN.register(StorageManager::syncTracking);
         // Copy storage from old player to new player
@@ -44,6 +47,7 @@ public final class StorageManager {
     public static void initialStorageFilling(StorageHolder holder) {
         switch (holder.manasCore$getStorageType()) {
             case ENTITY -> ENTITY_STORAGE_REGISTRY.attach((Entity) holder);
+            case CHUNK -> CHUNK_STORAGE_REGISTRY.attach((LevelChunk) holder);
         }
     }
 
@@ -70,6 +74,11 @@ public final class StorageManager {
                                 : sourceEntity.manasCore$getCombinedStorage().toNBT()
                 );
             }
+            case CHUNK -> {
+                LevelChunk sourceChunk = (LevelChunk) source;
+                // TODO implement chunk sync
+                yield null;
+            }
         };
     }
 
@@ -77,14 +86,13 @@ public final class StorageManager {
     public static Storage constructStorageFor(StorageType type, ResourceLocation id, StorageHolder holder) {
         return switch (type) {
             case ENTITY -> ENTITY_STORAGE_REGISTRY.registry.get(id).getSecond().create((Entity) holder);
+            case CHUNK -> CHUNK_STORAGE_REGISTRY.registry.get(id).getSecond().create((LevelChunk) holder);
         };
     }
 
     @Nullable
     public static <T extends Storage> T getStorage(StorageHolder holder, StorageKey<T> storageKey) {
-        return switch (holder.manasCore$getStorageType()) {
-            case ENTITY -> holder.manasCore$getStorage(storageKey);
-        };
+        return holder.manasCore$getStorage(storageKey);
     }
 
     private static class StorageRegistryImpl<T extends StorageHolder> implements StorageRegistry<T> {

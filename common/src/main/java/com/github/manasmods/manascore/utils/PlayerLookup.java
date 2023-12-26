@@ -3,10 +3,12 @@ package com.github.manasmods.manascore.utils;
 import lombok.NonNull;
 import net.minecraft.server.level.ChunkMap.TrackedEntity;
 import net.minecraft.server.level.ServerChunkCache;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerPlayerConnection;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.chunk.ChunkSource;
+import net.minecraft.world.level.chunk.LevelChunk;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -33,5 +35,10 @@ public class PlayerLookup {
         Deque<ServerPlayer> watchers = new ArrayDeque<>(tracking(entity));
         if (entity instanceof ServerPlayer player) watchers.addFirst(player);
         return watchers;
+    }
+
+    public static Collection<ServerPlayer> tracking(@NonNull LevelChunk chunk) {
+        if (!(chunk.getLevel() instanceof ServerLevel level)) throw new IllegalArgumentException("Only supported on server worlds!");
+        return level.getChunkSource().chunkMap.getPlayers(chunk.getPos(), false);
     }
 }
