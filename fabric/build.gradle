@@ -38,9 +38,6 @@ dependencies {
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
-
-//    modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-base:5.4.0"
-//    modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-world:5.4.0"
 }
 
 processResources {
