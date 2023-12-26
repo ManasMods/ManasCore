@@ -15,27 +15,35 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.chunk.LevelChunk;
 
-public class EntityStorageTest {
-    private static StorageKey<TestStorage> KEY = null;
+public class StorageTest {
+    private static StorageKey<TestStorage> ENTITY_KEY = null;
+    private static StorageKey<TestStorage> CHUNK_KEY = null;
 
     public static void init() {
         // Register storage
         StorageEvents.REGISTER_ENTITY_STORAGE.register(registry -> {
-            KEY = registry.register(new ResourceLocation(TestMod.MOD_ID, "test_storage"), TestStorage.class, entity -> entity instanceof Player, target -> new TestStorage());
-            ManasCore.Logger.info("Registered storage key: {}", KEY.id());
+            ENTITY_KEY = registry.register(new ResourceLocation(TestMod.MOD_ID, "test_storage"), TestStorage.class, entity -> entity instanceof Player, target -> new TestStorage());
+            ManasCore.Logger.info("Registered entity storage key: {}", ENTITY_KEY.id());
+        });
+        StorageEvents.REGISTER_CHUNK_STORAGE.register(registry -> {
+            CHUNK_KEY = registry.register(new ResourceLocation(TestMod.MOD_ID, "test_storage"), TestStorage.class, chunk -> true, target -> new TestStorage());
+            ManasCore.Logger.info("Registered chunk storage key: {}", CHUNK_KEY.id());
         });
         // Register event listeners that change the storage
         PlayerEvent.DROP_ITEM.register((player, entity) -> {
             if (player instanceof ServerPlayer serverPlayer) {
-                serverPlayer.manasCore$getStorageOptional(KEY).ifPresent(TestStorage::increaseDropCount);
+                serverPlayer.manasCore$getStorageOptional(ENTITY_KEY).ifPresent(TestStorage::increaseDropCount);
+                serverPlayer.level().getChunkAt(entity.blockPosition()).manasCore$getStorageOptional(CHUNK_KEY).ifPresent(TestStorage::increaseDropCount);
             }
 
             return EventResult.pass();
         });
         EntityEvent.LIVING_DEATH.register((entity, source) -> {
             if (entity instanceof ServerPlayer serverPlayer) {
-                serverPlayer.manasCore$getStorageOptional(KEY).ifPresent(TestStorage::increaseDeathCount);
+                serverPlayer.manasCore$getStorageOptional(ENTITY_KEY).ifPresent(TestStorage::increaseDeathCount);
+                serverPlayer.level().getChunkAt(entity.blockPosition()).manasCore$getStorageOptional(CHUNK_KEY).ifPresent(TestStorage::increaseDeathCount);
             }
 
             return EventResult.pass();
@@ -55,7 +63,9 @@ public class EntityStorageTest {
     // Utility method to print the storage
     private static void printTestStorage(Player player) {
         boolean isClientSide = player.level().isClientSide();
-        ManasCore.Logger.info("Storage of {} on {}:\n{} ", player.getId(), isClientSide ? "client" : "server", player.manasCore$getStorage(KEY));
+        ManasCore.Logger.info("Storage of {} on {}:\n{}", player.getId(), isClientSide ? "client" : "server", player.manasCore$getStorage(ENTITY_KEY));
+        LevelChunk chunk = player.level().getChunkAt(player.blockPosition());
+        ManasCore.Logger.info("Storage at {} on {}:\n{}", chunk.getPos(), isClientSide ? "client" : "server", chunk.manasCore$getStorage(CHUNK_KEY));
     }
 
     // Storage implementation
