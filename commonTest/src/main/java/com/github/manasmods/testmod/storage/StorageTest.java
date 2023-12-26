@@ -20,11 +20,12 @@ public class StorageTest {
     private static StorageKey<TestStorage> KEY = null;
 
     public static void init() {
+        // Register storage
         StorageEvents.REGISTER_ENTITY_STORAGE.register(registry -> {
             KEY = registry.register(new ResourceLocation(TestMod.MOD_ID, "test_storage"), TestStorage.class, entity -> entity instanceof Player, target -> new TestStorage());
             ManasCore.Logger.info("Registered storage key: {}", KEY.id());
         });
-
+        // Register event listeners that change the storage
         PlayerEvent.DROP_ITEM.register((player, entity) -> {
             if (player instanceof ServerPlayer serverPlayer) {
                 serverPlayer.manasCore$getStorageOptional(KEY).ifPresent(storage -> {
@@ -35,7 +36,6 @@ public class StorageTest {
 
             return EventResult.pass();
         });
-
         EntityEvent.LIVING_DEATH.register((entity, source) -> {
             if (entity instanceof ServerPlayer serverPlayer) {
                 serverPlayer.manasCore$getStorageOptional(KEY).ifPresent(storage -> {
@@ -46,7 +46,7 @@ public class StorageTest {
 
             return EventResult.pass();
         });
-
+        // Register event listeners that print the storage on client side and server side
         ClientChatEvent.SEND.register((message, component) -> {
             Player player = Minecraft.getInstance().player;
             if (player != null) printTestStorage(player);
@@ -58,11 +58,13 @@ public class StorageTest {
         });
     }
 
+    // Utility method to print the storage
     private static void printTestStorage(Player player) {
         boolean isClientSide = player.level().isClientSide();
         ManasCore.Logger.info("Storage of {} on {}:\n{} ", player.getId(), isClientSide ? "client" : "server", player.manasCore$getStorage(KEY));
     }
 
+    // Storage implementation
     public static class TestStorage extends Storage {
         private int dropCount = 0;
         private int deathCount = 0;
