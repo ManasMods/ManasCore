@@ -44,30 +44,22 @@ authors="ManasMods" #optional
 description='''
 Utility and Core Library for Manas Mods
 '''
-# A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
 [[dependencies.testmod]] #optional
-   # the modid of the dependency
-   modId="neoforge" #mandatory
-   # Does this dependency have to exist - if not, ordering below must be specified
-   mandatory=true #mandatory
-   # The version range of the dependency
-   versionRange="[20.4,)" #mandatory
-   # An ordering relationship for the dependency - BEFORE or AFTER required if the relationship is not mandatory
+   modId="neoforge"
+   type="required"
+   versionRange="[20.4,)"
    ordering="NONE"
-   # Side this dependency is applied on - BOTH, CLIENT or SERVER
    side="BOTH"
 # Here's another dependency
 [[dependencies.testmod]]
    modId="minecraft"
-   mandatory=true
-   # This version range declares a minimum of the current minecraft version up to but not including the next major version
+   type="required"
    versionRange="[1.20.4,1.21)"
    ordering="NONE"
    side="BOTH"
-[[dependencies.testmod]]
-   modId="manascore"
-   mandatory=true
-   # This version range declares a minimum of the current minecraft version up to but not including the next major version
-   versionRange="[${version},)"
-   ordering="NONE"
-   side="BOTH"
+#[[dependencies.testmod]]
+#   modId="manascore"
+#   type="required"
+#   versionRange="[${version},)"
+#   ordering="NONE"
+#   side="BOTH"
