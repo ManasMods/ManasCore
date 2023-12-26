@@ -24,7 +24,9 @@ public final class StorageManager {
 
     public static void init() {
         StorageEvents.REGISTER_ENTITY_STORAGE.invoker().register(ENTITY_STORAGE_REGISTRY);
+        // Initial client syncronization
         PlayerEvent.PLAYER_JOIN.register(StorageManager::syncTracking);
+        // Copy storage from old player to new player
         PlayerEvent.PLAYER_CLONE.register(StorageManager::clonePlayerStorage);
     }
 
