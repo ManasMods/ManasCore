@@ -40,7 +40,11 @@ public abstract class MixinServerLevel extends Level {
     @Final
     List<ServerPlayer> players;
 
-    @Shadow public abstract DimensionDataStorage getDataStorage();
+    @Shadow
+    public abstract DimensionDataStorage getDataStorage();
+
+    @Shadow
+    public abstract List<ServerPlayer> players();
 
     protected MixinServerLevel(WritableLevelData levelData, ResourceKey<Level> dimension, RegistryAccess registryAccess, Holder<DimensionType> dimensionTypeRegistration, Supplier<ProfilerFiller> profiler, boolean isClientSide, boolean isDebug, long biomeZoomSeed, int maxChainedNeighborUpdates) {
         super(levelData, dimension, registryAccess, dimensionTypeRegistration, profiler, isClientSide, isDebug, biomeZoomSeed, maxChainedNeighborUpdates);
@@ -58,7 +62,10 @@ public abstract class MixinServerLevel extends Level {
     private void onPostTickChunk(LevelChunk pChunk, int pRandomTickSpeed, CallbackInfo ci) {
         ProfilerFiller profiler = getProfiler();
         profiler.push("manasCoreSyncCheck");
-        if (pChunk.manasCore$getCombinedStorage().isDirty()) StorageManager.syncTracking(pChunk, true);
+        if (pChunk.manasCore$getCombinedStorage().isDirty()) {
+            pChunk.setUnsaved(true);
+            StorageManager.syncTracking(pChunk, true);
+        }
         profiler.popPush("manascoreChunkTickEventPost");
         ChunkEvents.CHUNK_TICK.invoker().tick(ChunkTickPhase.END, pChunk, pRandomTickSpeed);
         profiler.pop();
