@@ -16,7 +16,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 
-public class StorageTest {
+public class EntityStorageTest {
     private static StorageKey<TestStorage> KEY = null;
 
     public static void init() {
