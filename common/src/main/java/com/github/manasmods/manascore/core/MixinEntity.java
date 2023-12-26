@@ -74,7 +74,7 @@ public class MixinEntity implements StorageHolder {
 
     @Override
     public Iterable<ServerPlayer> manasCore$getTrackingPlayers() {
-        return PlayerLookup.tracking((Entity) (Object) this);
+        return PlayerLookup.trackingAndSelf((Entity) (Object) this);
     }
 
     @Inject(method = "<init>", at = @At("RETURN"))

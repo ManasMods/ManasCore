@@ -45,14 +45,13 @@ public final class StorageManager {
         NetworkManager.CHANNEL.sendToPlayer(target, createSyncPacket(source, false));
     }
 
-    // TODO think about generic typing for this method instead of Object
     private static Object createSyncPacket(StorageHolder source, boolean update) {
         return switch (source.manasCore$getStorageType()) {
             case ENTITY -> {
                 Entity sourceEntity = (Entity) source;
                 yield new SyncEntityStoragePacket(
                         update,
-                        sourceEntity.getId(), // TODO this id wrong?
+                        sourceEntity.getId(),
                         update ? sourceEntity.manasCore$getCombinedStorage().createUpdatePacket(true)
                                 : sourceEntity.manasCore$getCombinedStorage().toNBT()
                 );
