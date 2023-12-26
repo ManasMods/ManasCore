@@ -57,13 +57,17 @@ allprojects {
 
     publishing {
         repositories {
+//            maven {
+//                name = "ManasCore"
+//                url "https://api-g.cloudsmith.io/maven/manasmods/manascore/"
+//                credentials {
+//                    username = project.findProperty("cloudsmith_user") ?: System.getenv("CLOUDSMITH_USER")
+//                    password = project.findProperty("cloudsmith_password") ?: System.getenv("CLOUDSMITH_PASSWORD")
+//                }
+//            }
+
             maven {
-                name = "ManasCore"
-                url "https://api-g.cloudsmith.io/maven/manasmods/manascore/"
-                credentials {
-                    username = project.findProperty("cloudsmith_user") ?: System.getenv("CLOUDSMITH_USER")
-                    password = project.findProperty("cloudsmith_password") ?: System.getenv("CLOUDSMITH_PASSWORD")
-                }
+                url "file://${project.projectDir}/mcmodsrepo"
             }
         }
     }
