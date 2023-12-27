@@ -1,6 +1,5 @@
 package com.github.manasmods.manascore.network.toclient;
 
-import com.github.manasmods.manascore.ManasCore;
 import com.github.manasmods.manascore.api.storage.StorageHolder;
 import com.github.manasmods.manascore.storage.CombinedStorage;
 import net.minecraft.client.Minecraft;
@@ -12,10 +11,7 @@ import org.jetbrains.annotations.Nullable;
 class ClientAccess {
     static void handle(SyncEntityStoragePacket packet) {
         Entity entity = getEntityFromId(packet.getEntityId());
-        if (entity == null) {
-            ManasCore.Logger.warn("Entity with id {} not found. SyncEntityStoragePacket gets ignored!", packet.getEntityId());
-            return;
-        }
+        if (entity == null) return;
         handleUpdatePacket(entity, packet);
     }
 
@@ -31,20 +27,14 @@ class ClientAccess {
 
     static void handle(SyncChunkStoragePacket packet) {
         Level level = Minecraft.getInstance().level;
-        if (level == null) {
-            ManasCore.Logger.warn("Level is null. SyncChunkStoragePacket gets ignored!");
-            return;
-        }
+        if (level == null) return;
         LevelChunk chunk = level.getChunk(packet.getChunkPos().x, packet.getChunkPos().z);
         handleUpdatePacket(chunk, packet);
     }
 
     static void handle(SyncWorldStoragePacket packet) {
         Level level = Minecraft.getInstance().level;
-        if (level == null) {
-            ManasCore.Logger.warn("Level is null. SyncWorldStoragePacket gets ignored!");
-            return;
-        }
+        if (level == null) return;
         handleUpdatePacket(level, packet);
     }
 
