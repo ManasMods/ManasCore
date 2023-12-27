@@ -19,6 +19,8 @@ This Mod doesn't provide any new functionality for Minecraft itself. It is requi
         - VANILLA -> Action is run every tick while the key is pressed
         - ON_CHANCE -> A `onPress` Action is executed when the key is pressed and a `onRelease` Action is executed when
           the key is released
+- Builder like content creation
+  - Create custom blocks, items, entities, etc. with a builder like syntax
 
 ## Development Setup
 
