@@ -1,10 +1,19 @@
 package com.github.manasmods.manascore.api.registry;
 
+import dev.architectury.event.events.common.LifecycleEvent;
+import dev.architectury.registry.level.entity.EntityAttributeRegistry;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
 import lombok.NonNull;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityDimensions;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityType.EntityFactory;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -15,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * <h1>AbstractRegister</h1>
@@ -27,6 +37,7 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
     protected final String modId;
     protected DeferredRegister<Item> items = null;
     protected DeferredRegister<Block> blocks = null;
+    protected DeferredRegister<EntityType<?>> entityTypes = null;
 
     AbstractRegister(final String modId) {
         this.modId = modId;
@@ -48,15 +59,13 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
      * </p>
      */
     public void init() {
+        if (entityTypes != null) entityTypes.register();
         if (blocks != null) blocks.register();
         if (items != null) items.register();
     }
 
     /**
      * Creates a new {@link ItemBuilder} for the given name.
-     *
-     * @param name The name of the {@link Item}.
-     * @return A new {@link ItemBuilder} instance.
      */
     public ItemBuilder<R> item(final String name) {
         if (this.items == null) this.items = DeferredRegister.create(this.modId, Registries.ITEM);
@@ -68,9 +77,23 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
         return new BlockItemBuilder<>(self(), name);
     }
 
+    /**
+     * Creates a new {@link BlockBuilder} for the given name.
+     */
     public BlockBuilder<R> block(final String name) {
         if (this.blocks == null) this.blocks = DeferredRegister.create(this.modId, Registries.BLOCK);
         return new BlockBuilder<>(self(), name);
+    }
+
+    /**
+     * Creates a new {@link EntityTypeBuilder} for the given name.
+     * <p>
+     * Remember to register an Entity Renderer on client side.
+     * @see dev.architectury.registry.client.level.entity.EntityRendererRegistry
+     */
+    public <T extends LivingEntity> EntityTypeBuilder<R, T> entity(final String name, final EntityFactory<T> entityFactory) {
+        if (this.entityTypes == null) this.entityTypes = DeferredRegister.create(this.modId, Registries.ENTITY_TYPE);
+        return new EntityTypeBuilder<>(self(), name, entityFactory);
     }
 
 
@@ -118,6 +141,10 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
         }
     }
 
+    /**
+     * Builder class for {@link BlockItem}s.
+     * Internally used by {@link BlockBuilder}.
+     */
     public static class BlockItemBuilder<R extends AbstractRegister<R>> extends ContentBuilder<Item, R> {
         protected Item.Properties properties;
         protected BiFunction<RegistrySupplier<Block>, Item.Properties, BlockItem> itemFactory;
@@ -166,6 +193,9 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
         }
     }
 
+    /**
+     * Builder class for {@link Block}s.
+     */
     public static class BlockBuilder<R extends AbstractRegister<R>> extends ContentBuilder<Block, R> {
         private Function<Block.Properties, Block> blockFactory;
         private Block.Properties properties;
@@ -209,6 +239,108 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
         @FunctionalInterface
         public interface BlockItemFactory<R extends AbstractRegister<R>> {
             BlockItemBuilder<R> modify(BlockItemBuilder<R> builder);
+        }
+    }
+
+    public static class EntityTypeBuilder<R extends AbstractRegister<R>, T extends LivingEntity> extends ContentBuilder<EntityType<T>, R> {
+        protected final EntityFactory<T> entityFactory;
+        protected MobCategory category;
+        protected int trackingRange;
+        protected EntityDimensions dimensions;
+
+        protected boolean summonable;
+        protected boolean saveable;
+        protected boolean fireImmune;
+        protected Supplier<Block[]> immuneTo;
+        protected boolean canSpawnFarFromPlayer;
+        protected int updateInterval;
+        private AttributeSupplier.Builder attributeBuilder;
+
+        private EntityTypeBuilder(R register, String name, final EntityFactory<T> entityFactory) {
+            super(register, name);
+            this.entityFactory = entityFactory;
+            this.category = MobCategory.MISC;
+            this.trackingRange = 5;
+            this.dimensions = EntityDimensions.scalable(0.6F, 1.8F);
+            this.summonable = true;
+            this.saveable = true;
+            this.fireImmune = false;
+            this.immuneTo = null;
+            this.canSpawnFarFromPlayer = true;
+            this.updateInterval = 3;
+            this.attributeBuilder = Mob.createMobAttributes();
+        }
+
+        public EntityTypeBuilder<R, T> withCategory(final MobCategory category) {
+            this.category = category;
+            this.canSpawnFarFromPlayer = category == MobCategory.CREATURE | category == MobCategory.MISC;
+            return this;
+        }
+
+        public EntityTypeBuilder<R, T> withTrackingRange(final int trackingRange) {
+            this.trackingRange = trackingRange;
+            return this;
+        }
+
+        public EntityTypeBuilder<R, T> withSize(final float width, final float height) {
+            this.dimensions = EntityDimensions.scalable(width, height);
+            return this;
+        }
+
+        public EntityTypeBuilder<R, T> notSummonable() {
+            this.summonable = false;
+            return this;
+        }
+
+        public EntityTypeBuilder<R, T> notSaveable() {
+            this.saveable = false;
+            return this;
+        }
+
+        public EntityTypeBuilder<R, T> fireImmune() {
+            this.fireImmune = true;
+            return this;
+        }
+
+        public EntityTypeBuilder<R, T> immuneTo(Supplier<Block[]> immuneTo) {
+            this.immuneTo = immuneTo;
+            return this;
+        }
+
+        public EntityTypeBuilder<R, T> canSpawnFarFromPlayer() {
+            this.canSpawnFarFromPlayer = true;
+            return this;
+        }
+
+        public EntityTypeBuilder<R, T> withUpdateInterval(int updateInterval) {
+            this.updateInterval = updateInterval;
+            return this;
+        }
+
+        public EntityTypeBuilder<R, T> withAttributeBuilder(AttributeSupplier.Builder attributeBuilder) {
+            this.attributeBuilder = attributeBuilder;
+            return this;
+        }
+
+        @Override
+        public RegistrySupplier<EntityType<T>> end() {
+            RegistrySupplier<EntityType<T>> supplier = this.register.entityTypes.register(this.id, () -> {
+                EntityType.Builder<T> builder = EntityType.Builder.of(this.entityFactory, this.category)
+                        .clientTrackingRange(this.trackingRange)
+                        .sized(this.dimensions.width, this.dimensions.height)
+                        .updateInterval(this.updateInterval);
+
+                if (!this.summonable) builder.noSummon();
+                if (!this.saveable) builder.noSave();
+                if (this.fireImmune) builder.fireImmune();
+                if (this.immuneTo != null) builder.immuneTo(this.immuneTo.get());
+                if (this.canSpawnFarFromPlayer) builder.canSpawnFarFromPlayer();
+
+                return builder.build(this.id.toString());
+            });
+
+            LifecycleEvent.SETUP.register(() -> EntityAttributeRegistry.register(supplier, () -> this.attributeBuilder));
+            return supplier;
         }
     }
 
