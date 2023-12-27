@@ -6,11 +6,9 @@ import com.github.manasmods.manascore.api.storage.StorageEvents;
 import com.github.manasmods.manascore.storage.StorageManager.StorageKey;
 import com.github.manasmods.testmod.TestMod;
 import dev.architectury.event.EventResult;
-import dev.architectury.event.events.client.ClientChatEvent;
 import dev.architectury.event.events.common.ChatEvent;
 import dev.architectury.event.events.common.EntityEvent;
 import dev.architectury.event.events.common.PlayerEvent;
-import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -57,11 +55,6 @@ public class StorageTest {
             return EventResult.pass();
         });
         // Register event listeners that print the storage on client side and server side
-        ClientChatEvent.SEND.register((message, component) -> {
-            Player player = Minecraft.getInstance().player;
-            if (player != null) printTestStorage(player);
-            return EventResult.pass();
-        });
         ChatEvent.RECEIVED.register((player, component) -> {
             if (player != null) printTestStorage(player);
             return EventResult.pass();
@@ -69,7 +62,7 @@ public class StorageTest {
     }
 
     // Utility method to print the storage
-    private static void printTestStorage(Player player) {
+    public static void printTestStorage(Player player) {
         Level level = player.level();
         LevelChunk chunk = level.getChunkAt(player.blockPosition());
         boolean isClientSide = level.isClientSide();

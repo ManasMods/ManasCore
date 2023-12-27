@@ -12,13 +12,11 @@ import com.github.manasmods.manascore.network.toclient.SyncChunkStoragePacket;
 import com.github.manasmods.manascore.network.toclient.SyncEntityStoragePacket;
 import com.github.manasmods.manascore.network.toclient.SyncWorldStoragePacket;
 import com.mojang.datafixers.util.Pair;
-import dev.architectury.event.events.client.ClientPlayerEvent;
 import dev.architectury.event.events.common.PlayerEvent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
 import org.jetbrains.annotations.Nullable;
@@ -44,16 +42,7 @@ public final class StorageManager {
             level.manasCore$sync(player);
         });
         // Copy storage from old player to new player
-        PlayerEvent.PLAYER_CLONE.register(StorageManager::clonePlayerStorage);
-        ClientPlayerEvent.CLIENT_PLAYER_RESPAWN.register(StorageManager::clonePlayerStorage);
-    }
-
-    private static void clonePlayerStorage(Player oldPlayer, Player newPlayer, boolean wonGame) {
-        clonePlayerStorage(oldPlayer, newPlayer);
-    }
-
-    private static void clonePlayerStorage(Player oldPlayer, Player newPlayer) {
-        newPlayer.manasCore$setCombinedStorage(oldPlayer.manasCore$getCombinedStorage());
+        PlayerEvent.PLAYER_CLONE.register((oldPlayer, newPlayer, wonGame) -> newPlayer.manasCore$setCombinedStorage(oldPlayer.manasCore$getCombinedStorage()));
     }
 
     public static void initialStorageFilling(StorageHolder holder) {

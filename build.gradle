@@ -44,6 +44,19 @@ allprojects {
             name = 'ParchmentMC'
             url = 'https://maven.parchmentmc.org'
         }
+
+        exclusiveContent {
+            forRepository {
+                maven {
+                    name = "Modrinth"
+                    url = "https://api.modrinth.com/maven"
+                }
+            }
+            forRepositories(fg.repository) // Only add this if you're using ForgeGradle, otherwise remove this line
+            filter {
+                includeGroup "maven.modrinth"
+            }
+        }
     }
 
     tasks.withType(JavaCompile) {
