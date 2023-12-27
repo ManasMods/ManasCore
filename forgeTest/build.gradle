@@ -10,6 +10,16 @@ architectury {
 loom {
     accessWidenerPath = project(":common").loom.accessWidenerPath
 
+    runs {
+        client {
+            runDir = 'run/client'
+        }
+
+        server {
+            runDir = 'run/server'
+        }
+    }
+
     forge {
         convertAccessWideners = true
         mixinConfig "manascore.mixins.json"

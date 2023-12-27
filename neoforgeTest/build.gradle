@@ -9,6 +9,16 @@ architectury {
 
 loom {
     accessWidenerPath = project(":common").loom.accessWidenerPath
+
+    runs {
+        client {
+            runDir = 'run/client'
+        }
+
+        server {
+            runDir = 'run/server'
+        }
+    }
 }
 
 configurations {
