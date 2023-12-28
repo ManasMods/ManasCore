@@ -3,7 +3,7 @@ package com.github.manasmods.manascore.api.storage;
 import net.minecraft.nbt.CompoundTag;
 
 public abstract class Storage {
-    private boolean dirty = false;
+    private boolean dirty = true;
 
     /**
      * Used to save data to the entity.
