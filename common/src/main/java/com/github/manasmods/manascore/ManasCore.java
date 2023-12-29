@@ -1,6 +1,7 @@
 package com.github.manasmods.manascore;
 
 import com.github.manasmods.manascore.api.registry.Register;
+import com.github.manasmods.manascore.attribute.ManasCoreAttributes;
 import com.github.manasmods.manascore.client.ManasCoreClient;
 import com.github.manasmods.manascore.network.NetworkManager;
 import com.github.manasmods.manascore.storage.StorageManager;
@@ -16,9 +17,7 @@ public class ManasCore {
     public static final Register REGISTER = new Register(MOD_ID);
 
     public static void init() {
-        REGISTER.init(() -> {
-            // TODO CALL ANYTHING HERE!
-        });
+        REGISTER.init(ManasCoreAttributes::init);
         LifecycleEvent.SETUP.register(StorageManager::init);
         NetworkManager.init();
         if (Platform.getEnvironment() == Env.CLIENT) {

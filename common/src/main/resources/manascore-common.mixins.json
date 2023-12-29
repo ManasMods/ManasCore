@@ -9,6 +9,8 @@
     "MixinEntity",
     "MixinLevel",
     "MixinLevelChunk",
+    "MixinLivingEntity",
+    "MixinPlayer",
     "MixinServerLevel"
   ],
   "client": [
