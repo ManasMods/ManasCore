@@ -2,6 +2,7 @@ package com.github.manasmods.manascore.api.registry;
 
 import dev.architectury.registry.level.entity.EntityAttributeRegistry;
 import dev.architectury.registry.registries.DeferredRegister;
+import dev.architectury.registry.registries.RegistrarManager;
 import dev.architectury.registry.registries.RegistrySupplier;
 import lombok.NonNull;
 import net.minecraft.core.registries.Registries;
@@ -367,6 +368,7 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
 
         protected boolean syncable;
         protected Map<Supplier<EntityType<? extends LivingEntity>>, Double> applicableEntityTypes;
+        protected boolean applyToAll = false;
 
         private AttributeBuilder(R register, String name) {
             super(register, name);
@@ -430,11 +432,36 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
             return applyTo(this.defaultValue, entityTypes);
         }
 
+        public AttributeBuilder<R> applyToAll() {
+            this.applyToAll = true;
+            return this;
+        }
+
         @Override
         public RegistrySupplier<RangedAttribute> end() {
             RegistrySupplier<RangedAttribute> supplier = this.register.attributes.register(this.id, () -> (RangedAttribute) new RangedAttribute(String.format("%s.attribute.%s", this.id.getNamespace(), this.id.getPath().replaceAll("/", ".")), this.defaultValue, this.minimumValue, this.maximumValue).setSyncable(this.syncable));
 
             supplier.listen(rangedAttribute -> {
+                // Apply to all known entities with default value
+                if (this.applyToAll) {
+                    for (EntityType<?> entityType : RegistrarManager.get(this.id.getNamespace()).get(Registries.ENTITY_TYPE)) {
+                        if (!DefaultAttributes.hasSupplier(entityType)) continue;
+                        // Cast to living entity type
+                        EntityType<? extends LivingEntity> type = (EntityType<? extends LivingEntity>) entityType;
+                        // Register attribute
+                        EntityAttributeRegistry.register(() -> type, () -> {
+                            AttributeSupplier existing = DefaultAttributes.getSupplier(type);
+                            AttributeSupplier.Builder builder = AttributeSupplier.builder();
+                            // Apply existing attributes
+                            existing.instances.keySet().forEach(attribute -> builder.add(attribute, existing.instances.get(attribute).getBaseValue()));
+                            // Apply new attribute
+                            builder.add(rangedAttribute, defaultValue);
+
+                            return builder;
+                        });
+                    }
+                }
+                // Apply overrides
                 this.applicableEntityTypes.forEach((typeSupplier, defaultValue) -> {
                     EntityAttributeRegistry.register(typeSupplier, () -> {
                         EntityType<? extends LivingEntity> entityType = typeSupplier.get();

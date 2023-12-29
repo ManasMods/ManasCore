@@ -26,6 +26,7 @@ public class RegisterTest {
             .withDefaultValue(69)
             .withMaximumValue(420)
             .applyTo(() -> EntityType.PLAYER)
+            .applyToAll()
             .end();
 
     public static void init() {
