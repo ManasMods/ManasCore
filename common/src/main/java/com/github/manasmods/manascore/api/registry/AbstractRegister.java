@@ -1,6 +1,5 @@
 package com.github.manasmods.manascore.api.registry;
 
-import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.registry.level.entity.EntityAttributeRegistry;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
@@ -13,7 +12,10 @@ import net.minecraft.world.entity.EntityType.EntityFactory;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
+import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -21,6 +23,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -38,6 +42,7 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
     protected DeferredRegister<Item> items = null;
     protected DeferredRegister<Block> blocks = null;
     protected DeferredRegister<EntityType<?>> entityTypes = null;
+    protected DeferredRegister<Attribute> attributes = null;
 
     AbstractRegister(final String modId) {
         this.modId = modId;
@@ -62,6 +67,7 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
         if (entityTypes != null) entityTypes.register();
         if (blocks != null) blocks.register();
         if (items != null) items.register();
+        if (attributes != null) attributes.register();
     }
 
     /**
@@ -89,11 +95,17 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
      * Creates a new {@link EntityTypeBuilder} for the given name.
      * <p>
      * Remember to register an Entity Renderer on client side.
+     *
      * @see dev.architectury.registry.client.level.entity.EntityRendererRegistry
      */
     public <T extends LivingEntity> EntityTypeBuilder<R, T> entity(final String name, final EntityFactory<T> entityFactory) {
         if (this.entityTypes == null) this.entityTypes = DeferredRegister.create(this.modId, Registries.ENTITY_TYPE);
         return new EntityTypeBuilder<>(self(), name, entityFactory);
+    }
+
+    public AttributeBuilder<R> attribute(final String name) {
+        if (this.attributes == null) this.attributes = DeferredRegister.create(this.modId, Registries.ATTRIBUTE);
+        return new AttributeBuilder<>(self(), name);
     }
 
 
@@ -254,7 +266,7 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
         protected Supplier<Block[]> immuneTo;
         protected boolean canSpawnFarFromPlayer;
         protected int updateInterval;
-        private AttributeSupplier.Builder attributeBuilder;
+        private Supplier<AttributeSupplier.Builder> attributeBuilder;
 
         private EntityTypeBuilder(R register, String name, final EntityFactory<T> entityFactory) {
             super(register, name);
@@ -268,7 +280,7 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
             this.immuneTo = null;
             this.canSpawnFarFromPlayer = true;
             this.updateInterval = 3;
-            this.attributeBuilder = Mob.createMobAttributes();
+            this.attributeBuilder = Mob::createMobAttributes;
         }
 
         public EntityTypeBuilder<R, T> withCategory(final MobCategory category) {
@@ -317,7 +329,7 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
             return this;
         }
 
-        public EntityTypeBuilder<R, T> withAttributeBuilder(AttributeSupplier.Builder attributeBuilder) {
+        public EntityTypeBuilder<R, T> withAttributeBuilder(Supplier<AttributeSupplier.Builder> attributeBuilder) {
             this.attributeBuilder = attributeBuilder;
             return this;
         }
@@ -339,7 +351,91 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
                 return builder.build(this.id.toString());
             });
 
-            LifecycleEvent.SETUP.register(() -> EntityAttributeRegistry.register(supplier, () -> this.attributeBuilder));
+            supplier.listen(type -> EntityAttributeRegistry.register(() -> type, this.attributeBuilder));
+            return supplier;
+        }
+    }
+
+
+    public static class AttributeBuilder<R extends AbstractRegister<R>> extends ContentBuilder<RangedAttribute, R> {
+        protected double defaultValue;
+        protected double minimumValue;
+        protected double maximumValue;
+
+        protected boolean syncable;
+        protected Map<Supplier<EntityType<? extends LivingEntity>>, Double> applicableEntityTypes;
+
+        private AttributeBuilder(R register, String name) {
+            super(register, name);
+            this.defaultValue = 1;
+            this.minimumValue = 0;
+            this.maximumValue = 1_000_000;
+            this.syncable = false;
+            this.applicableEntityTypes = new HashMap<>();
+        }
+
+        public AttributeBuilder<R> withDefaultValue(double defaultValue) {
+            this.defaultValue = defaultValue;
+            return this;
+        }
+
+        public AttributeBuilder<R> withMinimumValue(double minimumValue) {
+            this.minimumValue = minimumValue;
+            return this;
+        }
+
+        public AttributeBuilder<R> withMaximumValue(double maximumValue) {
+            this.maximumValue = maximumValue;
+            return this;
+        }
+
+        public AttributeBuilder<R> syncable() {
+            this.syncable = true;
+            return this;
+        }
+
+        public AttributeBuilder<R> applyTo(double defaultValue, Supplier<EntityType<? extends LivingEntity>> entityType) {
+            this.applicableEntityTypes.put(entityType, defaultValue);
+            return this;
+        }
+
+        public AttributeBuilder<R> applyTo(Supplier<EntityType<? extends LivingEntity>> entityType) {
+            return applyTo(this.defaultValue, entityType);
+        }
+
+        @SafeVarargs
+        public final AttributeBuilder<R> applyTo(double defaultValue, Supplier<EntityType<? extends LivingEntity>>... entityType) {
+            for (Supplier<EntityType<? extends LivingEntity>> typeSupplier : entityType) {
+                this.applicableEntityTypes.put(typeSupplier, defaultValue);
+            }
+            return this;
+        }
+
+        @SafeVarargs
+        public final AttributeBuilder<R> applyTo(Supplier<EntityType<? extends LivingEntity>>... entityType) {
+            return applyTo(this.defaultValue, entityType);
+        }
+
+        @Override
+        public RegistrySupplier<RangedAttribute> end() {
+            RegistrySupplier<RangedAttribute> supplier = this.register.attributes.register(this.id, () -> (RangedAttribute) new RangedAttribute(String.format("%s.attribute.%s", this.id.getNamespace(), this.id.getPath().replaceAll("/", ".")), this.defaultValue, this.minimumValue, this.maximumValue).setSyncable(this.syncable));
+
+            supplier.listen(rangedAttribute -> {
+                this.applicableEntityTypes.forEach((typeSupplier, defaultValue) -> {
+                    EntityAttributeRegistry.register(typeSupplier, () -> {
+                        EntityType<? extends LivingEntity> entityType = typeSupplier.get();
+                        AttributeSupplier existing = DefaultAttributes.getSupplier(entityType);
+                        AttributeSupplier.Builder builder = AttributeSupplier.builder();
+                        // Apply existing attributes
+                        existing.instances.keySet().forEach(attribute -> builder.add(attribute, existing.instances.get(attribute).getBaseValue()));
+                        // Apply new attribute
+                        builder.add(rangedAttribute, defaultValue);
+
+                        return builder;
+                    });
+                });
+            });
+
             return supplier;
         }
     }
