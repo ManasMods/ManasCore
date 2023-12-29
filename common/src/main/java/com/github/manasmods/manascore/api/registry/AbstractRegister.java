@@ -24,6 +24,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -356,7 +357,9 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
         }
     }
 
-
+    /**
+     * Builder class for {@link RangedAttribute}s.
+     */
     public static class AttributeBuilder<R extends AbstractRegister<R>> extends ContentBuilder<RangedAttribute, R> {
         protected double defaultValue;
         protected double minimumValue;
@@ -414,6 +417,17 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
         @SafeVarargs
         public final AttributeBuilder<R> applyTo(Supplier<EntityType<? extends LivingEntity>>... entityType) {
             return applyTo(this.defaultValue, entityType);
+        }
+
+        public AttributeBuilder<R> applyTo(double defaultValue, List<Supplier<EntityType<? extends LivingEntity>>> entityTypes) {
+            for (Supplier<EntityType<? extends LivingEntity>> typeSupplier : entityTypes) {
+                this.applicableEntityTypes.put(typeSupplier, defaultValue);
+            }
+            return this;
+        }
+
+        public AttributeBuilder<R> applyTo(List<Supplier<EntityType<? extends LivingEntity>>> entityTypes) {
+            return applyTo(this.defaultValue, entityTypes);
         }
 
         @Override
