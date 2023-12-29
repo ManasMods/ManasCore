@@ -64,8 +64,12 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
      *           <li>On Architectury: In the `init` method of your common main class</li>
      *       </ul>
      * </p>
+     *
+     * @param beforeRegistration A {@link Runnable} that is executed before the registration of the content. Place all your static initialization code here.
      */
-    public void init() {
+    public void init(final Runnable beforeRegistration) {
+        // Initialize content
+        beforeRegistration.run();
         if (entityTypes != null) entityTypes.register();
         if (blocks != null) blocks.register();
         if (items != null) items.register();

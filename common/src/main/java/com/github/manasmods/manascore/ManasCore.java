@@ -16,7 +16,9 @@ public class ManasCore {
     public static final Register REGISTER = new Register(MOD_ID);
 
     public static void init() {
-        REGISTER.init();
+        REGISTER.init(() -> {
+            // TODO CALL ANYTHING HERE!
+        });
         LifecycleEvent.SETUP.register(StorageManager::init);
         NetworkManager.init();
         if (Platform.getEnvironment() == Env.CLIENT) {
