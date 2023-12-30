@@ -4,7 +4,9 @@ plugins {
 
 architectury {
     platformSetupLoomIde()
-    neoForge()
+    neoForge {
+        platformPackage = "neoforge"
+    }
 }
 
 loom {
@@ -40,7 +42,7 @@ processResources {
 
     filesMatching("META-INF/mods.toml") {
         expand "version": project.version,
-         "architecturyVersion": rootProject.architectury_version
+                "architecturyVersion": rootProject.architectury_version
     }
 }
 
