@@ -1,5 +1,6 @@
 package com.github.manasmods.manascore.api.registry;
 
+import com.mojang.datafixers.types.Type;
 import dev.architectury.registry.level.entity.EntityAttributeRegistry;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrarManager;
@@ -19,14 +20,20 @@ import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.entity.BlockEntityType.BlockEntitySupplier;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -43,6 +50,7 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
     protected final String modId;
     protected DeferredRegister<Item> items = null;
     protected DeferredRegister<Block> blocks = null;
+    protected DeferredRegister<BlockEntityType<?>> blockEntities = null;
     protected DeferredRegister<EntityType<?>> entityTypes = null;
     protected DeferredRegister<Attribute> attributes = null;
 
@@ -73,6 +81,7 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
         if (entityTypes != null) entityTypes.register();
         if (blocks != null) blocks.register();
         if (items != null) items.register();
+        if (blockEntities != null) blockEntities.register();
         if (attributes != null) attributes.register();
     }
 
@@ -123,9 +132,24 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
         return new EntityTypeBuilder<>(self(), name, entityFactory);
     }
 
+    /**
+     * Creates a new {@link EntityTypeBuilder} for the given name.
+     * <p>
+     * Remember to register an Entity Renderer on client side.
+     *
+     * @see dev.architectury.registry.client.level.entity.EntityRendererRegistry
+     */
     public AttributeBuilder<R> attribute(final String name) {
         if (this.attributes == null) this.attributes = DeferredRegister.create(this.modId, Registries.ATTRIBUTE);
         return new AttributeBuilder<>(self(), name);
+    }
+
+    /**
+     * Creates a new {@link BlockEntityBuilder} for the given name.
+     */
+    public <T extends BlockEntity> BlockEntityBuilder<R, T> blockEntity(final String name, final BlockEntitySupplier<T> factory) {
+        if (this.blockEntities == null) this.blockEntities = DeferredRegister.create(this.modId, Registries.BLOCK_ENTITY_TYPE);
+        return new BlockEntityBuilder<>(self(), name, factory);
     }
 
 
@@ -519,6 +543,45 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
             });
 
             return supplier;
+        }
+    }
+
+
+    public static class BlockEntityBuilder<R extends AbstractRegister<R>, T extends BlockEntity> extends ContentBuilder<BlockEntityType<T>, R> {
+        protected final BlockEntitySupplier<T> factory;
+        protected Type<?> dataFixerType;
+        protected Set<Supplier<? extends BaseEntityBlock>> validBlocks;
+
+        private BlockEntityBuilder(R register, String name, BlockEntitySupplier<T> factory) {
+            super(register, name);
+            this.factory = factory;
+            this.dataFixerType = null;
+            this.validBlocks = new HashSet<>();
+        }
+
+        /**
+         * Sets the data fixer type of the block entity.
+         */
+        public BlockEntityBuilder<R, T> withDataFixerType(Type<?> dataFixerType) {
+            this.dataFixerType = dataFixerType;
+            return this;
+        }
+
+        /**
+         * Adds a valid block for the block entity.
+         */
+        @SafeVarargs
+        public final BlockEntityBuilder<R, T> withValidBlocks(Supplier<? extends BaseEntityBlock> validBlock, Supplier<? extends BaseEntityBlock>... validBlocks) {
+            this.validBlocks.add(validBlock);
+            for (Supplier<? extends BaseEntityBlock> block : validBlocks) {
+                this.validBlocks.add(block);
+            }
+            return this;
+        }
+
+        @Override
+        public RegistrySupplier<BlockEntityType<T>> end() {
+            return this.register.blockEntities.register(this.id, () -> BlockEntityType.Builder.of(this.factory, this.validBlocks.stream().map(Supplier::get).toArray(Block[]::new)).build(this.dataFixerType));
         }
     }
 
