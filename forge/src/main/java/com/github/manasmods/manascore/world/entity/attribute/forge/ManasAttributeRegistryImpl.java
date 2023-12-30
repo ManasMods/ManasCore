@@ -6,7 +6,6 @@ import lombok.experimental.UtilityClass;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier.Builder;
-import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
@@ -37,12 +36,6 @@ public class ManasAttributeRegistryImpl {
 
         keyResolvedMap.keySet().forEach(entityType -> {
             Builder builder = new Builder();
-            // Apply existing attributes
-            if (DefaultAttributes.hasSupplier(entityType)) {
-                DefaultAttributes.getSupplier(entityType).instances.forEach((attribute, attributeInstance) -> {
-                    builder.add(attribute, attributeInstance.getBaseValue());
-                });
-            }
             // Apply global custom attributes
             GLOBAL_REGISTRY.forEach(consumer -> consumer.accept(builder));
             // Apply specific custom attributes
