@@ -1,8 +1,7 @@
 package com.github.manasmods.manascore.api.registry;
 
-import com.github.manasmods.manascore.api.world.entity.EntityEvents;
+import com.github.manasmods.manascore.world.entity.attribute.ManasAttributeRegistry;
 import com.mojang.datafixers.types.Type;
-import dev.architectury.platform.Platform;
 import dev.architectury.registry.level.entity.EntityAttributeRegistry;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
@@ -17,7 +16,6 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -506,34 +504,12 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
         @Override
         public RegistrySupplier<RangedAttribute> end() {
             RegistrySupplier<RangedAttribute> supplier = this.register.attributes.register(this.id, () -> (RangedAttribute) new RangedAttribute(String.format("%s.attribute.%s", this.id.getNamespace(), this.id.getPath().replaceAll("/", ".")), this.defaultValue, this.minimumValue, this.maximumValue).setSyncable(this.syncable));
-            // Apply to all living entities
-            if (this.applyToAll) EntityEvents.LIVING_ATTRIBUTE_CREATION.register(builder -> builder.add(supplier.get(), this.defaultValue));
-            // Apply to all given entities (this overwrites the applyToAll value)
-            supplier.listen(attribute -> {
-                this.applicableEntityTypes.forEach((typeSupplier, defaultValue) -> {
-                    if (Platform.isForgeLike()) {
-                        // Forge-Like platforms combine existing and new attribute builders
-                        EntityAttributeRegistry.register(typeSupplier, () -> {
-                            AttributeSupplier.Builder builder = AttributeSupplier.builder();
-                            // Apply new attribute
-                            builder.add(attribute, defaultValue);
-                            return builder;
-                        });
-                    } else {
-                        // Fabric-Like platforms override existing attribute builders
-                        EntityAttributeRegistry.register(typeSupplier, () -> {
-                            AttributeSupplier existing = DefaultAttributes.getSupplier(typeSupplier.get());
-                            AttributeSupplier.Builder builder = AttributeSupplier.builder();
-                            // Apply existing attributes
-                            existing.instances.keySet().forEach(attr -> builder.add(attr, existing.instances.get(attr).getBaseValue()));
-                            // Apply new attribute
-                            builder.add(attribute, defaultValue);
 
-                            return builder;
-                        });
-                    }
-                });
+            supplier.listen(attribute -> {
+                if(this.applyToAll) ManasAttributeRegistry.registerToAll(builder -> builder.add(attribute, this.defaultValue));
+                this.applicableEntityTypes.forEach((typeSupplier, defaultValue) -> ManasAttributeRegistry.register(typeSupplier,builder -> builder.add(attribute, defaultValue)));
             });
+
             return supplier;
         }
     }

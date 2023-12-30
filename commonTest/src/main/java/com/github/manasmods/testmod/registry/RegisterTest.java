@@ -35,6 +35,11 @@ public class RegisterTest {
             .withMaximumValue(420)
             .applyToAll()
             .end();
+    private static final RegistrySupplier<RangedAttribute> TEST_ENTITY_ATTRIBUTE = REGISTER.attribute("test_player_attribute")
+            .withDefaultValue(5)
+            .withMaximumValue(10)
+            .applyTo(() -> EntityType.PLAYER)
+            .end();
     private static final RegistrySupplier<BlockEntityType<TestBlockEntity>> TEST_BLOCK_ENTITY = REGISTER.blockEntity("test_block_entity", TestBlockEntity::new)
             .withValidBlocks(TEST_BLOCK)
             .end();
