@@ -1,5 +1,6 @@
-package com.github.manasmods.testmod;
+package com.github.manasmods.testmod.neoforge;
 
+import com.github.manasmods.testmod.TestMod;
 import net.neoforged.fml.common.Mod;
 
 @Mod(TestMod.MOD_ID)
