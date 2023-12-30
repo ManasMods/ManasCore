@@ -79,9 +79,16 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
     /**
      * Creates a new {@link ItemBuilder} for the given name.
      */
-    public ItemBuilder<R> item(final String name) {
+    public ItemBuilder<R, Item> item(final String name) {
+        return item(name, Item::new);
+    }
+
+    /**
+     * Creates a new {@link ItemBuilder} for the given name.
+     */
+    public <T extends Item> ItemBuilder<R, T> item(final String name, Function<Item.Properties, T> itemFactory) {
         if (this.items == null) this.items = DeferredRegister.create(this.modId, Registries.ITEM);
-        return new ItemBuilder<>(self(), name);
+        return new ItemBuilder<>(self(), name, itemFactory);
     }
 
     protected BlockItemBuilder<R> blockItem(final String name) {
@@ -118,43 +125,38 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
     /**
      * Builder class for {@link Item}s.
      */
-    public static class ItemBuilder<R extends AbstractRegister<R>> extends ContentBuilder<Item, R> {
+    public static class ItemBuilder<R extends AbstractRegister<R>, T extends Item> extends ContentBuilder<T, R> {
         protected Item.Properties properties;
-        protected Function<Item.Properties, Item> itemFactory;
+        protected final Function<Item.Properties, T> itemFactory;
 
-        private ItemBuilder(final R register, final String name) {
+        private ItemBuilder(final R register, final String name, Function<Item.Properties, T> itemFactory) {
             super(register, name);
             this.properties = new Item.Properties();
-            this.itemFactory = Item::new;
+            this.itemFactory = itemFactory;
         }
 
-        public ItemBuilder<R> withProperties(final Item.Properties properties) {
+        public ItemBuilder<R, T> withProperties(final Item.Properties properties) {
             this.properties = properties;
             return this;
         }
 
-        public ItemBuilder<R> withProperties(Consumer<Item.Properties> properties) {
+        public ItemBuilder<R, T> withProperties(Consumer<Item.Properties> properties) {
             properties.accept(this.properties);
             return this;
         }
 
-        public ItemBuilder<R> withProperties(Function<Item.Properties, Item.Properties> properties) {
+        public ItemBuilder<R, T> withProperties(Function<Item.Properties, Item.Properties> properties) {
             this.properties = properties.apply(this.properties);
             return this;
         }
 
-        public ItemBuilder<R> withItemFactory(final Function<Item.Properties, Item> itemFactory) {
-            this.itemFactory = itemFactory;
-            return this;
-        }
-
-        public ItemBuilder<R> withStackSize(final int stackSize) {
+        public ItemBuilder<R, T> withStackSize(final int stackSize) {
             this.properties.stacksTo(stackSize);
             return this;
         }
 
         @Override
-        public RegistrySupplier<Item> end() {
+        public RegistrySupplier<T> end() {
             return this.register.items.register(this.id, () -> this.itemFactory.apply(this.properties));
         }
     }
