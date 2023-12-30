@@ -1,9 +1,10 @@
 package com.github.manasmods.manascore.api.registry;
 
+import com.github.manasmods.manascore.api.world.entity.EntityEvents;
 import com.mojang.datafixers.types.Type;
+import dev.architectury.platform.Platform;
 import dev.architectury.registry.level.entity.EntityAttributeRegistry;
 import dev.architectury.registry.registries.DeferredRegister;
-import dev.architectury.registry.registries.RegistrarManager;
 import dev.architectury.registry.registries.RegistrySupplier;
 import lombok.NonNull;
 import net.minecraft.core.registries.Registries;
@@ -505,43 +506,34 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
         @Override
         public RegistrySupplier<RangedAttribute> end() {
             RegistrySupplier<RangedAttribute> supplier = this.register.attributes.register(this.id, () -> (RangedAttribute) new RangedAttribute(String.format("%s.attribute.%s", this.id.getNamespace(), this.id.getPath().replaceAll("/", ".")), this.defaultValue, this.minimumValue, this.maximumValue).setSyncable(this.syncable));
-
-            supplier.listen(rangedAttribute -> {
-                // Apply to all known entities with default value
-                if (this.applyToAll) {
-                    for (EntityType<?> entityType : RegistrarManager.get(this.id.getNamespace()).get(Registries.ENTITY_TYPE)) {
-                        if (!DefaultAttributes.hasSupplier(entityType)) continue;
-                        // Cast to living entity type
-                        EntityType<? extends LivingEntity> type = (EntityType<? extends LivingEntity>) entityType;
-                        // Register attribute
-                        EntityAttributeRegistry.register(() -> type, () -> {
-                            AttributeSupplier existing = DefaultAttributes.getSupplier(type);
+            // Apply to all living entities
+            if (this.applyToAll) EntityEvents.LIVING_ATTRIBUTE_CREATION.register(builder -> builder.add(supplier.get(), this.defaultValue));
+            // Apply to all given entities (this overwrites the applyToAll value)
+            supplier.listen(attribute -> {
+                this.applicableEntityTypes.forEach((typeSupplier, defaultValue) -> {
+                    if (Platform.isForgeLike()) {
+                        // Forge-Like platforms combine existing and new attribute builders
+                        EntityAttributeRegistry.register(typeSupplier, () -> {
+                            AttributeSupplier.Builder builder = AttributeSupplier.builder();
+                            // Apply new attribute
+                            builder.add(attribute, defaultValue);
+                            return builder;
+                        });
+                    } else {
+                        // Fabric-Like platforms override existing attribute builders
+                        EntityAttributeRegistry.register(typeSupplier, () -> {
+                            AttributeSupplier existing = DefaultAttributes.getSupplier(typeSupplier.get());
                             AttributeSupplier.Builder builder = AttributeSupplier.builder();
                             // Apply existing attributes
-                            existing.instances.keySet().forEach(attribute -> builder.add(attribute, existing.instances.get(attribute).getBaseValue()));
+                            existing.instances.keySet().forEach(attr -> builder.add(attr, existing.instances.get(attr).getBaseValue()));
                             // Apply new attribute
-                            builder.add(rangedAttribute, defaultValue);
+                            builder.add(attribute, defaultValue);
 
                             return builder;
                         });
                     }
-                }
-                // Apply overrides
-                this.applicableEntityTypes.forEach((typeSupplier, defaultValue) -> {
-                    EntityAttributeRegistry.register(typeSupplier, () -> {
-                        EntityType<? extends LivingEntity> entityType = typeSupplier.get();
-                        AttributeSupplier existing = DefaultAttributes.getSupplier(entityType);
-                        AttributeSupplier.Builder builder = AttributeSupplier.builder();
-                        // Apply existing attributes
-                        existing.instances.keySet().forEach(attribute -> builder.add(attribute, existing.instances.get(attribute).getBaseValue()));
-                        // Apply new attribute
-                        builder.add(rangedAttribute, defaultValue);
-
-                        return builder;
-                    });
                 });
             });
-
             return supplier;
         }
     }
