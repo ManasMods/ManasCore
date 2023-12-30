@@ -99,9 +99,16 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
     /**
      * Creates a new {@link BlockBuilder} for the given name.
      */
-    public BlockBuilder<R> block(final String name) {
+    public BlockBuilder<R, Block> block(final String name) {
+        return block(name, Block::new);
+    }
+
+    /**
+     * Creates a new {@link BlockBuilder} for the given name.
+     */
+    public <T extends Block> BlockBuilder<R, T> block(final String name, Function<Block.Properties, T> blockFactory) {
         if (this.blocks == null) this.blocks = DeferredRegister.create(this.modId, Registries.BLOCK);
-        return new BlockBuilder<>(self(), name);
+        return new BlockBuilder<>(self(), name, blockFactory);
     }
 
     /**
@@ -167,11 +174,11 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
      */
     public static class BlockItemBuilder<R extends AbstractRegister<R>, T extends BlockItem> extends ContentBuilder<T, R> {
         protected Item.Properties properties;
-        protected final BiFunction<RegistrySupplier<Block>, Item.Properties, T> itemFactory;
+        protected final BiFunction<RegistrySupplier<? extends Block>, Item.Properties, T> itemFactory;
         @Nullable
-        protected RegistrySupplier<Block> parentBlockRegistryEntry = null;
+        protected RegistrySupplier<? extends Block> parentBlockRegistryEntry = null;
 
-        private BlockItemBuilder(R register, String name, BiFunction<RegistrySupplier<Block>, Item.Properties, T> itemFactory) {
+        private BlockItemBuilder(R register, String name, BiFunction<RegistrySupplier<? extends Block>, Item.Properties, T> itemFactory) {
             super(register, name);
             this.itemFactory = itemFactory;
             this.properties = new Item.Properties();
@@ -197,7 +204,7 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
             return this;
         }
 
-        protected void setParentBlockRegistryEntry(@NonNull RegistrySupplier<Block> parentBlockRegistryEntry) {
+        protected void setParentBlockRegistryEntry(@NonNull RegistrySupplier<? extends Block> parentBlockRegistryEntry) {
             this.parentBlockRegistryEntry = parentBlockRegistryEntry;
         }
 
@@ -211,41 +218,41 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
     /**
      * Builder class for {@link Block}s.
      */
-    public static class BlockBuilder<R extends AbstractRegister<R>> extends ContentBuilder<Block, R> {
-        private Function<Block.Properties, Block> blockFactory;
+    public static class BlockBuilder<R extends AbstractRegister<R>, T extends Block> extends ContentBuilder<T, R> {
+        private Function<Block.Properties, T> blockFactory;
         private Block.Properties properties;
         private AbstractRegister.BlockItemBuilder<R, BlockItem> blockItemBuilder;
 
-        private BlockBuilder(R register, String name) {
+        private BlockBuilder(R register, String name, Function<Block.Properties, T> blockFactory) {
             super(register, name);
-            this.blockFactory = Block::new;
+            this.blockFactory = blockFactory;
             this.properties = BlockBehaviour.Properties.ofFullCopy(Blocks.STONE);
             this.blockItemBuilder = register.blockItem(name);
         }
 
-        public BlockBuilder<R> withBlockItem(BlockItemFactory<R, BlockItem> blockItemFactory) {
+        public BlockBuilder<R, T> withBlockItem(BlockItemFactory<R, BlockItem> blockItemFactory) {
             this.blockItemBuilder = blockItemFactory.modify(this.blockItemBuilder);
             return this;
         }
 
-        public BlockBuilder<R> withProperties(final Block.Properties properties) {
+        public BlockBuilder<R, T> withProperties(final Block.Properties properties) {
             this.properties = properties;
             return this;
         }
 
-        public BlockBuilder<R> withProperties(Consumer<Block.Properties> properties) {
+        public BlockBuilder<R, T> withProperties(Consumer<Block.Properties> properties) {
             properties.accept(this.properties);
             return this;
         }
 
-        public BlockBuilder<R> withProperties(Function<Block.Properties, Block.Properties> properties) {
+        public BlockBuilder<R, T> withProperties(Function<Block.Properties, Block.Properties> properties) {
             this.properties = properties.apply(this.properties);
             return this;
         }
 
         @Override
-        public RegistrySupplier<Block> end() {
-            RegistrySupplier<Block> blockSupplier = this.register.blocks.register(this.id, () -> this.blockFactory.apply(this.properties));
+        public RegistrySupplier<T> end() {
+            RegistrySupplier<T> blockSupplier = this.register.blocks.register(this.id, () -> this.blockFactory.apply(this.properties));
             this.blockItemBuilder.setParentBlockRegistryEntry(blockSupplier);
             this.blockItemBuilder.end();
             return blockSupplier;
