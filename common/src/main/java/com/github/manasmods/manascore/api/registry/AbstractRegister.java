@@ -2,7 +2,6 @@ package com.github.manasmods.manascore.api.registry;
 
 import com.github.manasmods.manascore.world.entity.attribute.ManasAttributeRegistry;
 import com.mojang.datafixers.types.Type;
-import dev.architectury.registry.level.entity.EntityAttributeRegistry;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
 import lombok.NonNull;
@@ -384,7 +383,7 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
                 return builder.build(this.id.toString());
             });
 
-            supplier.listen(type -> EntityAttributeRegistry.register(() -> type, this.attributeBuilder));
+            supplier.listen(type -> ManasAttributeRegistry.registerNew(() -> type, this.attributeBuilder));
             return supplier;
         }
     }
@@ -506,8 +505,8 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
             RegistrySupplier<RangedAttribute> supplier = this.register.attributes.register(this.id, () -> (RangedAttribute) new RangedAttribute(String.format("%s.attribute.%s", this.id.getNamespace(), this.id.getPath().replaceAll("/", ".")), this.defaultValue, this.minimumValue, this.maximumValue).setSyncable(this.syncable));
 
             supplier.listen(attribute -> {
-                if(this.applyToAll) ManasAttributeRegistry.registerToAll(builder -> builder.add(attribute, this.defaultValue));
-                this.applicableEntityTypes.forEach((typeSupplier, defaultValue) -> ManasAttributeRegistry.register(typeSupplier,builder -> builder.add(attribute, defaultValue)));
+                if (this.applyToAll) ManasAttributeRegistry.registerToAll(builder -> builder.add(attribute, this.defaultValue));
+                this.applicableEntityTypes.forEach((typeSupplier, defaultValue) -> ManasAttributeRegistry.register(typeSupplier, builder -> builder.add(attribute, defaultValue)));
             });
 
             return supplier;

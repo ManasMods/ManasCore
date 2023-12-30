@@ -7,6 +7,7 @@ import lombok.experimental.UtilityClass;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier.Builder;
 import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 
@@ -24,6 +25,10 @@ public class ManasAttributeRegistryImpl {
 
     public static void register(Supplier<EntityType<? extends LivingEntity>> type, Consumer<Builder> builder) {
         REGISTRY.put(type, builder);
+    }
+
+    public static void registerNew(Supplier<EntityType<? extends LivingEntity>> type, Supplier<AttributeSupplier.Builder> builder) {
+        FabricDefaultAttributeRegistry.register(type.get(), builder.get());
     }
 
     public static void registerToAll(Consumer<Builder> builder) {
