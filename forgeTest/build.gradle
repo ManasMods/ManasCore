@@ -42,7 +42,7 @@ dependencies {
 
     common(project(path: ':common', configuration: 'namedElements')) { transitive = false}
     common(project(path: ':commonTest', configuration: 'namedElements')) { transitive = false}
-    common(project(path: ':forge', configuration: 'namedElements')) { transitive = false}
+    implementation(project(path: ':forge', configuration: 'namedElements')) { transitive = false}
 }
 
 processResources {
