@@ -38,7 +38,7 @@ dependencies {
     modApi "dev.architectury:architectury-neoforge:${rootProject.architectury_version}"
 
     common(project(path: ':common', configuration: 'namedElements')) { transitive = false }
-    common(project(path: ':neoforge', configuration: 'namedElements')) { transitive = false }
+    implementation(project(path: ':neoforge', configuration: 'namedElements')) { transitive = false }
     common(project(path: ':commonTest', configuration: 'namedElements')) { transitive = false }
 }
 
