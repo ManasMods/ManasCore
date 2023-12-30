@@ -505,6 +505,7 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
             RegistrySupplier<RangedAttribute> supplier = this.register.attributes.register(this.id, () -> (RangedAttribute) new RangedAttribute(String.format("%s.attribute.%s", this.id.getNamespace(), this.id.getPath().replaceAll("/", ".")), this.defaultValue, this.minimumValue, this.maximumValue).setSyncable(this.syncable));
 
             supplier.listen(attribute -> {
+                // TODO something in here is broken on NeoForge and probably on Forge too
                 if (this.applyToAll) ManasAttributeRegistry.registerToAll(builder -> builder.add(attribute, this.defaultValue));
                 this.applicableEntityTypes.forEach((typeSupplier, defaultValue) -> ManasAttributeRegistry.register(typeSupplier, builder -> builder.add(attribute, defaultValue)));
             });
