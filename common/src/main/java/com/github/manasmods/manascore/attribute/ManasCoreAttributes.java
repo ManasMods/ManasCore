@@ -6,6 +6,13 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 
 public class ManasCoreAttributes {
+    public static final RegistrySupplier<RangedAttribute> BLOCK_REACH = ManasCore.REGISTER.attribute("block_reach")
+            .withDefaultValue(4.5)
+            .withMinimumValue(0)
+            .withMaximumValue(1024)
+            .applyTo(() -> EntityType.PLAYER)
+            .syncable()
+            .end();
     public static final RegistrySupplier<RangedAttribute> CRIT_CHANCE = ManasCore.REGISTER.attribute("crit_chance")
             .withDefaultValue(0)
             .withMinimumValue(0)
@@ -20,11 +27,18 @@ public class ManasCoreAttributes {
             .applyToAll()
             .syncable()
             .end();
-    public static final RegistrySupplier<RangedAttribute> JUMP_POWER = ManasCore.REGISTER.attribute("jump_power")
-            .withDefaultValue(0.42)
+    public static final RegistrySupplier<RangedAttribute> ENTITY_REACH = ManasCore.REGISTER.attribute("entity_reach")
+            .withDefaultValue(3)
             .withMinimumValue(0)
             .withMaximumValue(1024)
             .applyTo(() -> EntityType.PLAYER)
+            .syncable()
+            .end();
+    public static final RegistrySupplier<RangedAttribute> JUMP_STRENGTH = ManasCore.REGISTER.attribute("jump_strength")
+            .withDefaultValue(0.42)
+            .withMinimumValue(0)
+            .withMaximumValue(1024)
+            .applyToAll()
             .syncable()
             .end();
     public static final RegistrySupplier<RangedAttribute> MINING_SPEED_MULTIPLIER = ManasCore.REGISTER.attribute("mining_speed_multiplier")

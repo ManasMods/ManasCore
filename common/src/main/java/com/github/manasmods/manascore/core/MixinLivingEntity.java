@@ -2,7 +2,6 @@ package com.github.manasmods.manascore.core;
 
 import com.github.manasmods.manascore.attribute.ManasCoreAttributes;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.level.material.Fluid;
@@ -21,21 +20,21 @@ public abstract class MixinLivingEntity {
     @Inject(method = "getJumpPower", at = @At("RETURN"), cancellable = true)
     protected void getJumpPower(CallbackInfoReturnable<Float> cir) {
         LivingEntity entity = (LivingEntity) (Object) this;
-        AttributeInstance instance = entity.getAttribute(ManasCoreAttributes.JUMP_POWER.get());
+        AttributeInstance instance = entity.getAttribute(ManasCoreAttributes.JUMP_STRENGTH.get());
         if (instance == null) return;
 
-        double newJump = (cir.getReturnValue() - getJumpBoostPower()) / 0.42 * instance.getValue();
+        double newJump = (cir.getReturnValue() - getJumpBoostPower()) / 0.42F * instance.getValue();
         cir.setReturnValue((float) (newJump + getJumpBoostPower()));
     }
 
     @ModifyArg(method = "causeFallDamage", at = @At(value = "INVOKE",
-            target = "Lnet/minecraft/world/entity/Entity;causeFallDamage(FFLnet/minecraft/world/damagesource/DamageSource;)Z"), index = 0)
-    public float causeFallDamage(float fallDistance, float multiplier, DamageSource source) {
+            target = "Lnet/minecraft/world/entity/LivingEntity;calculateFallDamage(FF)I"), index = 0)
+    public float causeFallDamage(float fallDistance, float multiplier) {
         LivingEntity entity = (LivingEntity) (Object) this;
-        AttributeInstance instance = entity.getAttribute(ManasCoreAttributes.JUMP_POWER.get());
+        AttributeInstance instance = entity.getAttribute(ManasCoreAttributes.JUMP_STRENGTH.get());
         if (instance == null) return fallDistance;
 
-        float additionalJumpBlock = (float) ((instance.getValue() - 0.42) / 0.2);
+        float additionalJumpBlock = (float) ((instance.getValue() - 0.42F) / 0.1F);
         return fallDistance - additionalJumpBlock;
     }
 
