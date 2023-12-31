@@ -22,8 +22,9 @@ description='''
 Utility and Core Library for Manas Mods
 '''
 [[mixins]]
-config = "manascore-common.mixins.json"
-config = "manascore.mixins.json"
+   config = "manascore-common.mixins.json"
+[[mixins]]
+   config = "manascore.mixins.json"
 [[dependencies.manascore]]
    modId="neoforge"
    type="required"

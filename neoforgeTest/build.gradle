@@ -10,6 +10,12 @@ architectury {
 loom {
     accessWidenerPath = project(":common").loom.accessWidenerPath
 
+    mods {
+        register("neoforge") {
+            sourceSet('main', project(':neoforge'))
+        }
+    }
+
     runs {
         client {
             runDir = 'run/client'
