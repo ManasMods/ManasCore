@@ -3,6 +3,7 @@ package com.github.manasmods.manascore;
 import com.github.manasmods.manascore.api.registry.Register;
 import com.github.manasmods.manascore.client.ManasCoreClient;
 import com.github.manasmods.manascore.network.NetworkManager;
+import com.github.manasmods.manascore.skill.SkillRegistry;
 import com.github.manasmods.manascore.storage.StorageManager;
 import com.github.manasmods.manascore.world.entity.attribute.ManasAttributeRegistry;
 import dev.architectury.event.events.common.LifecycleEvent;
@@ -17,6 +18,7 @@ public class ManasCore {
     public static final Register REGISTER = new Register(MOD_ID);
 
     public static void init() {
+        SkillRegistry.init();
         REGISTER.init(() -> {
             // TODO CALL ANYTHING HERE!
         });
