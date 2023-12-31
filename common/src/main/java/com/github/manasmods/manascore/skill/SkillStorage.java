@@ -90,6 +90,7 @@ public class SkillStorage extends Storage {
     }
 
     private final Map<ResourceLocation, ManasSkillInstance> skillInstances = new HashMap<>();
+    private boolean hasRemovedSkills = false;
 
     protected SkillStorage(LivingEntity holder) {
         super(holder);
@@ -136,6 +137,7 @@ public class SkillStorage extends Storage {
 
         instance.markDirty();
         getLearnedSkills().remove(instance);
+        this.hasRemovedSkills = true;
         markDirty();
     }
 
@@ -159,6 +161,22 @@ public class SkillStorage extends Storage {
             } catch (Exception e) {
                 ManasCore.Logger.error("Failed to load skill instance from NBT", e);
             }
+        }
+    }
+
+    @Override
+    public void saveOutdated(CompoundTag data) {
+        if (this.hasRemovedSkills) {
+            this.hasRemovedSkills = false;
+            data.putBoolean("resetExistingData", true);
+            super.saveOutdated(data);
+        } else {
+            ListTag skillList = new ListTag();
+            for (ManasSkillInstance instance : this.skillInstances.values()) {
+                if (!instance.isDirty()) continue;
+                skillList.add(instance.toNBT());
+            }
+            data.put("skills", skillList);
         }
     }
 }
