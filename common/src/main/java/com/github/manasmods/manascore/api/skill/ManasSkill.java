@@ -1,5 +1,6 @@
 package com.github.manasmods.manascore.api.skill;
 
+import com.github.manasmods.manascore.api.skill.SkillEvents.UnlockSkillEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -24,7 +25,7 @@ public class ManasSkill {
      */
     @Nullable
     public ResourceLocation getRegistryName() {
-        return SkillAPI.getSkillRegistry().getKey(this);
+        return SkillAPI.getSkillRegistry().getId(this);
     }
 
     /**
@@ -66,12 +67,12 @@ public class ManasSkill {
 
     /**
      * Determine if the {@link ManasSkillInstance} of this Skill can be used by {@link LivingEntity}.
-     * @return false will stop {@link LivingEntity} from using any feature of the skill.
      *
      * @param instance Affected {@link ManasSkillInstance}
      * @param living   Affected {@link LivingEntity} owning this Skill.
+     * @return false will stop {@link LivingEntity} from using any feature of the skill.
      */
-    public boolean canInteractSkill(ManasSkillInstance instance , LivingEntity living) {
+    public boolean canInteractSkill(ManasSkillInstance instance, LivingEntity living) {
         return true;
     }
 
@@ -85,10 +86,10 @@ public class ManasSkill {
 
     /**
      * Determine if this skill can be toggled.
-     * @return false if this skill is not toggleable.
      *
      * @param instance Affected {@link ManasSkillInstance}
      * @param entity   Affected {@link LivingEntity} owning this Skill.
+     * @return false if this skill is not toggleable.
      */
     public boolean canBeToggled(ManasSkillInstance instance, LivingEntity entity) {
         return false;
@@ -96,10 +97,10 @@ public class ManasSkill {
 
     /**
      * Determine if this skill can still be activated when on cooldown.
-     * @return false if this skill cannot ignore cooldown.
      *
      * @param instance Affected {@link ManasSkillInstance}
      * @param entity   Affected {@link LivingEntity} owning this Skill.
+     * @return false if this skill cannot ignore cooldown.
      */
     public boolean canIgnoreCoolDown(ManasSkillInstance instance, LivingEntity entity) {
         return false;
@@ -107,10 +108,10 @@ public class ManasSkill {
 
     /**
      * Determine if this skill's {@link ManasSkill#onTick} can be executed.
-     * @return false if this skill cannot tick.
      *
      * @param instance Affected {@link ManasSkillInstance}
      * @param entity   Affected {@link LivingEntity} owning this Skill.
+     * @return false if this skill cannot tick.
      */
     public boolean canTick(ManasSkillInstance instance, LivingEntity entity) {
         return false;
@@ -126,10 +127,10 @@ public class ManasSkill {
 
     /**
      * Determine if the {@link ManasSkillInstance} of this Skill is mastered by {@link LivingEntity} owning it.
-     * @return true to will mark this Skill is mastered, which can be used for increase stats or additional features/modes.
      *
      * @param instance Affected {@link ManasSkillInstance}
      * @param entity   Affected {@link LivingEntity} owning this Skill.
+     * @return true to will mark this Skill is mastered, which can be used for increase stats or additional features/modes.
      */
     public boolean isMastered(ManasSkillInstance instance, LivingEntity entity) {
         return instance.getMastery() >= getMaxMastery();
@@ -185,10 +186,10 @@ public class ManasSkill {
 
     /**
      * Called when the {@link LivingEntity} owning this Skill holds the skill activation button.
-     * @return true to continue ticking this Skill.
      *
      * @param instance Affected {@link ManasSkillInstance}
      * @param living   Affected {@link LivingEntity} owning this Skill.
+     * @return true to continue ticking this Skill.
      */
     public boolean onHeld(ManasSkillInstance instance, LivingEntity living, int heldTicks) {
         return false;
@@ -197,8 +198,8 @@ public class ManasSkill {
     /**
      * Called when the {@link LivingEntity} owning this Skill releases the skill activation button after {@param heldTicks}.
      *
-     * @param instance  Affected {@link ManasSkillInstance}
-     * @param entity    Affected {@link LivingEntity} owning this Skill.
+     * @param instance Affected {@link ManasSkillInstance}
+     * @param entity   Affected {@link LivingEntity} owning this Skill.
      */
     public void onRelease(ManasSkillInstance instance, LivingEntity entity, int heldTicks) {
     }
@@ -256,7 +257,7 @@ public class ManasSkill {
      * Called when the {@link LivingEntity} owning this Skill starts to be attacked.
      * Canceling {@link LivingAttackEvent} will make the owner immune to the Damage Source.
      * Therefore, cancel the hurt sound, animation and knock back, but cannot change the damage amount like {@link LivingHurtEvent}
-     *
+     * <p>
      * Executing Order: This method gets invoked first before any Damage method.
      *
      * @param instance Affected {@link ManasSkillInstance}
@@ -287,7 +288,6 @@ public class ManasSkill {
      * @param instance Affected {@link ManasSkillInstance}
      * @param entity   Affected {@link LivingEntity} owning this Skill.
      * @param event    Triggered {@link LivingHurtEvent}
-     *
      * @see SkillDamageEvent.Calculation
      */
     public void onTouchEntity(ManasSkillInstance instance, LivingEntity entity, LivingHurtEvent event) {
