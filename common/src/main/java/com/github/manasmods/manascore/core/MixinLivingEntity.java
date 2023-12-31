@@ -38,24 +38,20 @@ public abstract class MixinLivingEntity {
         return fallDistance - additionalJumpBlock;
     }
 
-    @Inject(method = "jumpInLiquid", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "jumpInLiquid", at = @At("HEAD"))
     protected void jumpInLiquid(TagKey<Fluid> fluidTag, CallbackInfo ci) {
         LivingEntity entity = (LivingEntity) (Object) this;
         AttributeInstance instance = entity.getAttribute(ManasCoreAttributes.SWIM_SPEED.get());
         if (instance == null) return;
-
         entity.setDeltaMovement(entity.getDeltaMovement().add(0.0, 0.04 * instance.getValue(), 0.0));
-        ci.cancel();
     }
 
-    @Inject(method = "goDownInWater", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "goDownInWater", at = @At("HEAD"))
     protected void goDownInWater(CallbackInfo ci) {
         LivingEntity entity = (LivingEntity) (Object) this;
         AttributeInstance instance = entity.getAttribute(ManasCoreAttributes.SWIM_SPEED.get());
         if (instance == null) return;
-
         entity.setDeltaMovement(entity.getDeltaMovement().add(0.0, -0.04 * instance.getValue(), 0.0));
-        ci.cancel();
     }
 
     @ModifyArg(method = "travel", at = @At(value = "INVOKE",

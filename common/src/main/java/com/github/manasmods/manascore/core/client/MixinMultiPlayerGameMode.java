@@ -14,10 +14,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(MultiPlayerGameMode.class)
 public class MixinMultiPlayerGameMode {
     @Shadow @Final private Minecraft minecraft;
-    @Inject(method = "getPickRange", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getPickRange", at = @At("RETURN"), cancellable = true)
     protected void getPickRange(CallbackInfoReturnable<Float> cir) {
         Player player = this.minecraft.player;
         if (player == null) return;
-        cir.setReturnValue((float) ManasCoreAttributeUtils.getReachDistance(player));
+        cir.setReturnValue(cir.getReturnValue () + (float) ManasCoreAttributeUtils.getBlockReachAddition(player));
     }
 }

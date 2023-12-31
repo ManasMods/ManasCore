@@ -7,7 +7,7 @@ import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 
 public class ManasCoreAttributes {
     public static final RegistrySupplier<RangedAttribute> BLOCK_REACH = ManasCore.REGISTER.attribute("block_reach")
-            .withDefaultValue(4.5)
+            .withDefaultValue(0)
             .withMinimumValue(0)
             .withMaximumValue(1024)
             .applyTo(() -> EntityType.PLAYER)
@@ -28,7 +28,7 @@ public class ManasCoreAttributes {
             .syncable()
             .end();
     public static final RegistrySupplier<RangedAttribute> ENTITY_REACH = ManasCore.REGISTER.attribute("entity_reach")
-            .withDefaultValue(3)
+            .withDefaultValue(0)
             .withMinimumValue(0)
             .withMaximumValue(1024)
             .applyTo(() -> EntityType.PLAYER)

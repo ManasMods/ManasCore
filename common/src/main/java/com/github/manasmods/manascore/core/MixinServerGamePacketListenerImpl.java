@@ -15,14 +15,14 @@ public class MixinServerGamePacketListenerImpl {
     @Redirect(method = "handleUseItemOn", at = @At(value = "FIELD",
             target = "Lnet/minecraft/server/network/ServerGamePacketListenerImpl;MAX_INTERACTION_DISTANCE:D", opcode = Opcodes.GETSTATIC))
     private double getBlockInteractDistance() {
-        double reach = ManasCoreAttributeUtils.getReachDistance(this.player) +  3;
+        double reach = ManasCoreAttributeUtils.getBlockReachAddition(this.player) + Math.sqrt(ServerGamePacketListenerImpl.MAX_INTERACTION_DISTANCE);
         return reach * reach;
     }
 
     @Redirect(method = "handleInteract", at = @At(value = "FIELD",
             target = "Lnet/minecraft/server/network/ServerGamePacketListenerImpl;MAX_INTERACTION_DISTANCE:D", opcode = Opcodes.GETSTATIC))
     private double getEntityInteractDistance() {
-        double reach = ManasCoreAttributeUtils.getAttackRange(this.player) +  3;
+        double reach = ManasCoreAttributeUtils.getEntityReachAddition(this.player) + Math.sqrt(ServerGamePacketListenerImpl.MAX_INTERACTION_DISTANCE);
         return reach * reach;
     }
 }

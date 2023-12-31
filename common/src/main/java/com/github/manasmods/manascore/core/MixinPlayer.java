@@ -2,9 +2,9 @@ package com.github.manasmods.manascore.core;
 
 import com.github.manasmods.manascore.attribute.ManasCoreAttributeUtils;
 import com.github.manasmods.manascore.attribute.ManasCoreAttributes;
-import net.minecraft.world.effect.MobEffects;
+import com.llamalad7.mixinextras.sugar.Local;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
@@ -15,19 +15,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Player.class)
 public abstract class MixinPlayer {
-    @Redirect(method = "attack", at = @At(value = "INVOKE",
-            target = "Lnet/minecraft/world/entity/player/Player;getAttributeValue(Lnet/minecraft/world/entity/ai/attributes/Attribute;)D", opcode = Opcodes.GETSTATIC))
-    private double getAttackDamageWithCritChance(Player player, Attribute attribute) {
-        AttributeInstance instance = player.getAttribute(ManasCoreAttributes.CRIT_CHANCE.get());
-        if (instance == null || player.getRandom().nextInt(100) > instance.getValue())
-            return player.getAttributeValue(attribute);
+    @ModifyArg(method = "attack", at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/world/entity/Entity;hurt(Lnet/minecraft/world/damagesource/DamageSource;F)Z"), index = 1)
+    private float getAttackDamageWithCritChance(float amount, @Local(ordinal = 1) float g, @Local(ordinal = 2) boolean bl3) {
+        Player player = (Player) (Object) this;
+        if (!bl3) {
+            AttributeInstance instance = player.getAttribute(ManasCoreAttributes.CRIT_CHANCE.get());
+            if (instance == null || player.getRandom().nextInt(100) > instance.getValue()) return amount;
 
-        boolean vanillaCrit = player.getAttackStrengthScale(0.5F) > 0.9F && player.fallDistance > 0.0F
-                && !player.onGround() && !player.onClimbable() && !player.isInWater() && !player.isSprinting()
-                && !player.hasEffect(MobEffects.BLINDNESS) && !player.isPassenger();
-        if (vanillaCrit) return player.getAttributeValue(attribute);
-
-        return player.getAttributeValue(attribute) * getCritMultiplier(1.5F);
+            float beforeEnchant = amount - g;
+            return beforeEnchant * getCritMultiplier(1.5F) + g;
+        }
+        return amount;
     }
 
     @ModifyConstant(method = "attack(Lnet/minecraft/world/entity/Entity;)V", constant = @Constant(floatValue = 1.5F))
@@ -38,10 +37,11 @@ public abstract class MixinPlayer {
         return (float) instance.getValue();
     }
 
-    @ModifyConstant(method = "attack(Lnet/minecraft/world/entity/Entity;)V", constant = @Constant(doubleValue = 9.0))
-    private double getAttackRangeSquared(double attackRange) {
-        double range = ManasCoreAttributeUtils.getAttackRange((Player) (Object) this);
-        return range * range;
+    @Redirect(method = "attack", at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/world/entity/player/Player;distanceToSqr(Lnet/minecraft/world/entity/Entity;)D", opcode = Opcodes.GETSTATIC))
+    private double getBlockInteractDistance(Player player, Entity entity) {
+        double reach = ManasCoreAttributeUtils.getBlockReachAddition(player);
+        return player.distanceToSqr(entity) - reach * reach;
     }
 
     @Inject(method = "getDestroySpeed", at = @At("RETURN"), cancellable = true)
