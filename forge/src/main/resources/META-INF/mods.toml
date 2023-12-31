@@ -43,3 +43,9 @@ Utility and Core Library for Manas Mods
    versionRange="[${minecraftVersion},${nextMinecraftVersion})"
    ordering="NONE"
    side="BOTH"
+[[dependencies.manascore]]
+   modId="architectury"
+   type="required"
+   versionRange="[${architecturyVersion},)"
+   ordering="NONE"
+   side="BOTH"

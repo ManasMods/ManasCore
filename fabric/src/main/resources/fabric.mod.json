@@ -23,6 +23,7 @@
   ],
   "depends": {
     "fabricloader": ">=${fabricLoader}",
-    "minecraft": ">=${minecraftVersion}"
+    "minecraft": ">=${minecraftVersion}",
+    "architectury": ">=${architecturyVersion}"
   }
 }
