@@ -41,6 +41,7 @@ public class ManasSkillInstance implements Cloneable {
     /**
      * Used to create an exact copy of the current instance.
      */
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public ManasSkillInstance clone() {
         ManasSkillInstance clone = new ManasSkillInstance(getSkill());
@@ -53,7 +54,6 @@ public class ManasSkillInstance implements Cloneable {
      * <p>
      * Override {@link ManasSkillInstance#serialize(CompoundTag)} to store your custom Data.
      */
-    @ApiStatus.NonExtendable
     public final CompoundTag toNBT() {
         CompoundTag tag = new CompoundTag();
         tag.putString("skill", this.getSkillId().toString());
@@ -93,7 +93,6 @@ public class ManasSkillInstance implements Cloneable {
      * <p>
      * The {@link CompoundTag} has to be created though {@link ManasSkillInstance#toNBT()}
      */
-    @ApiStatus.NonExtendable
     public static ManasSkillInstance fromNBT(CompoundTag tag) {
         ResourceLocation skillLocation = ResourceLocation.tryParse(tag.getString("skill"));
         ManasSkillInstance instance = Objects.requireNonNull(SkillAPI.getSkillRegistry().get(skillLocation)).createDefaultInstance();
@@ -103,8 +102,6 @@ public class ManasSkillInstance implements Cloneable {
 
     /**
      * Marks the current instance as dirty.
-     * <p>
-     * This causes the Instance to get synced on the next {@link SyncSkillsPacket}
      */
     public void markDirty() {
         this.dirty = true;
@@ -126,7 +123,7 @@ public class ManasSkillInstance implements Cloneable {
         if (o == null || getClass() != o.getClass()) return false;
         ManasSkillInstance instance = (ManasSkillInstance) o;
         return this.getSkillId().equals(instance.getSkillId()) &&
-                skillRegistryObject.key().registry().equals(instance.skillRegistryObject.key().registry());
+                skillRegistryObject.getRegistryKey().equals(instance.skillRegistryObject.getRegistryKey());
     }
 
     @Override
