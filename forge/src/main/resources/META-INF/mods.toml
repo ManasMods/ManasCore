@@ -45,7 +45,7 @@ Utility and Core Library for Manas Mods
    side="BOTH"
 [[dependencies.manascore]]
    modId="architectury"
-   type="required"
+   mandatory=true
    versionRange="[${architecturyVersion},)"
    ordering="NONE"
    side="BOTH"
