@@ -69,11 +69,12 @@ public class SkillStorage extends Storage {
     public void forgetSkill(ManasSkillInstance instance) {
         if (!this.skillInstances.containsKey(instance.getSkillId())) return;
 
-        if (!MinecraftForge.EVENT_BUS.post(new RemoveSkillEvent(instance, this.owner))) {
-            instance.markDirty();
-            getLearnedSkills().remove(instance);
-            markDirty();
-        }
+        EventResult result = SkillEvents.REMOVE_SKILL.invoker().removeSkill(instance, (LivingEntity) this.holder);
+        if (result.isFalse()) return;
+
+        instance.markDirty();
+        getLearnedSkills().remove(instance);
+        markDirty();
     }
 
     @Override

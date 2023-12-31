@@ -7,10 +7,15 @@ import net.minecraft.world.entity.LivingEntity;
 
 public interface SkillEvents {
     Event<UnlockSkillEvent> UNLOCK_SKILL = EventFactory.createEventResult();
+    Event<RemoveSkillEvent> REMOVE_SKILL = EventFactory.createEventResult();
 
 
     @FunctionalInterface
     interface UnlockSkillEvent {
         EventResult unlockSkill(ManasSkillInstance skillInstance, LivingEntity owner);
+    }
+
+    interface RemoveSkillEvent {
+        EventResult removeSkill(ManasSkillInstance skillInstance, LivingEntity owner);
     }
 }
