@@ -112,11 +112,12 @@ public class SkillStorage extends Storage {
             return false;
         }
 
-        EventResult result = SkillEvents.UNLOCK_SKILL.invoker().unlockSkill(instance, (LivingEntity) this.holder);
+        EventResult result = SkillEvents.UNLOCK_SKILL.invoker().unlockSkill(instance, getOwner());
         if (result.isFalse()) return false;
 
         instance.markDirty();
         this.skillInstances.put(instance.getSkillId(), instance);
+        instance.onLearnSkill(getOwner());
         markDirty();
         return true;
     }
@@ -132,7 +133,7 @@ public class SkillStorage extends Storage {
     public void forgetSkill(ManasSkillInstance instance) {
         if (!this.skillInstances.containsKey(instance.getSkillId())) return;
 
-        EventResult result = SkillEvents.REMOVE_SKILL.invoker().removeSkill(instance, (LivingEntity) this.holder);
+        EventResult result = SkillEvents.REMOVE_SKILL.invoker().removeSkill(instance, getOwner());
         if (result.isFalse()) return;
 
         instance.markDirty();
@@ -182,5 +183,9 @@ public class SkillStorage extends Storage {
             }
             data.put("skills", skillList);
         }
+    }
+
+    protected LivingEntity getOwner() {
+        return (LivingEntity) this.holder;
     }
 }

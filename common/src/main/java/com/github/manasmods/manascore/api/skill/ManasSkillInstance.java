@@ -1,6 +1,5 @@
 package com.github.manasmods.manascore.api.skill;
 
-import com.github.manasmods.manascore.api.skill.SkillEvents.UnlockSkillEvent;
 import dev.architectury.registry.registries.RegistrySupplier;
 import lombok.Getter;
 import net.minecraft.nbt.CompoundTag;
@@ -412,8 +411,8 @@ public class ManasSkillInstance implements Cloneable {
      *
      * @param living   Affected {@link LivingEntity} learning this instance.
      */
-    public void onLearnSkill(LivingEntity living, UnlockSkillEvent event) {
-        this.getSkill().onLearnSkill(this, living, event);
+    public void onLearnSkill(LivingEntity living) {
+        this.getSkill().onLearnSkill(this, living);
     }
 
     /**
