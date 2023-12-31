@@ -2,6 +2,7 @@ package com.github.manasmods.manascore.network.toserver;
 
 import com.github.manasmods.manascore.api.skill.SkillAPI;
 import com.github.manasmods.manascore.skill.SkillStorage;
+import com.github.manasmods.manascore.skill.TickingSkill;
 import dev.architectury.networking.NetworkManager.PacketContext;
 import dev.architectury.utils.Env;
 import net.minecraft.network.FriendlyByteBuf;
@@ -44,7 +45,7 @@ public class RequestSkillActivationPacket {
                     skill.onPressed(player);
                     storage.markDirty();
 
-                    TickEventListenerHandler.tickingSkills.put(player.getUUID(), new TickingSkill(skill.getSkill()));
+                    SkillStorage.tickingSkills.put(player.getUUID(), new TickingSkill(skill.getSkill()));
                 });
             }
         });

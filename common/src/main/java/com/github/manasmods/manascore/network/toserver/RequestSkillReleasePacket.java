@@ -2,6 +2,8 @@ package com.github.manasmods.manascore.network.toserver;
 
 import com.github.manasmods.manascore.api.skill.SkillAPI;
 import com.github.manasmods.manascore.skill.SkillStorage;
+import com.github.manasmods.manascore.skill.TickingSkill;
+import com.google.common.collect.Multimap;
 import dev.architectury.networking.NetworkManager.PacketContext;
 import dev.architectury.utils.Env;
 import net.minecraft.network.FriendlyByteBuf;
@@ -49,9 +51,9 @@ public class RequestSkillReleasePacket {
                     skill.onRelease(player, heldTick);
                     storage.markDirty();
 
-                    Multimap<UUID, TickingSkill> multimap = TickEventListenerHandler.tickingSkills;
+                    Multimap<UUID, TickingSkill> multimap = SkillStorage.tickingSkills;
                     if (multimap.containsKey(player.getUUID())) {
-                        multimap.get(player.getUUID()).removeIf(tickingSkill -> tickingSkill.getSkill() == skillInstance.getSkill());
+                        multimap.get(player.getUUID()).removeIf(tickingSkill -> tickingSkill.getSkill() == skill.getSkill());
                     }
                 });
             }

@@ -1,7 +1,6 @@
 package com.github.manasmods.manascore.core;
 
 import com.github.manasmods.manascore.api.world.chunk.ChunkEvents;
-import com.github.manasmods.manascore.api.world.chunk.ChunkEvents.ChunkTickPhase;
 import com.github.manasmods.manascore.storage.StorageManager;
 import com.github.manasmods.manascore.world.StoragePersistentState;
 import net.minecraft.core.Holder;
@@ -54,7 +53,7 @@ public abstract class MixinServerLevel extends Level {
     private void onPreTickChunk(LevelChunk pChunk, int pRandomTickSpeed, CallbackInfo ci) {
         ProfilerFiller profiler = getProfiler();
         profiler.push("manascoreChunkTickEventPost");
-        ChunkEvents.CHUNK_TICK.invoker().tick(ChunkTickPhase.START, pChunk, pRandomTickSpeed);
+        ChunkEvents.CHUNK_POST_TICK.invoker().tick(pChunk, pRandomTickSpeed);
         profiler.pop();
     }
 
@@ -67,7 +66,7 @@ public abstract class MixinServerLevel extends Level {
             StorageManager.syncTracking(pChunk, true);
         }
         profiler.popPush("manascoreChunkTickEventPost");
-        ChunkEvents.CHUNK_TICK.invoker().tick(ChunkTickPhase.END, pChunk, pRandomTickSpeed);
+        ChunkEvents.CHUNK_PRE_TICK.invoker().tick(pChunk, pRandomTickSpeed);
         profiler.pop();
     }
 

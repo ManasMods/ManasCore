@@ -6,7 +6,10 @@ import com.github.manasmods.manascore.api.skill.ManasSkillInstance;
 import com.github.manasmods.manascore.api.skill.SkillEvents;
 import com.github.manasmods.manascore.api.storage.Storage;
 import com.github.manasmods.manascore.api.storage.StorageEvents;
+import com.github.manasmods.manascore.api.world.entity.EntityEvents;
 import com.github.manasmods.manascore.storage.StorageManager.StorageKey;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import dev.architectury.event.EventResult;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
@@ -15,20 +18,38 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @Log4j2
 public class SkillStorage extends Storage {
     public static StorageKey<SkillStorage> KEY = null;
+    public static final Multimap<UUID, TickingSkill> tickingSkills = ArrayListMultimap.create();
 
     public static void init() {
         StorageEvents.REGISTER_ENTITY_STORAGE.register(registry -> {
             registry.register(new ResourceLocation(ManasCore.MOD_ID, "skill_storage"), SkillStorage.class, entity -> entity instanceof LivingEntity, target -> new SkillStorage((LivingEntity) target));
         });
+        EntityEvents.LIVING_POST_TICK.register(entity -> {
+            Level level = entity.level();
+            if (level.isClientSide()) return;
+            handleSkillTick(entity, level);
+            if (entity instanceof Player player) handleSkillHeldTick(player, level);
+        });
+    }
+
+    private static void handleSkillTick(LivingEntity entity, Level level) {
+
+    }
+
+    private static void handleSkillHeldTick(Player entity, Level level) {
+
     }
 
     private final Map<ResourceLocation, ManasSkillInstance> skillInstances = new HashMap<>();
