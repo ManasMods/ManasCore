@@ -64,10 +64,9 @@ Utility and Core Library for Manas Mods
    versionRange="[1.20.4,1.21)"
    ordering="NONE"
    side="BOTH"
-#[[dependencies.testmod]]
-#   modId="manascore"
-#   mandatory=true
-#   # This version range declares a minimum of the current minecraft version up to but not including the next major version
-#   versionRange="[${version},)"
-#   ordering="NONE"
-#   side="BOTH"
+[[dependencies.testmod]]
+   modId="manascore"
+   mandatory=true
+   versionRange="[${version},)"
+   ordering="NONE"
+   side="BOTH"

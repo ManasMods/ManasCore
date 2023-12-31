@@ -10,6 +10,12 @@ architectury {
 loom {
     accessWidenerPath = project(":common").loom.accessWidenerPath
 
+    mods {
+        register("forge") {
+            sourceSet('main', project(':forge'))
+        }
+    }
+
     runs {
         client {
             runDir = 'run/client'
@@ -21,7 +27,6 @@ loom {
     }
 
     forge {
-        convertAccessWideners = true
         mixinConfig "manascore.mixins.json"
         mixinConfig "manascore-common.mixins.json"
     }
@@ -38,11 +43,11 @@ dependencies {
     forge "net.minecraftforge:forge:${rootProject.forge_version}"
     // Remove the next line if you don't want to depend on the API
     modApi "dev.architectury:architectury-forge:${rootProject.architectury_version}"
-    modRuntimeOnly "maven.modrinth:spark:3FEq2lT7"
+    //modRuntimeOnly "maven.modrinth:spark:3FEq2lT7"
 
-    common(project(path: ':common', configuration: 'namedElements')) { transitive = false}
-    common(project(path: ':commonTest', configuration: 'namedElements')) { transitive = false}
-    implementation(project(path: ':forge', configuration: 'namedElements')) { transitive = false}
+    implementation(project(path: ':forge', configuration: 'namedElements')) { transitive = false }
+    common(project(path: ':common', configuration: 'namedElements')) { transitive = false }
+    common(project(path: ':commonTest', configuration: 'namedElements')) { transitive = false }
 }
 
 processResources {
@@ -51,4 +56,10 @@ processResources {
     filesMatching("META-INF/mods.toml") {
         expand "version": project.version
     }
+}
+
+sourceSets.each {
+    def dir = layout.buildDirectory.dir("sourcesSets/$it.name")
+    it.output.resourcesDir = dir
+    it.java.destinationDirectory = dir
 }
