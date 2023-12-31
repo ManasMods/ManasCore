@@ -40,7 +40,7 @@ configurations {
 }
 
 dependencies {
-    forge "net.minecraftforge:forge:${rootProject.forge_version}"
+    forge "net.minecraftforge:forge:${rootProject.minecraft_version}-${rootProject.forge_version}"
     // Remove the next line if you don't want to depend on the API
     modApi "dev.architectury:architectury-forge:${rootProject.architectury_version}"
     //modRuntimeOnly "maven.modrinth:spark:3FEq2lT7"
@@ -54,7 +54,10 @@ processResources {
     inputs.property "version", project.version
 
     filesMatching("META-INF/mods.toml") {
-        expand "version": project.version
+        expand "version": project.version,
+                "forgeLoaderVersion": rootProject.forge_version.split("\\.")[0],
+                "minecraftVersion": rootProject.minecraft_version,
+                "nextMinecraftVersion": "1.${(Integer.parseInt(rootProject.minecraft_version.split("\\.")[1]) + 1)}"
     }
 }
 
