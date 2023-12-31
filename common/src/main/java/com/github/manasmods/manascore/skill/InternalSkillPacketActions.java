@@ -6,6 +6,7 @@ import com.github.manasmods.manascore.api.skill.SkillAPI;
 import com.github.manasmods.manascore.api.skill.SkillEvents;
 import com.github.manasmods.manascore.api.skill.SkillEvents.SkillActivationEvent;
 import com.github.manasmods.manascore.api.skill.SkillEvents.SkillReleaseEvent;
+import com.github.manasmods.manascore.api.skill.SkillEvents.SkillToggleEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
@@ -63,8 +64,7 @@ public class InternalSkillPacketActions {
         List<ResourceLocation> packetSkills = new ArrayList<>();
 
         for (ManasSkillInstance skillInstance : SkillAPI.getSkillsFrom(player).getLearnedSkills()) {
-            SkillToggleEvent event = new SkillToggleEvent(skillInstance, player, !skillInstance.isToggled());
-            if (MinecraftForge.EVENT_BUS.post(event)) continue;
+            if(SkillEvents.TOGGLE_SKILL.invoker().toggleSkill(skillInstance, player).isFalse()) continue;
             packetSkills.add(skillInstance.getSkillId());
         }
 
