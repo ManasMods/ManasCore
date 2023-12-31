@@ -57,9 +57,9 @@ Utility and Core Library for Manas Mods
    versionRange="[1.20.4,1.21)"
    ordering="NONE"
    side="BOTH"
-#[[dependencies.testmod]]
-#   modId="manascore"
-#   type="required"
-#   versionRange="[${version},)"
-#   ordering="NONE"
-#   side="BOTH"
+[[dependencies.testmod]]
+   modId="manascore"
+   type="required"
+   versionRange="[${version},)"
+   ordering="NONE"
+   side="BOTH"
