@@ -3,6 +3,7 @@ package com.github.manasmods.manascore.skill;
 import com.github.manasmods.manascore.ManasCore;
 import com.github.manasmods.manascore.api.skill.ManasSkill;
 import com.github.manasmods.manascore.api.skill.ManasSkillInstance;
+import com.github.manasmods.manascore.api.skill.SkillAPI;
 import com.github.manasmods.manascore.api.skill.SkillEvents;
 import com.github.manasmods.manascore.api.storage.Storage;
 import com.github.manasmods.manascore.api.storage.StorageEvents;
@@ -17,12 +18,14 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,6 +33,8 @@ import java.util.UUID;
 @Log4j2
 public class SkillStorage extends Storage {
     public static StorageKey<SkillStorage> KEY = null;
+    public static final int INSTANCE_UPDATE = 20;
+    public static final int PASSIVE_SKILL = 100;
     public static final Multimap<UUID, TickingSkill> tickingSkills = ArrayListMultimap.create();
 
     public static void init() {
@@ -39,17 +44,49 @@ public class SkillStorage extends Storage {
         EntityEvents.LIVING_POST_TICK.register(entity -> {
             Level level = entity.level();
             if (level.isClientSide()) return;
-            handleSkillTick(entity, level);
-            if (entity instanceof Player player) handleSkillHeldTick(player, level);
+            SkillStorage storage = SkillAPI.getSkillsFrom(entity);
+            handleSkillTick(entity, level, storage);
+            if (entity instanceof Player player) handleSkillHeldTick(player, level, storage);
+            storage.markDirty();
         });
     }
 
-    private static void handleSkillTick(LivingEntity entity, Level level) {
+    private static void handleSkillTick(LivingEntity entity, Level level, SkillStorage storage) {
+        MinecraftServer server = level.getServer();
 
+        boolean shouldPassiveConsume = server.getTickCount() % INSTANCE_UPDATE == 0;
+        if (!shouldPassiveConsume) return;
+
+        if (entity instanceof Player) {
+            for (ManasSkillInstance instance : storage.getLearnedSkills()) {
+                // Update cool down
+                if (instance.onCoolDown()) instance.decreaseCoolDown(1);
+                // Update temporary skill timer
+                if (!instance.isTemporarySkill()) continue;
+                instance.decreaseRemoveTime(1);
+                if (!instance.shouldRemove()) continue;
+                storage.forgetSkill(instance);
+            }
+        }
+
+        boolean passiveSkillActivate = server.getTickCount() % PASSIVE_SKILL == 0;
+        if (!passiveSkillActivate) return;
+
+        for (ManasSkillInstance instance : List.copyOf(storage.getLearnedSkills())) {
+            Optional<ManasSkillInstance> optional = storage.getSkill(instance.getSkill());
+            if (optional.isEmpty()) continue;
+
+            ManasSkillInstance skillInstance = optional.get();
+            if (!skillInstance.canInteractSkill(entity)) continue;
+            if (!skillInstance.getSkill().canTick(skillInstance, entity)) continue;
+            if (SkillEvents.SKILL_TICK.invoker().tick(skillInstance, entity).isFalse()) continue;
+            skillInstance.onTick(entity);
+        }
     }
 
-    private static void handleSkillHeldTick(Player entity, Level level) {
-
+    private static void handleSkillHeldTick(Player player, Level level, SkillStorage storage) {
+        if (!tickingSkills.containsKey(player.getUUID())) return;
+        tickingSkills.get(player.getUUID()).removeIf(skill -> !skill.tick(storage, player));
     }
 
     private final Map<ResourceLocation, ManasSkillInstance> skillInstances = new HashMap<>();

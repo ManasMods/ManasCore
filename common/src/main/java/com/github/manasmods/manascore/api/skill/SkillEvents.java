@@ -11,6 +11,7 @@ public interface SkillEvents {
     Event<SkillActivationEvent> ACTIVATE_SKILL = EventFactory.createEventResult();
     Event<SkillReleaseEvent> RELEASE_SKILL = EventFactory.createEventResult();
     Event<SkillToggleEvent> TOGGLE_SKILL = EventFactory.createEventResult();
+    Event<SkillTickEvent> SKILL_TICK = EventFactory.createEventResult();
 
 
     @FunctionalInterface
@@ -36,5 +37,10 @@ public interface SkillEvents {
     @FunctionalInterface
     interface SkillToggleEvent {
         EventResult toggleSkill(ManasSkillInstance skillInstance, LivingEntity owner);
+    }
+
+    @FunctionalInterface
+    interface SkillTickEvent {
+        EventResult tick(ManasSkillInstance skillInstance, LivingEntity owner);
     }
 }
