@@ -42,6 +42,8 @@ public class RequestSkillActivationPacket {
                     if(!skill.canInteractSkill(player)) return;
                     if (skill.onCoolDown() && !skill.canIgnoreCoolDown(player)) return;
                     skill.onPressed(player);
+                    storage.markDirty();
+
                     TickEventListenerHandler.tickingSkills.put(player.getUUID(), new TickingSkill(skill.getSkill()));
                 });
             }
