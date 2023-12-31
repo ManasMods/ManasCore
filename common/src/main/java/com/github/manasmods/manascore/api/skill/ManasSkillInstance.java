@@ -1,5 +1,6 @@
 package com.github.manasmods.manascore.api.skill;
 
+import com.github.manasmods.manascore.api.skill.SkillEvents.UnlockSkillEvent;
 import dev.architectury.registry.registries.RegistrySupplier;
 import lombok.Getter;
 import net.minecraft.nbt.CompoundTag;
@@ -34,7 +35,7 @@ public class ManasSkillInstance implements Cloneable {
     }
 
     public ResourceLocation getSkillId() {
-        return this.skillRegistryObject.key().location();
+        return this.skillRegistryObject.getId();
     }
 
     /**
