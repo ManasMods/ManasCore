@@ -144,7 +144,10 @@ public class SkillStorage extends Storage {
     @Override
     public void save(CompoundTag data) {
         ListTag skillList = new ListTag();
-        this.skillInstances.values().forEach(instance -> skillList.add(instance.toNBT()));
+        this.skillInstances.values().forEach(instance -> {
+            skillList.add(instance.toNBT());
+            instance.resetDirty();
+        });
         data.put("skills", skillList);
     }
 
@@ -175,6 +178,7 @@ public class SkillStorage extends Storage {
             for (ManasSkillInstance instance : this.skillInstances.values()) {
                 if (!instance.isDirty()) continue;
                 skillList.add(instance.toNBT());
+                instance.resetDirty();
             }
             data.put("skills", skillList);
         }
