@@ -1,10 +1,13 @@
 package com.github.manasmods.manascore.api.skill;
 
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -232,13 +235,11 @@ public class ManasSkill {
     }
 
     /**
-     * Called when the {@link LivingEntity} owning this Skill right-clicks a block.
+     * Called when the {@link Player} owning this Skill right-clicks a block.
      *
-     * @param instance  Affected {@link ManasSkillInstance}
-     * @param entity    Affected {@link LivingEntity} owning this Skill.
-     * @param hitResult Triggered {@link BlockHitResult}
+     * @see ManasSkillInstance#onRightClickBlock(Player, InteractionHand, BlockPos, Direction)
      */
-    public void onRightClickBlock(ManasSkillInstance instance, LivingEntity entity, BlockHitResult hitResult) {
+    public void onRightClickBlock(ManasSkillInstance instance, Player player, InteractionHand hand, BlockPos pos, Direction face) {
     }
 
     /**

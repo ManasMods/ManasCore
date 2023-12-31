@@ -2,10 +2,13 @@ package com.github.manasmods.manascore.api.skill;
 
 import dev.architectury.registry.registries.RegistrySupplier;
 import lombok.Getter;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,6 +25,7 @@ public class ManasSkillInstance implements Cloneable {
     @Getter
     private boolean dirty = false;
     protected final RegistrySupplier<ManasSkill> skillRegistryObject;
+
     public ManasSkillInstance(ManasSkill skill) {
         this.skillRegistryObject = SkillAPI.getSkillRegistry().delegate(SkillAPI.getSkillRegistry().getId(skill));
     }
@@ -132,9 +136,9 @@ public class ManasSkillInstance implements Cloneable {
 
     /**
      * Determine if this instance can be used by {@link LivingEntity}.
-     * @return false will stop {@link LivingEntity} from using any feature of the skill.
      *
-     * @param living   Affected {@link LivingEntity}
+     * @param living Affected {@link LivingEntity}
+     * @return false will stop {@link LivingEntity} from using any feature of the skill.
      */
     public boolean canInteractSkill(LivingEntity living) {
         return this.getSkill().canInteractSkill(this, living);
@@ -150,9 +154,9 @@ public class ManasSkillInstance implements Cloneable {
 
     /**
      * Determine if the {@link ManasSkill} type of this instance can be toggled.
-     * @return false if this skill is not toggleable.
      *
-     * @param entity   Affected {@link LivingEntity} owning this Skill.
+     * @param entity Affected {@link LivingEntity} owning this Skill.
+     * @return false if this skill is not toggleable.
      */
     public boolean canBeToggled(LivingEntity entity) {
         return this.getSkill().canBeToggled(this, entity);
@@ -160,9 +164,9 @@ public class ManasSkillInstance implements Cloneable {
 
     /**
      * Determine if the {@link ManasSkill} type of this instance can still be activated when on cooldown.
-     * @return false if this skill cannot ignore cooldown.
      *
-     * @param entity   Affected {@link LivingEntity} owning this Skill.
+     * @param entity Affected {@link LivingEntity} owning this Skill.
+     * @return false if this skill cannot ignore cooldown.
      */
     public boolean canIgnoreCoolDown(LivingEntity entity) {
         return this.getSkill().canIgnoreCoolDown(this, entity);
@@ -170,9 +174,9 @@ public class ManasSkillInstance implements Cloneable {
 
     /**
      * Determine if this instance's {@link ManasSkillInstance#onTick} can be executed.
-     * @return false if this skill cannot tick.
      *
-     * @param entity   Affected {@link LivingEntity} owning this Skill.
+     * @param entity Affected {@link LivingEntity} owning this Skill.
+     * @return false if this skill cannot tick.
      */
     public boolean canTick(LivingEntity entity) {
         return this.getSkill().canTick(this, entity);
@@ -180,6 +184,7 @@ public class ManasSkillInstance implements Cloneable {
 
     /**
      * One skill can have many modes at once and each mode can have their own different features.
+     *
      * @return the current mode of this instance.
      */
     public int getMode() {
@@ -207,7 +212,7 @@ public class ManasSkillInstance implements Cloneable {
     /**
      * Determine if the {@link ManasSkill} type of this instance is mastered by {@link LivingEntity} owning it.
      *
-     * @param entity   Affected {@link LivingEntity} owning this Skill.
+     * @param entity Affected {@link LivingEntity} owning this Skill.
      */
     public boolean isMastered(LivingEntity entity) {
         return this.getSkill().isMastered(this, entity);
@@ -216,7 +221,7 @@ public class ManasSkillInstance implements Cloneable {
     /**
      * Increase the mastery point of the {@link ManasSkill} type of this instance.
      *
-     * @param entity   Affected {@link LivingEntity} owning this Skill.
+     * @param entity Affected {@link LivingEntity} owning this Skill.
      */
     public void addMasteryPoint(LivingEntity entity) {
         this.getSkill().addMasteryPoint(this, entity);
@@ -268,7 +273,7 @@ public class ManasSkillInstance implements Cloneable {
     }
 
     /**
-     * @return  if this skill instance is temporary, which should be removed when its time runs out.
+     * @return if this skill instance is temporary, which should be removed when its time runs out.
      */
     public boolean isTemporarySkill() {
         return this.removeTime != -1;
@@ -322,6 +327,7 @@ public class ManasSkillInstance implements Cloneable {
 
     /**
      * Used to add/create additional tags for this instance.
+     *
      * @return compound tag of this instance or create if null.
      */
     public CompoundTag getOrCreateTag() {
@@ -343,7 +349,7 @@ public class ManasSkillInstance implements Cloneable {
     /**
      * Called when the {@link LivingEntity} owning this Skill toggles this {@link ManasSkill} type of this instance on.
      *
-     * @param entity   Affected {@link LivingEntity} owning this Skill.
+     * @param entity Affected {@link LivingEntity} owning this Skill.
      */
     public void onToggleOn(LivingEntity entity) {
         this.getSkill().onToggleOn(this, entity);
@@ -352,7 +358,7 @@ public class ManasSkillInstance implements Cloneable {
     /**
      * Called when the {@link LivingEntity} owning this Skill toggles this {@link ManasSkill} type of this instance off.
      *
-     * @param entity   Affected {@link LivingEntity} owning this instance.
+     * @param entity Affected {@link LivingEntity} owning this instance.
      */
     public void onToggleOff(LivingEntity entity) {
         this.getSkill().onToggleOff(this, entity);
@@ -361,7 +367,7 @@ public class ManasSkillInstance implements Cloneable {
     /**
      * Called every tick if this instance is obtained by {@link LivingEntity}.
      *
-     * @param living   Affected {@link LivingEntity} owning this instance.
+     * @param living Affected {@link LivingEntity} owning this instance.
      */
     public void onTick(LivingEntity living) {
         this.getSkill().onTick(this, living);
@@ -370,7 +376,7 @@ public class ManasSkillInstance implements Cloneable {
     /**
      * Called when the {@link LivingEntity} owning this Skill presses the skill activation button.
      *
-     * @param entity   Affected {@link LivingEntity} owning this instance.
+     * @param entity Affected {@link LivingEntity} owning this instance.
      */
     public void onPressed(LivingEntity entity) {
         this.getSkill().onPressed(this, entity);
@@ -378,9 +384,9 @@ public class ManasSkillInstance implements Cloneable {
 
     /**
      * Called when the {@link LivingEntity} owning this Skill holds the skill activation button.
-     * @return true to continue ticking this instance.
      *
-     * @param entity   Affected {@link LivingEntity} owning this instance.
+     * @param entity Affected {@link LivingEntity} owning this instance.
+     * @return true to continue ticking this instance.
      */
     public boolean onHeld(LivingEntity entity, int heldTicks) {
         return this.getSkill().onHeld(this, entity, heldTicks);
@@ -399,8 +405,8 @@ public class ManasSkillInstance implements Cloneable {
     /**
      * Called when the {@link LivingEntity} owning this Skill scrolls the mouse when holding the skill activation buttons.
      *
-     * @param entity   Affected {@link LivingEntity} owning this instance.
-     * @param delta    The scroll delta of the mouse scroll.
+     * @param entity Affected {@link LivingEntity} owning this instance.
+     * @param delta  The scroll delta of the mouse scroll.
      */
     public void onScroll(LivingEntity entity, double delta) {
         this.getSkill().onScroll(this, entity, delta);
@@ -409,7 +415,7 @@ public class ManasSkillInstance implements Cloneable {
     /**
      * Called when the {@link LivingEntity} learns this instance.
      *
-     * @param living   Affected {@link LivingEntity} learning this instance.
+     * @param living Affected {@link LivingEntity} learning this instance.
      */
     public void onLearnSkill(LivingEntity living) {
         this.getSkill().onLearnSkill(this, living);
@@ -418,7 +424,7 @@ public class ManasSkillInstance implements Cloneable {
     /**
      * Called when the {@link LivingEntity} masters this instance.
      *
-     * @param living   Affected {@link LivingEntity} owning this Skill.
+     * @param living Affected {@link LivingEntity} owning this Skill.
      */
     public void onSkillMastered(LivingEntity living) {
         this.getSkill().onSkillMastered(this, living);
@@ -427,18 +433,17 @@ public class ManasSkillInstance implements Cloneable {
     /**
      * Called when the {@link LivingEntity} owning this Skill right-clicks a block.
      *
-     * @param entity    Affected {@link LivingEntity} owning this instance.
-     * @param hitResult Triggered {@link BlockHitResult}
+     * @param player owning this instance.
      */
-    public void onRightClickBlock(LivingEntity entity, BlockHitResult hitResult) {
-        this.getSkill().onRightClickBlock(this, entity, hitResult);
+    public void onRightClickBlock(Player player, InteractionHand hand, BlockPos pos, Direction face) {
+        this.getSkill().onRightClickBlock(this, player, hand, pos, face);
     }
 
     /**
      * Called when the {@link LivingEntity} owning this instance starts to be targeted by a mob.
      *
-     * @param target   Affected {@link LivingEntity} owning this instance.
-     * @param event    Triggered {@link LivingChangeTargetEvent}
+     * @param target Affected {@link LivingEntity} owning this instance.
+     * @param event  Triggered {@link LivingChangeTargetEvent}
      */
     public void onBeingTargeted(LivingEntity target, LivingChangeTargetEvent event) {
         this.getSkill().onBeingTargeted(this, target, event);
@@ -448,10 +453,10 @@ public class ManasSkillInstance implements Cloneable {
      * Called when the {@link LivingEntity} owning this instance starts to be attacked.
      * Canceling {@link LivingAttackEvent} will make the owner immune to the Damage Source.
      * Therefore, cancel the hurt sound, animation and knock back, but cannot change the damage amount like {@link LivingHurtEvent}
-     *
+     * <p>
      * Executing Order: This method gets invoked first before any Damage method.
      *
-     * @param event    Triggered {@link LivingAttackEvent}
+     * @param event Triggered {@link LivingAttackEvent}
      */
     public void onBeingDamaged(LivingAttackEvent event) {
         this.getSkill().onBeingDamaged(this, event);
@@ -463,8 +468,8 @@ public class ManasSkillInstance implements Cloneable {
      * <p>
      * Executing Order: This method gets invoked after {@link ManasSkillInstance#onBeingDamaged}
      *
-     * @param entity   Affected {@link LivingEntity} owning this instance.
-     * @param event    Triggered {@link LivingHurtEvent}
+     * @param entity Affected {@link LivingEntity} owning this instance.
+     * @param event  Triggered {@link LivingHurtEvent}
      */
     public void onDamageEntity(LivingEntity entity, LivingHurtEvent event) {
         this.getSkill().onDamageEntity(this, entity, event);
@@ -476,8 +481,8 @@ public class ManasSkillInstance implements Cloneable {
      * <p>
      * Executing Order: This method gets invoked after {@link ManasSkillInstance#onDamageEntity}
      *
-     * @param entity   Affected {@link LivingEntity} owning this instance.
-     * @param event    Triggered {@link LivingHurtEvent}
+     * @param entity Affected {@link LivingEntity} owning this instance.
+     * @param event  Triggered {@link LivingHurtEvent}
      */
     public void onTouchEntity(LivingEntity entity, LivingHurtEvent event) {
         this.getSkill().onTouchEntity(this, entity, event);
@@ -487,7 +492,7 @@ public class ManasSkillInstance implements Cloneable {
      * Called when the {@link LivingEntity} owning this instance takes damage.
      * Change the amount of the damage that the owner takes.
      *
-     * @param event    Triggered {@link LivingDamageEvent}
+     * @param event Triggered {@link LivingDamageEvent}
      */
     public void onTakenDamage(LivingDamageEvent event) {
         this.getSkill().onTakenDamage(this, event);
@@ -497,8 +502,8 @@ public class ManasSkillInstance implements Cloneable {
      * Called when the {@link LivingEntity} owning this Skill is hit by a projectile.
      * Cancel the event when return true.
      *
-     * @param living   Affected {@link LivingEntity} owning this instance.
-     * @param event    Triggered {@link ProjectileImpactEvent}
+     * @param living Affected {@link LivingEntity} owning this instance.
+     * @param event  Triggered {@link ProjectileImpactEvent}
      */
     public void onProjectileHit(LivingEntity living, ProjectileImpactEvent event) {
         this.getSkill().onProjectileHit(this, living, event);
@@ -507,7 +512,7 @@ public class ManasSkillInstance implements Cloneable {
     /**
      * Called when the {@link LivingEntity} owning this Skill dies
      *
-     * @param event    Triggered {@link LivingDeathEvent}
+     * @param event Triggered {@link LivingDeathEvent}
      */
     public void onDeath(LivingDeathEvent event) {
         this.getSkill().onDeath(this, event);
@@ -516,7 +521,8 @@ public class ManasSkillInstance implements Cloneable {
     /**
      * {@link PlayerEvent.PlayerRespawnEvent} invoking this callback
      * <p>
-     * @param event    Triggered {@link PlayerEvent.PlayerRespawnEvent}
+     *
+     * @param event Triggered {@link PlayerEvent.PlayerRespawnEvent}
      */
     public void onRespawn(PlayerEvent.PlayerRespawnEvent event) {
         this.getSkill().onRespawn(this, event);

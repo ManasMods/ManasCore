@@ -2,6 +2,9 @@ package com.github.manasmods.manascore.skill;
 
 import com.github.manasmods.manascore.ManasCore;
 import com.github.manasmods.manascore.api.skill.ManasSkill;
+import com.github.manasmods.manascore.api.skill.SkillAPI;
+import dev.architectury.event.EventResult;
+import dev.architectury.event.events.common.InteractionEvent;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrarManager;
 import net.minecraft.core.Registry;
@@ -15,6 +18,14 @@ public class SkillRegistry {
 
 
     public static void init() {
+        InteractionEvent.RIGHT_CLICK_BLOCK.register((player, hand, pos, face) -> {
+            if (player.level().isClientSide()) return EventResult.pass();
+            SkillAPI.getSkillsFrom(player).forEachSkill(((storage, skillInstance) -> {
+                if (!skillInstance.canInteractSkill(player)) return;
+                skillInstance.onRightClickBlock(player, hand, pos, face);
+            }));
 
+            return EventResult.pass();
+        });
     }
 }

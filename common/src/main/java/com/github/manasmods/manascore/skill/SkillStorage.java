@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 
 @Log4j2
 public class SkillStorage extends Storage {
@@ -139,6 +140,11 @@ public class SkillStorage extends Storage {
         instance.markDirty();
         getLearnedSkills().remove(instance);
         this.hasRemovedSkills = true;
+        markDirty();
+    }
+
+    public void forEachSkill(BiConsumer<SkillStorage,ManasSkillInstance> skillInstanceConsumer) {
+        List.copyOf(this.skillInstances.values()).forEach(skillInstance -> skillInstanceConsumer.accept(this, skillInstance));
         markDirty();
     }
 
