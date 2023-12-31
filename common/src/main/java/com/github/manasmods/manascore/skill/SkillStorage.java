@@ -3,9 +3,11 @@ package com.github.manasmods.manascore.skill;
 import com.github.manasmods.manascore.ManasCore;
 import com.github.manasmods.manascore.api.skill.ManasSkill;
 import com.github.manasmods.manascore.api.skill.ManasSkillInstance;
+import com.github.manasmods.manascore.api.skill.SkillEvents;
 import com.github.manasmods.manascore.api.storage.Storage;
 import com.github.manasmods.manascore.api.storage.StorageEvents;
 import com.github.manasmods.manascore.storage.StorageManager.StorageKey;
+import dev.architectury.event.EventResult;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.nbt.CompoundTag;
@@ -25,11 +27,15 @@ public class SkillStorage extends Storage {
 
     public static void init() {
         StorageEvents.REGISTER_ENTITY_STORAGE.register(registry -> {
-            registry.register(new ResourceLocation(ManasCore.MOD_ID, "skill_storage"), SkillStorage.class, entity -> entity instanceof LivingEntity, target -> new SkillStorage());
+            registry.register(new ResourceLocation(ManasCore.MOD_ID, "skill_storage"), SkillStorage.class, entity -> entity instanceof LivingEntity, target -> new SkillStorage((LivingEntity) target));
         });
     }
 
     private final Map<ResourceLocation, ManasSkillInstance> skillInstances = new HashMap<>();
+
+    protected SkillStorage(LivingEntity holder) {
+        super(holder);
+    }
 
     public Collection<ManasSkillInstance> getLearnedSkills() {
         return this.skillInstances.values();
@@ -47,14 +53,13 @@ public class SkillStorage extends Storage {
             return false;
         }
 
-        if (!MinecraftForge.EVENT_BUS.post(new UnlockSkillEvent(instance, this.owner))) {
-            instance.markDirty();
-            this.skillInstances.put(instance.getSkillId(), instance);
-            markDirty();
-            return true;
-        }
+        EventResult result = SkillEvents.UNLOCK_SKILL.invoker().unlockSkill(instance, (LivingEntity) this.holder);
+        if (result.isFalse()) return false;
 
-        return false;
+        instance.markDirty();
+        this.skillInstances.put(instance.getSkillId(), instance);
+        markDirty();
+        return true;
     }
 
     public Optional<ManasSkillInstance> getSkill(@NonNull ManasSkill skill) {
