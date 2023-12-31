@@ -4,6 +4,12 @@ import net.minecraft.nbt.CompoundTag;
 
 public abstract class Storage {
     private boolean dirty = true;
+    protected final StorageHolder holder;
+
+    protected Storage(StorageHolder holder) {
+        this.holder = holder;
+    }
+
 
     /**
      * Used to save data to the entity.
