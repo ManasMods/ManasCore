@@ -21,6 +21,7 @@ This Mod doesn't provide any new functionality for Minecraft itself. It is requi
           the key is released
 - Builder like content creation
     - Create custom blocks, items, entities, blockEntities and attributes. with a builder like syntax
+- Skill API 
 
 ## Development Setup
 
