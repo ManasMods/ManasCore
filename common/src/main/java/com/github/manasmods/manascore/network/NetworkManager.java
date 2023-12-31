@@ -5,6 +5,7 @@ import com.github.manasmods.manascore.network.toclient.SyncEntityStoragePacket;
 import com.github.manasmods.manascore.network.toclient.SyncWorldStoragePacket;
 import com.github.manasmods.manascore.network.toserver.RequestSkillActivationPacket;
 import com.github.manasmods.manascore.network.toserver.RequestSkillReleasePacket;
+import com.github.manasmods.manascore.network.toserver.RequestSkillTogglePacket;
 import dev.architectury.networking.NetworkChannel;
 import net.minecraft.resources.ResourceLocation;
 
@@ -18,5 +19,6 @@ public class NetworkManager {
 
         CHANNEL.register(RequestSkillActivationPacket.class, RequestSkillActivationPacket::encode, RequestSkillActivationPacket::new, RequestSkillActivationPacket::handle);
         CHANNEL.register(RequestSkillReleasePacket.class, RequestSkillReleasePacket::encode, RequestSkillReleasePacket::new, RequestSkillReleasePacket::handle);
+        CHANNEL.register(RequestSkillTogglePacket.class, RequestSkillTogglePacket::encode, RequestSkillTogglePacket::new, RequestSkillTogglePacket::handle);
     }
 }

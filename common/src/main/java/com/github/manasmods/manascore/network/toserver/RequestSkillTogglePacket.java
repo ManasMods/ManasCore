@@ -9,30 +9,20 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.function.Supplier;
 
-public class RequestSkillReleasePacket {
-    private final int heldTick;
-    private final int keyNumber;
+public class RequestSkillTogglePacket {
     private final List<ResourceLocation> skillList;
-
-    public RequestSkillReleasePacket(FriendlyByteBuf buf) {
+    public RequestSkillTogglePacket(FriendlyByteBuf buf) {
         this.skillList = buf.readList(FriendlyByteBuf::readResourceLocation);
-        this.keyNumber = buf.readInt();
-        this.heldTick = buf.readInt();
     }
 
-    public RequestSkillReleasePacket(List<ResourceLocation> skills, int keyNumber, int ticks) {
+    public RequestSkillTogglePacket(List<ResourceLocation> skills) {
         this.skillList = skills;
-        this.keyNumber = keyNumber;
-        this.heldTick = ticks;
     }
 
     public void encode(FriendlyByteBuf buf) {
         buf.writeCollection(this.skillList, FriendlyByteBuf::writeResourceLocation);
-        buf.writeInt(this.keyNumber);
-        buf.writeInt(this.heldTick);
     }
 
     public void handle(Supplier<PacketContext> contextSupplier) {
@@ -42,17 +32,19 @@ public class RequestSkillReleasePacket {
             Player player = context.getPlayer();
             if(player == null) return;
             SkillStorage storage = SkillAPI.getSkillsFrom(player);
-            for (ResourceLocation skillId : skillList) {
-                storage.getSkill(skillId).ifPresent(skill -> {
+            for (ResourceLocation id : this.skillList) {
+                storage.getSkill(id).ifPresent(skill -> {
                     if(!skill.canInteractSkill(player)) return;
-                    if (skill.onCoolDown() && !skill.canIgnoreCoolDown(player)) return;
-                    skill.onRelease(player, heldTick);
-                    storage.markDirty();
 
-                    Multimap<UUID, TickingSkill> multimap = TickEventListenerHandler.tickingSkills;
-                    if (multimap.containsKey(player.getUUID())) {
-                        multimap.get(player.getUUID()).removeIf(tickingSkill -> tickingSkill.getSkill() == skillInstance.getSkill());
+                    if(skill.isToggled()) {
+                        skill.setToggled(false);
+                        skill.onToggleOff(player);
+                    } else {
+                        skill.setToggled(true);
+                        skill.onToggleOn(player);
                     }
+
+                    storage.markDirty();
                 });
             }
         });
