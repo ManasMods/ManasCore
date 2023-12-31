@@ -7,6 +7,8 @@ import com.github.manasmods.manascore.api.skill.SkillEvents;
 import com.github.manasmods.manascore.api.skill.SkillEvents.SkillActivationEvent;
 import com.github.manasmods.manascore.api.skill.SkillEvents.SkillReleaseEvent;
 import com.github.manasmods.manascore.api.skill.SkillEvents.SkillToggleEvent;
+import com.github.manasmods.manascore.network.NetworkManager;
+import com.github.manasmods.manascore.network.toserver.RequestSkillActivationPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
@@ -31,7 +33,7 @@ public class InternalSkillPacketActions {
         }
 
         if (packetSkills.isEmpty()) return;
-        ManasCoreNetwork.INSTANCE.sendToServer(new RequestSkillActivationPacket(packetSkills, keyNumber));
+        NetworkManager.CHANNEL.sendToServer(new RequestSkillActivationPacket(packetSkills, keyNumber));
     }
 
     /**

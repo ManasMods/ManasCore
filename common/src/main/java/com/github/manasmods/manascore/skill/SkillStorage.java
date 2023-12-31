@@ -66,6 +66,10 @@ public class SkillStorage extends Storage {
         return Optional.ofNullable(this.skillInstances.get(skill.getRegistryName()));
     }
 
+    public Optional<ManasSkillInstance> getSkill(@NonNull ResourceLocation skillId) {
+        return Optional.ofNullable(this.skillInstances.get(skillId));
+    }
+
     public void forgetSkill(ManasSkillInstance instance) {
         if (!this.skillInstances.containsKey(instance.getSkillId())) return;
 
