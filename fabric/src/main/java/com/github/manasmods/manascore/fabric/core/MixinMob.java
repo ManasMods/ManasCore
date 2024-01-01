@@ -14,13 +14,14 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(Mob.class)
 public class MixinMob {
     @WrapOperation(method = "setTarget", at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/Mob;target:Lnet/minecraft/world/entity/LivingEntity;"))
-    private LivingEntity onSetTarget(Mob instance, LivingEntity value, Operation<LivingEntity> original) {
+    private void onSetTarget(Mob instance, LivingEntity value, Operation<LivingEntity> original) {
         Changeable<LivingEntity> target = Changeable.of(value);
         // Do nothing if the event is canceled
-        if (EntityEvents.LIVING_CHANGE_TARGET.invoker().changeTarget(instance, target).isFalse()) return instance.getTarget();
-        // If the target has changed, return the new target
-        if (target.hasChanged()) return target.get();
+        if (EntityEvents.LIVING_CHANGE_TARGET.invoker().changeTarget(instance, target).isFalse()) {
+            original.call(instance, value);
+            return;
+        }
         // Otherwise, return the original value
-        return value;
+        original.call(instance, target.get());
     }
 }
