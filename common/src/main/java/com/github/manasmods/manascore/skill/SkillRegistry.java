@@ -59,5 +59,14 @@ public class SkillRegistry {
 
             return EventResult.pass();
         });
+
+        SkillEvents.SKILL_DAMAGE_POST_CALCULATION.register((storage, entity, source, amount) -> {
+            for (ManasSkillInstance instance : storage.getLearnedSkills()) {
+                if (!instance.canInteractSkill(entity)) continue;
+                if (!instance.onTouchEntity(entity, source, amount)) return EventResult.interruptFalse();
+            }
+
+            return EventResult.pass();
+        });
     }
 }

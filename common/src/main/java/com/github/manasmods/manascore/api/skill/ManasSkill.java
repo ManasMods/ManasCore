@@ -1,6 +1,5 @@
 package com.github.manasmods.manascore.api.skill;
 
-import com.github.manasmods.manascore.api.world.entity.EntityEvents.LivingHurtEvent;
 import com.github.manasmods.manascore.utils.Changeable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -273,17 +272,12 @@ public class ManasSkill {
     }
 
     /**
-     * Called when the {@link LivingEntity} owning this Skill damage another {@link LivingEntity}, triggered after {@link SkillDamageEvent.Calculation}
-     * Canceling {@link LivingHurtEvent} will not cancel the hurt sound, animation and knock back.
-     * <p>
-     * Executing Order: This method gets invoked after {@link ManasSkill#onDamageEntity}
+     * Called when the {@link LivingEntity} owning this Skill damage another {@link LivingEntity},
      *
-     * @param instance Affected {@link ManasSkillInstance}
-     * @param entity   Affected {@link LivingEntity} owning this Skill.
-     * @param event    Triggered {@link LivingHurtEvent}
-     * @see SkillDamageEvent.Calculation
+     * @see ManasSkillInstance#onTouchEntity(LivingEntity, DamageSource, Changeable)
      */
-    public void onTouchEntity(ManasSkillInstance instance, LivingEntity entity, LivingHurtEvent event) {
+    public boolean onTouchEntity(ManasSkillInstance instance, LivingEntity entity, DamageSource source, Changeable<Float> amount) {
+        return true;
     }
 
     /**
