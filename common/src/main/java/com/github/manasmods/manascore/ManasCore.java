@@ -49,6 +49,7 @@ public class ManasCore {
 
     private static void setupCustomRegistries() {
         SkillRegistry.init();
+        SkillStorage.init();
     }
 
     private static void staticContentInit() {
