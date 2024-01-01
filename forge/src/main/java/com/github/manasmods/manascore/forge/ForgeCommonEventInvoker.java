@@ -4,6 +4,7 @@ import com.github.manasmods.manascore.api.world.entity.EntityEvents;
 import com.github.manasmods.manascore.utils.Changeable;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.event.entity.living.LivingChangeTargetEvent;
+import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -28,5 +29,10 @@ public class ForgeCommonEventInvoker {
         } else {
             e.setAmount(amount.get());
         }
+    }
+
+    @SubscribeEvent
+    static void onLivingDamage(final LivingDamageEvent e) {
+
     }
 }

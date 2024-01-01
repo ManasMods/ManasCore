@@ -13,6 +13,7 @@ public interface EntityEvents {
     Event<LivingChangeTargetEvent> LIVING_CHANGE_TARGET = EventFactory.createEventResult();
     Event<LivingAttackEvent> LIVING_ATTACK = EventFactory.createEventResult();
     Event<LivingHurtEvent> LIVING_HURT = EventFactory.createEventResult();
+    Event<LivingDamageEvent> LIVING_DAMAGE = EventFactory.createEventResult();
 
 
     @FunctionalInterface
@@ -33,5 +34,10 @@ public interface EntityEvents {
     @FunctionalInterface
     interface LivingHurtEvent {
         EventResult hurt(LivingEntity entity, DamageSource source, Changeable<Float> amount);
+    }
+
+    @FunctionalInterface
+    interface LivingDamageEvent {
+        EventResult damage(LivingEntity entity, DamageSource source, Changeable<Float> amount);
     }
 }
