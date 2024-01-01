@@ -282,14 +282,11 @@ public class ManasSkill {
 
     /**
      * Called when the {@link LivingEntity} owning this Skill takes damage.
-     * Canceling {@link LivingDamageEvent} will not cancel the hurt sound, animation and knock back.
-     * <p>
-     * Executing Order: This method gets invoked after {@link ManasSkill#onTouchEntity}
      *
-     * @param instance Affected {@link ManasSkillInstance}
-     * @param event    Triggered {@link LivingDamageEvent}
+     * @see ManasSkillInstance#onTakenDamage(LivingEntity, DamageSource, Changeable)
      */
-    public void onTakenDamage(ManasSkillInstance instance, LivingDamageEvent event) {
+    public boolean onTakenDamage(ManasSkillInstance instance, LivingEntity owner, DamageSource source, Changeable<Float> amount) {
+        return true;
     }
 
     /**

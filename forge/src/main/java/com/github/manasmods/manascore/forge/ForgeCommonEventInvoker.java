@@ -33,6 +33,11 @@ public class ForgeCommonEventInvoker {
 
     @SubscribeEvent
     static void onLivingDamage(final LivingDamageEvent e) {
-
+        Changeable<Float> amount = Changeable.of(e.getAmount());
+        if (EntityEvents.LIVING_DAMAGE.invoker().damage(e.getEntity(), e.getSource(), amount).isFalse()) {
+            e.setCanceled(true);
+        } else {
+            e.setAmount(amount.get());
+        }
     }
 }

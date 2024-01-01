@@ -477,6 +477,7 @@ public class ManasSkillInstance implements Cloneable {
      * Called when the {@link LivingEntity} owning this instance gets hurt (after effects like Barriers are consumed the damage amount).
      * <p>
      * Gets executed after {@link ManasSkillInstance#onDamageEntity}
+     * Gets executed before {@link ManasSkillInstance#onTakenDamage}
      *
      * @return false will prevent the owner from taking damage.
      */
@@ -486,12 +487,13 @@ public class ManasSkillInstance implements Cloneable {
 
     /**
      * Called when the {@link LivingEntity} owning this instance takes damage.
-     * Change the amount of the damage that the owner takes.
+     * <p>
+     * Gets executed after {@link ManasSkillInstance#onTouchEntity}
      *
-     * @param event Triggered {@link LivingDamageEvent}
+     * @return false will prevent the owner from taking damage.
      */
-    public void onTakenDamage(LivingDamageEvent event) {
-        this.getSkill().onTakenDamage(this, event);
+    public boolean onTakenDamage(LivingEntity owner, DamageSource source, Changeable<Float> amount) {
+        return this.getSkill().onTakenDamage(this, owner, source, amount);
     }
 
     /**

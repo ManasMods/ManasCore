@@ -68,5 +68,14 @@ public class SkillRegistry {
 
             return EventResult.pass();
         });
+
+        EntityEvents.LIVING_DAMAGE.register((entity, source, amount) -> {
+            for (ManasSkillInstance instance : SkillAPI.getSkillsFrom(entity).getLearnedSkills()) {
+                if (!instance.canInteractSkill(entity)) continue;
+                if (!instance.onTakenDamage(entity, source, amount)) return EventResult.interruptFalse();
+            }
+
+            return EventResult.pass();
+        });
     }
 }
