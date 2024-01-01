@@ -8,13 +8,11 @@ import java.util.Optional;
 
 public class ManasCoreAttributeUtils {
     public static double getEntityReachAddition(Player player) {
-        double range = player.getAttributeValue(ManasCoreAttributes.ENTITY_REACH.get());
-        return range == 0 ? 0 : range + (player.isCreative() ? 3 : 0);
+        return player.getAttributeValue(ManasCoreAttributes.ENTITY_REACH.get());
     }
 
     public static double getBlockReachAddition(Player player) {
-        double reach = player.getAttributeValue(ManasCoreAttributes.BLOCK_REACH.get());
-        return reach == 0 ? 0 : reach + (player.isCreative() ? 0.5 : 0);
+        return player.getAttributeValue(ManasCoreAttributes.BLOCK_REACH.get());
     }
 
     public static boolean cantHit(Player player, Entity entity, double padding) {

@@ -8,7 +8,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
-import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -38,10 +37,11 @@ public abstract class MixinPlayer {
     }
 
     @Redirect(method = "attack", at = @At(value = "INVOKE",
-            target = "Lnet/minecraft/world/entity/player/Player;distanceToSqr(Lnet/minecraft/world/entity/Entity;)D", opcode = Opcodes.GETSTATIC))
+            target = "Lnet/minecraft/world/entity/player/Player;distanceToSqr(Lnet/minecraft/world/entity/Entity;)D"))
     private double getBlockInteractDistance(Player player, Entity entity) {
-        double reach = ManasCoreAttributeUtils.getBlockReachAddition(player);
-        return player.distanceToSqr(entity) - reach * reach;
+        double reach = ManasCoreAttributeUtils.getEntityReachAddition(player);
+        double reachSquared = reach * reach * (reach < 0 ? -1 : 1);
+        return player.distanceToSqr(entity) - reachSquared;
     }
 
     @Inject(method = "getDestroySpeed", at = @At("RETURN"), cancellable = true)

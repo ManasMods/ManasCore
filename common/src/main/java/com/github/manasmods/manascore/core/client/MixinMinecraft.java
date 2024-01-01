@@ -40,8 +40,8 @@ public class MixinMinecraft {
             return;
         }
 
-        if(!(this.hitResult instanceof EntityHitResult entityHit)) return;
-        if(ManasCoreAttributeUtils.cantHit(player, entityHit.getEntity(), 3)) {
+        if (!(this.hitResult instanceof EntityHitResult entityHit)) return;
+        if (ManasCoreAttributeUtils.cantHit(player, entityHit.getEntity(), 3)) {
             if (this.gameMode != null && this.gameMode.hasMissTime()) this.missTime = 10;
             this.player.resetAttackStrengthTicker();
             this.player.swing(InteractionHand.MAIN_HAND);
