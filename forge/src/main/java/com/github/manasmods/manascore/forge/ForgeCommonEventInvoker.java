@@ -1,8 +1,10 @@
 package com.github.manasmods.manascore.forge;
 
 import com.github.manasmods.manascore.api.world.entity.EntityEvents;
+import com.github.manasmods.manascore.api.world.entity.EntityEvents.ProjectileHitResult;
 import com.github.manasmods.manascore.utils.Changeable;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.living.LivingChangeTargetEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
@@ -38,6 +40,27 @@ public class ForgeCommonEventInvoker {
             e.setCanceled(true);
         } else {
             e.setAmount(amount.get());
+        }
+    }
+
+    @SubscribeEvent
+    static void onProjectileHit(final ProjectileImpactEvent e) {
+        Changeable<ProjectileHitResult> result;
+
+        switch (e.getImpactResult()) {
+            default -> result = Changeable.of(ProjectileHitResult.DEFUALT);
+            case STOP_AT_CURRENT -> result = Changeable.of(ProjectileHitResult.HIT);
+            case STOP_AT_CURRENT_NO_DAMAGE -> result = Changeable.of(ProjectileHitResult.HIT_NO_DAMAGE);
+            case SKIP_ENTITY -> result = Changeable.of(ProjectileHitResult.PASS);
+        }
+
+        EntityEvents.PROJECTILE_HIT.invoker().hit(e.getRayTraceResult(), e.getProjectile(), result);
+
+        switch (result.get()) {
+            case DEFUALT -> e.setImpactResult(ProjectileImpactEvent.ImpactResult.DEFAULT);
+            case HIT -> e.setImpactResult(ProjectileImpactEvent.ImpactResult.STOP_AT_CURRENT);
+            case HIT_NO_DAMAGE -> e.setImpactResult(ProjectileImpactEvent.ImpactResult.STOP_AT_CURRENT_NO_DAMAGE);
+            case PASS -> e.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
         }
     }
 }

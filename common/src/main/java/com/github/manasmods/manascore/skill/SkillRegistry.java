@@ -15,6 +15,8 @@ import dev.architectury.registry.registries.RegistrarManager;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.EntityHitResult;
 
 public class SkillRegistry {
     public static final Registrar<ManasSkill> SKILLS = RegistrarManager.get(ManasCore.MOD_ID).<ManasSkill>builder(new ResourceLocation(ManasCore.MOD_ID, "skills"))
@@ -93,6 +95,16 @@ public class SkillRegistry {
             for (ManasSkillInstance instance : SkillAPI.getSkillsFrom(newPlayer).getLearnedSkills()) {
                 if (!instance.canInteractSkill(newPlayer)) continue;
                 instance.onRespawn(newPlayer, conqueredEnd);
+            }
+        });
+
+        EntityEvents.PROJECTILE_HIT.register((result, projectile, hitResultChangeable) -> {
+            if (!(result instanceof EntityHitResult hitResult)) return;
+            if (!(hitResult.getEntity() instanceof LivingEntity hitEntity)) return;
+
+            for (ManasSkillInstance instance : SkillAPI.getSkillsFrom(hitEntity).getLearnedSkills()) {
+                if (!instance.canInteractSkill(hitEntity)) continue;
+                instance.onProjectileHit(hitEntity, hitResult, projectile, hitResultChangeable);
             }
         });
     }

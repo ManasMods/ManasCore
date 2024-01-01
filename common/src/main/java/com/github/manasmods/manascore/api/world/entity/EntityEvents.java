@@ -6,6 +6,8 @@ import dev.architectury.event.EventFactory;
 import dev.architectury.event.EventResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.phys.HitResult;
 
 public interface EntityEvents {
     Event<LivingTickEvent> LIVING_PRE_TICK = EventFactory.createLoop();
@@ -14,6 +16,7 @@ public interface EntityEvents {
     Event<LivingAttackEvent> LIVING_ATTACK = EventFactory.createEventResult();
     Event<LivingHurtEvent> LIVING_HURT = EventFactory.createEventResult();
     Event<LivingDamageEvent> LIVING_DAMAGE = EventFactory.createEventResult();
+    Event<ProjectileHitEvent> PROJECTILE_HIT = EventFactory.createLoop();
 
 
     @FunctionalInterface
@@ -39,5 +42,17 @@ public interface EntityEvents {
     @FunctionalInterface
     interface LivingDamageEvent {
         EventResult damage(LivingEntity entity, DamageSource source, Changeable<Float> amount);
+    }
+
+    @FunctionalInterface
+    interface ProjectileHitEvent {
+        void hit(HitResult hitResult, Projectile projectile,Changeable<ProjectileHitResult> result);
+    }
+
+    enum ProjectileHitResult {
+        DEFUALT, // Hit, damage + possibly continue
+        HIT, // Hit + damage
+        HIT_NO_DAMAGE, // Hit
+        PASS // Pass through
     }
 }

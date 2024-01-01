@@ -1,5 +1,6 @@
 package com.github.manasmods.manascore.api.skill;
 
+import com.github.manasmods.manascore.api.world.entity.EntityEvents.ProjectileHitResult;
 import com.github.manasmods.manascore.utils.Changeable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -11,6 +12,8 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.phys.EntityHitResult;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -292,12 +295,9 @@ public class ManasSkill {
 
     /**
      * Called when the {@link LivingEntity} is hit by a projectile.
-     *
-     * @param instance Affected {@link ManasSkillInstance}
-     * @param living   Affected {@link LivingEntity} owning this instance.
-     * @param event    Triggered {@link ProjectileImpactEvent}
      */
-    public void onProjectileHit(ManasSkillInstance instance, LivingEntity living, ProjectileImpactEvent event) {
+    public void onProjectileHit(ManasSkillInstance instance, LivingEntity living, EntityHitResult hitResult, Projectile projectile, Changeable<ProjectileHitResult> result) {
+
     }
 
     /**
