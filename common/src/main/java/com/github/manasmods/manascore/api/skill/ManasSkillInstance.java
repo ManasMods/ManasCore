@@ -1,5 +1,6 @@
 package com.github.manasmods.manascore.api.skill;
 
+import com.github.manasmods.manascore.utils.Changeable;
 import dev.architectury.registry.registries.RegistrySupplier;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
@@ -442,11 +443,10 @@ public class ManasSkillInstance implements Cloneable {
     /**
      * Called when the {@link LivingEntity} owning this instance starts to be targeted by a mob.
      *
-     * @param target Affected {@link LivingEntity} owning this instance.
-     * @param event  Triggered {@link LivingChangeTargetEvent}
+     * @return false will stop the mob from targeting the owner.
      */
-    public void onBeingTargeted(LivingEntity target, LivingChangeTargetEvent event) {
-        this.getSkill().onBeingTargeted(this, target, event);
+    public boolean onBeingTargeted(Changeable<LivingEntity> target) {
+        return this.getSkill().onBeingTargeted(this, target);
     }
 
     /**

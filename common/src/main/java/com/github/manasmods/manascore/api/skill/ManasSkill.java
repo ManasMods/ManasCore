@@ -1,5 +1,6 @@
 package com.github.manasmods.manascore.api.skill;
 
+import com.github.manasmods.manascore.utils.Changeable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -245,11 +246,10 @@ public class ManasSkill {
     /**
      * Called when the {@link LivingEntity} owning this Skill starts to be targeted by a mob.
      *
-     * @param instance Affected {@link ManasSkillInstance}
-     * @param target   Affected {@link LivingEntity} owning this Skill.
-     * @param event    Triggered {@link LivingChangeTargetEvent}
+     * @see ManasSkillInstance#onBeingTargeted(Changeable)
      */
-    public void onBeingTargeted(ManasSkillInstance instance, LivingEntity target, LivingChangeTargetEvent event) {
+    public boolean onBeingTargeted(ManasSkillInstance instance, Changeable<LivingEntity> target) {
+        return true;
     }
 
     /**

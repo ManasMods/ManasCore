@@ -2,7 +2,9 @@ package com.github.manasmods.manascore.skill;
 
 import com.github.manasmods.manascore.ManasCore;
 import com.github.manasmods.manascore.api.skill.ManasSkill;
+import com.github.manasmods.manascore.api.skill.ManasSkillInstance;
 import com.github.manasmods.manascore.api.skill.SkillAPI;
+import com.github.manasmods.manascore.api.world.entity.EntityEvents;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.InteractionEvent;
 import dev.architectury.registry.registries.Registrar;
@@ -24,6 +26,16 @@ public class SkillRegistry {
                 if (!skillInstance.canInteractSkill(player)) return;
                 skillInstance.onRightClickBlock(player, hand, pos, face);
             }));
+
+            return EventResult.pass();
+        });
+        EntityEvents.LIVING_CHANGE_TARGET.register((entity, changeableTarget) -> {
+            if (!changeableTarget.isPresent()) return EventResult.pass();
+
+            for (ManasSkillInstance instance : SkillAPI.getSkillsFrom(changeableTarget.get()).getLearnedSkills()) {
+                if (!instance.canInteractSkill(entity)) continue;
+                if (!instance.onBeingTargeted(changeableTarget)) return EventResult.interruptFalse();
+            }
 
             return EventResult.pass();
         });
