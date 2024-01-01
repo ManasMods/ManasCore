@@ -6,7 +6,6 @@ import com.github.manasmods.manascore.api.skill.ManasSkillInstance;
 import com.github.manasmods.manascore.api.skill.SkillAPI;
 import com.github.manasmods.manascore.api.world.entity.EntityEvents;
 import dev.architectury.event.EventResult;
-import dev.architectury.event.events.common.EntityEvent;
 import dev.architectury.event.events.common.InteractionEvent;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrarManager;
@@ -42,7 +41,7 @@ public class SkillRegistry {
             return EventResult.pass();
         });
 
-        EntityEvent.LIVING_HURT.register((entity, source, amount) -> {
+        EntityEvents.LIVING_ATTACK.register((entity, source, amount) -> {
             for (ManasSkillInstance instance : SkillAPI.getSkillsFrom(entity).getLearnedSkills()) {
                 if (!instance.canInteractSkill(entity)) continue;
                 if (!instance.onBeingDamaged(entity, source, amount)) return EventResult.interruptFalse();
