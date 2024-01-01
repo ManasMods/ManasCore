@@ -4,6 +4,7 @@
   "package": "com.github.manasmods.manascore.fabric.core",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "MixinLivingEntity",
     "MixinMob",
     "MixinStartAttacking"
   ],
