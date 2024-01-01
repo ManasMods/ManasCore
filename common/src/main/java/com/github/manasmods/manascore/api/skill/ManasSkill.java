@@ -7,6 +7,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
@@ -254,15 +255,11 @@ public class ManasSkill {
 
     /**
      * Called when the {@link LivingEntity} owning this Skill starts to be attacked.
-     * Canceling {@link LivingAttackEvent} will make the owner immune to the Damage Source.
-     * Therefore, cancel the hurt sound, animation and knock back, but cannot change the damage amount like {@link LivingHurtEvent}
-     * <p>
-     * Executing Order: This method gets invoked first before any Damage method.
      *
-     * @param instance Affected {@link ManasSkillInstance}
-     * @param event    Triggered {@link LivingAttackEvent}
+     * @see ManasSkillInstance#onBeingDamaged(LivingEntity, DamageSource, float)
      */
-    public void onBeingDamaged(ManasSkillInstance instance, LivingAttackEvent event) {
+    public boolean onBeingDamaged(ManasSkillInstance instance, LivingEntity entity, DamageSource source, float amount) {
+        return true;
     }
 
     /**

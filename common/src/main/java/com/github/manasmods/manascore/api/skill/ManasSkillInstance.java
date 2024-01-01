@@ -8,6 +8,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.ApiStatus;
@@ -451,15 +452,13 @@ public class ManasSkillInstance implements Cloneable {
 
     /**
      * Called when the {@link LivingEntity} owning this instance starts to be attacked.
-     * Canceling {@link LivingAttackEvent} will make the owner immune to the Damage Source.
-     * Therefore, cancel the hurt sound, animation and knock back, but cannot change the damage amount like {@link LivingHurtEvent}
      * <p>
-     * Executing Order: This method gets invoked first before any Damage method.
+     * Gets executed before {@link ManasSkillInstance#onDamageEntity}
      *
-     * @param event Triggered {@link LivingAttackEvent}
+     * @return false will prevent the owner from taking damage.
      */
-    public void onBeingDamaged(LivingAttackEvent event) {
-        this.getSkill().onBeingDamaged(this, event);
+    public boolean onBeingDamaged(LivingEntity entity, DamageSource source, float amount) {
+        return this.getSkill().onBeingDamaged(this, entity, source, amount);
     }
 
     /**
