@@ -1,5 +1,6 @@
 package com.github.manasmods.manascore.api.skill;
 
+import com.github.manasmods.manascore.api.world.entity.EntityEvents.LivingHurtEvent;
 import com.github.manasmods.manascore.utils.Changeable;
 import dev.architectury.registry.registries.RegistrySupplier;
 import lombok.Getter;
@@ -462,16 +463,15 @@ public class ManasSkillInstance implements Cloneable {
     }
 
     /**
-     * Called when the {@link LivingEntity} owning this instance gets hurt
-     * Change the amount of the damage that the owner takes.
+     * Called when the {@link LivingEntity} owning this instance gets hurt.
      * <p>
-     * Executing Order: This method gets invoked after {@link ManasSkillInstance#onBeingDamaged}
+     * Gets executed after {@link ManasSkillInstance#onBeingDamaged}<br>
+     * Gets executed before {@link ManasSkillInstance#onTouchEntity}
      *
-     * @param entity Affected {@link LivingEntity} owning this instance.
-     * @param event  Triggered {@link LivingHurtEvent}
+     * @return false will prevent the owner from taking damage.
      */
-    public void onDamageEntity(LivingEntity entity, LivingHurtEvent event) {
-        this.getSkill().onDamageEntity(this, entity, event);
+    public boolean onDamageEntity(LivingEntity owner, DamageSource source, Changeable<Float> amount) {
+        return this.getSkill().onDamageEntity(this, owner, source, amount);
     }
 
     /**

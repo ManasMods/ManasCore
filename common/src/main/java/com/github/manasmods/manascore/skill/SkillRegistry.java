@@ -4,6 +4,7 @@ import com.github.manasmods.manascore.ManasCore;
 import com.github.manasmods.manascore.api.skill.ManasSkill;
 import com.github.manasmods.manascore.api.skill.ManasSkillInstance;
 import com.github.manasmods.manascore.api.skill.SkillAPI;
+import com.github.manasmods.manascore.api.skill.SkillEvents;
 import com.github.manasmods.manascore.api.world.entity.EntityEvents;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.InteractionEvent;
@@ -45,6 +46,15 @@ public class SkillRegistry {
             for (ManasSkillInstance instance : SkillAPI.getSkillsFrom(entity).getLearnedSkills()) {
                 if (!instance.canInteractSkill(entity)) continue;
                 if (!instance.onBeingDamaged(entity, source, amount)) return EventResult.interruptFalse();
+            }
+
+            return EventResult.pass();
+        });
+
+        SkillEvents.SKILL_DAMAGE_PRE_CALCULATION.register((storage, entity, source, amount) -> {
+            for (ManasSkillInstance instance : storage.getLearnedSkills()) {
+                if (!instance.canInteractSkill(entity)) continue;
+                if (!instance.onDamageEntity(entity, source, amount)) return EventResult.interruptFalse();
             }
 
             return EventResult.pass();
