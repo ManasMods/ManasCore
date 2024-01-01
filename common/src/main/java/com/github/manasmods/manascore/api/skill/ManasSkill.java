@@ -1,5 +1,6 @@
 package com.github.manasmods.manascore.api.skill;
 
+import com.github.manasmods.manascore.api.world.entity.EntityEvents.LivingHurtEvent;
 import com.github.manasmods.manascore.utils.Changeable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -272,7 +273,8 @@ public class ManasSkill {
      * @param entity   Affected {@link LivingEntity} owning this SKill.
      * @param event    Triggered {@link LivingHurtEvent}
      */
-    public void onDamageEntity(ManasSkillInstance instance, LivingEntity entity, LivingHurtEvent event) {
+    public boolean onDamageEntity(ManasSkillInstance instance, LivingEntity entity, DamageSource source, Changeable<Float> amount) {
+        return true;
     }
 
     /**
