@@ -7,6 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -517,12 +518,9 @@ public class ManasSkillInstance implements Cloneable {
     }
 
     /**
-     * {@link PlayerEvent.PlayerRespawnEvent} invoking this callback
-     * <p>
-     *
-     * @param event Triggered {@link PlayerEvent.PlayerRespawnEvent}
+     * Called when the {@link ServerPlayer} owning this Skill respawns.
      */
-    public void onRespawn(PlayerEvent.PlayerRespawnEvent event) {
-        this.getSkill().onRespawn(this, event);
+    public void onRespawn(ServerPlayer owner, boolean conqueredEnd) {
+        this.getSkill().onRespawn(this, owner, conqueredEnd);
     }
 }

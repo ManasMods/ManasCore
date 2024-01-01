@@ -9,6 +9,7 @@ import com.github.manasmods.manascore.api.world.entity.EntityEvents;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.EntityEvent;
 import dev.architectury.event.events.common.InteractionEvent;
+import dev.architectury.event.events.common.PlayerEvent;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrarManager;
 import net.minecraft.core.Registry;
@@ -86,6 +87,13 @@ public class SkillRegistry {
             }
 
             return EventResult.pass();
+        });
+
+        PlayerEvent.PLAYER_RESPAWN.register((newPlayer, conqueredEnd) -> {
+            for (ManasSkillInstance instance : SkillAPI.getSkillsFrom(newPlayer).getLearnedSkills()) {
+                if (!instance.canInteractSkill(newPlayer)) continue;
+                instance.onRespawn(newPlayer, conqueredEnd);
+            }
         });
     }
 }
