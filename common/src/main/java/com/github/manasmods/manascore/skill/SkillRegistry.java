@@ -40,7 +40,7 @@ public class SkillRegistry {
 
             for (ManasSkillInstance instance : SkillAPI.getSkillsFrom(changeableTarget.get()).getLearnedSkills()) {
                 if (!instance.canInteractSkill(entity)) continue;
-                if (!instance.onBeingTargeted(changeableTarget)) return EventResult.interruptFalse();
+                if (!instance.onBeingTargeted(entity, changeableTarget)) return EventResult.interruptFalse();
             }
 
             return EventResult.pass();

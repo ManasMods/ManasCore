@@ -45,7 +45,10 @@ public class SkillStorage extends Storage {
         EntityEvents.LIVING_POST_TICK.register(entity -> {
             Level level = entity.level();
             if (level.isClientSide()) return;
+
             SkillStorage storage = SkillAPI.getSkillsFrom(entity);
+            if (storage == null) return;
+
             handleSkillTick(entity, level, storage);
             if (entity instanceof Player player) handleSkillHeldTick(player, level, storage);
             storage.markDirty();
@@ -54,6 +57,7 @@ public class SkillStorage extends Storage {
 
     private static void handleSkillTick(LivingEntity entity, Level level, SkillStorage storage) {
         MinecraftServer server = level.getServer();
+        if (server == null) return;
 
         boolean shouldPassiveConsume = server.getTickCount() % INSTANCE_UPDATE == 0;
         if (!shouldPassiveConsume) return;
@@ -65,7 +69,7 @@ public class SkillStorage extends Storage {
                 // Update temporary skill timer
                 if (!instance.isTemporarySkill()) continue;
                 instance.decreaseRemoveTime(1);
-                if (!instance.shouldRemove()) continue;
+                if (instance.shouldRemove()) continue;
                 storage.forgetSkill(instance);
             }
         }

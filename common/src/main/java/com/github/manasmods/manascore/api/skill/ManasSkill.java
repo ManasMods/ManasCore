@@ -153,7 +153,7 @@ public class ManasSkill {
     public void addMasteryPoint(ManasSkillInstance instance, LivingEntity entity) {
         if (isMastered(instance, entity)) return;
         instance.setMastery(instance.getMastery() + 1);
-        if (isMastered(instance, entity)) onSkillMastered(instance, entity);
+        if (isMastered(instance, entity)) instance.onSkillMastered(entity);
     }
 
     /**
@@ -251,9 +251,9 @@ public class ManasSkill {
     /**
      * Called when the {@link LivingEntity} owning this Skill starts to be targeted by a mob.
      *
-     * @see ManasSkillInstance#onBeingTargeted(Changeable)
+     * @see ManasSkillInstance#onBeingTargeted(LivingEntity, Changeable)
      */
-    public boolean onBeingTargeted(ManasSkillInstance instance, Changeable<LivingEntity> target) {
+    public boolean onBeingTargeted(ManasSkillInstance instance, LivingEntity owner, Changeable<LivingEntity> target) {
         return true;
     }
 
@@ -280,7 +280,7 @@ public class ManasSkill {
      *
      * @see ManasSkillInstance#onTouchEntity(LivingEntity, DamageSource, Changeable)
      */
-    public boolean onTouchEntity(ManasSkillInstance instance, LivingEntity entity, DamageSource source, Changeable<Float> amount) {
+    public boolean onTouchEntity(ManasSkillInstance instance, LivingEntity owner, DamageSource source, Changeable<Float> amount) {
         return true;
     }
 

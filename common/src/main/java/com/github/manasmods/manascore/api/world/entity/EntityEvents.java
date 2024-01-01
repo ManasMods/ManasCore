@@ -50,7 +50,7 @@ public interface EntityEvents {
     }
 
     enum ProjectileHitResult {
-        DEFUALT, // Hit, damage + possibly continue
+        DEFAULT, // Hit, damage + possibly continue
         HIT, // Hit + damage
         HIT_NO_DAMAGE, // Hit
         PASS // Pass through

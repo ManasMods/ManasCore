@@ -1,9 +1,12 @@
 package com.github.manasmods.testmod.registry;
 
 import com.github.manasmods.manascore.ManasCore;
+import com.github.manasmods.manascore.api.skill.ManasSkill;
+import com.github.manasmods.manascore.skill.SkillRegistry;
 import com.mojang.serialization.MapCodec;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraft.world.entity.npc.Villager;
@@ -43,6 +46,7 @@ public class RegisterTest {
     private static final RegistrySupplier<BlockEntityType<TestBlockEntity>> TEST_BLOCK_ENTITY = REGISTER.blockEntity("test_block_entity", TestBlockEntity::new)
             .withValidBlocks(TEST_BLOCK)
             .end();
+    public static final RegistrySupplier<ManasSkill> TEST_SKILL = SkillRegistry.SKILLS.register(new ResourceLocation(ManasCore.MOD_ID, "test_skill"), TestSkill::new);
 
     public static void init() {
         ManasCore.Logger.info("Registered test content!");

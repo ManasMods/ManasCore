@@ -450,8 +450,8 @@ public class ManasSkillInstance implements Cloneable {
      *
      * @return false will stop the mob from targeting the owner.
      */
-    public boolean onBeingTargeted(Changeable<LivingEntity> target) {
-        return this.getSkill().onBeingTargeted(this, target);
+    public boolean onBeingTargeted(LivingEntity owner, Changeable<LivingEntity> target) {
+        return this.getSkill().onBeingTargeted(this, owner, target);
     }
 
     /**
