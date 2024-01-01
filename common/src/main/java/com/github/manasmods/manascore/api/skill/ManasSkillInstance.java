@@ -508,12 +508,12 @@ public class ManasSkillInstance implements Cloneable {
     }
 
     /**
-     * Called when the {@link LivingEntity} owning this Skill dies
+     * Called when the {@link LivingEntity} owning this Skill dies.
      *
-     * @param event Triggered {@link LivingDeathEvent}
+     * @return false will prevent the owner from dying.
      */
-    public void onDeath(LivingDeathEvent event) {
-        this.getSkill().onDeath(this, event);
+    public boolean onDeath(LivingEntity owner, DamageSource source) {
+        return this.getSkill().onDeath(this, owner, source);
     }
 
     /**

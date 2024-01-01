@@ -300,12 +300,12 @@ public class ManasSkill {
     }
 
     /**
-     * Called when the {@link LivingEntity} owning this Skill dies
+     * Called when the {@link LivingEntity} owning this Skill dies.
      *
-     * @param instance Affected {@link ManasSkillInstance}
-     * @param event    Triggered {@link LivingDeathEvent}
+     * @see ManasSkillInstance#onDeath(LivingEntity, DamageSource)
      */
-    public void onDeath(ManasSkillInstance instance, LivingDeathEvent event) {
+    public boolean onDeath(ManasSkillInstance instance, LivingEntity owner, DamageSource source) {
+        return true;
     }
 
     /**
