@@ -18,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+@SuppressWarnings("unused")
 public class ManasSkill {
     /**
      * Used to create a {@link ManasSkillInstance} of this Skill.
