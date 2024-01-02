@@ -55,6 +55,12 @@ public class ManasSkillInstance implements Cloneable {
     public ManasSkillInstance clone() {
         ManasSkillInstance clone = new ManasSkillInstance(getSkill());
         clone.dirty = this.dirty;
+        clone.mode = this.mode;
+        clone.coolDown = this.coolDown;
+        clone.removeTime = this.removeTime;
+        clone.masteryPoint = this.masteryPoint;
+        clone.toggled = this.toggled;
+        if (this.tag != null) clone.tag = this.tag.copy();
         return clone;
     }
 
