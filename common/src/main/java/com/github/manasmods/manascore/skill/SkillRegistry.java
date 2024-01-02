@@ -108,4 +108,7 @@ public class SkillRegistry {
             }
         });
     }
+
+    private SkillRegistry() {
+    }
 }
