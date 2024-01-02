@@ -12,6 +12,7 @@ import com.github.manasmods.manascore.storage.StorageManager.StorageKey;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import dev.architectury.event.EventResult;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.nbt.CompoundTag;
@@ -33,14 +34,15 @@ import java.util.function.BiConsumer;
 
 @Log4j2
 public class SkillStorage extends Storage implements Skills {
-    public static StorageKey<SkillStorage> KEY = null;
+    @Getter
+    private static StorageKey<SkillStorage> Key = null;
     public static final int INSTANCE_UPDATE = 20;
     public static final int PASSIVE_SKILL = 100;
     public static final Multimap<UUID, TickingSkill> tickingSkills = ArrayListMultimap.create();
 
     public static void init() {
         StorageEvents.REGISTER_ENTITY_STORAGE.register(registry -> {
-            KEY = registry.register(new ResourceLocation(ManasCore.MOD_ID, "skill_storage"), SkillStorage.class, entity -> entity instanceof LivingEntity, target -> new SkillStorage((LivingEntity) target));
+            Key = registry.register(new ResourceLocation(ManasCore.MOD_ID, "skill_storage"), SkillStorage.class, entity -> entity instanceof LivingEntity, target -> new SkillStorage((LivingEntity) target));
         });
         EntityEvents.LIVING_POST_TICK.register(entity -> {
             Level level = entity.level();

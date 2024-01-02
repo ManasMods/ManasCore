@@ -40,7 +40,7 @@ public class RequestSkillReleasePacket {
         context.queue(() -> {
             Player player = context.getPlayer();
             if (player == null) return;
-            StorageManager.getStorage(player, SkillStorage.KEY).handleSkillRelease(skillList, keyNumber, heldTick);
+            StorageManager.getStorage(player, SkillStorage.getKey()).handleSkillRelease(skillList, keyNumber, heldTick);
         });
     }
 }
