@@ -41,7 +41,7 @@ public class SkillStorage extends Storage implements Skills {
     public static final Multimap<UUID, TickingSkill> tickingSkills = ArrayListMultimap.create();
 
     public static void init() {
-        StorageEvents.REGISTER_ENTITY_STORAGE.register(registry -> key = registry.register(new ResourceLocation(ManasCore.MOD_ID, "skill_storage"), SkillStorage.class, entity -> entity instanceof LivingEntity, target -> new SkillStorage((LivingEntity) target)));
+        StorageEvents.REGISTER_ENTITY_STORAGE.register(registry -> key = registry.register(new ResourceLocation(ManasCore.MOD_ID, "skill_storage"), SkillStorage.class, LivingEntity.class::isInstance, target -> new SkillStorage((LivingEntity) target)));
         EntityEvents.LIVING_POST_TICK.register(entity -> {
             Level level = entity.level();
             if (level.isClientSide()) return;
