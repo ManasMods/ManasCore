@@ -68,25 +68,25 @@ public class ManasSkillInstance {
      * Override {@link ManasSkillInstance#serialize(CompoundTag)} to store your custom Data.
      */
     public final CompoundTag toNBT() {
-        CompoundTag tag = new CompoundTag();
-        tag.putString("skill", this.getSkillId().toString());
-        serialize(tag);
-        return tag;
+        CompoundTag nbt = new CompoundTag();
+        nbt.putString("skill", this.getSkillId().toString());
+        serialize(nbt);
+        return nbt;
     }
 
     /**
      * Can be used to save custom data.
      *
-     * @param tag Tag with data from {@link ManasSkillInstance#fromNBT(CompoundTag)}
+     * @param nbt Tag with data from {@link ManasSkillInstance#fromNBT(CompoundTag)}
      */
-    public CompoundTag serialize(CompoundTag tag) {
-        tag.putInt("Mode", this.mode);
-        tag.putInt("CoolDown", this.coolDown);
-        tag.putInt("RemoveTime", this.removeTime);
-        tag.putInt("Mastery", this.masteryPoint);
-        tag.putBoolean("Toggled", this.toggled);
-        if (this.tag != null) tag.put("tag", this.tag.copy());
-        return tag;
+    public CompoundTag serialize(CompoundTag nbt) {
+        nbt.putInt("Mode", this.mode);
+        nbt.putInt("CoolDown", this.coolDown);
+        nbt.putInt("RemoveTime", this.removeTime);
+        nbt.putInt("Mastery", this.masteryPoint);
+        nbt.putBoolean("Toggled", this.toggled);
+        if (this.tag != null) nbt.put("tag", this.tag.copy());
+        return nbt;
     }
 
     /**
