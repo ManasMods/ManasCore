@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public class ManasSkillInstance implements Cloneable {
+public class ManasSkillInstance {
     private int mode = 1;
     private int coolDown;
     private int removeTime = -1;
@@ -50,9 +50,7 @@ public class ManasSkillInstance implements Cloneable {
     /**
      * Used to create an exact copy of the current instance.
      */
-    @SuppressWarnings("MethodDoesntCallSuperMethod")
-    @Override
-    public ManasSkillInstance clone() {
+    public ManasSkillInstance copy() {
         ManasSkillInstance clone = new ManasSkillInstance(getSkill());
         clone.dirty = this.dirty;
         clone.mode = this.mode;
