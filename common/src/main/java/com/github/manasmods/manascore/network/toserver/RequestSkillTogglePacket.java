@@ -1,7 +1,7 @@
 package com.github.manasmods.manascore.network.toserver;
 
 import com.github.manasmods.manascore.api.skill.SkillAPI;
-import com.github.manasmods.manascore.skill.SkillStorage;
+import com.github.manasmods.manascore.api.skill.Skills;
 import dev.architectury.networking.NetworkManager.PacketContext;
 import dev.architectury.utils.Env;
 import net.minecraft.network.FriendlyByteBuf;
@@ -31,7 +31,7 @@ public class RequestSkillTogglePacket {
         context.queue(() -> {
             Player player = context.getPlayer();
             if(player == null) return;
-            SkillStorage storage = SkillAPI.getSkillsFrom(player);
+            Skills storage = SkillAPI.getSkillsFrom(player);
             for (ResourceLocation id : this.skillList) {
                 storage.getSkill(id).ifPresent(skill -> {
                     if(!skill.canInteractSkill(player)) return;

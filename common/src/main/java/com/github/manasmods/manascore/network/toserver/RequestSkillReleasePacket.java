@@ -1,6 +1,7 @@
 package com.github.manasmods.manascore.network.toserver;
 
 import com.github.manasmods.manascore.api.skill.SkillAPI;
+import com.github.manasmods.manascore.api.skill.Skills;
 import com.github.manasmods.manascore.skill.SkillStorage;
 import com.github.manasmods.manascore.skill.TickingSkill;
 import com.google.common.collect.Multimap;
@@ -43,7 +44,7 @@ public class RequestSkillReleasePacket {
         context.queue(() -> {
             Player player = context.getPlayer();
             if(player == null) return;
-            SkillStorage storage = SkillAPI.getSkillsFrom(player);
+            Skills storage = SkillAPI.getSkillsFrom(player);
             for (ResourceLocation skillId : skillList) {
                 storage.getSkill(skillId).ifPresent(skill -> {
                     if(!skill.canInteractSkill(player)) return;

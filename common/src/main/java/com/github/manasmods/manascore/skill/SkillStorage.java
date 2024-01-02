@@ -1,10 +1,10 @@
 package com.github.manasmods.manascore.skill;
 
 import com.github.manasmods.manascore.ManasCore;
-import com.github.manasmods.manascore.api.skill.ManasSkill;
 import com.github.manasmods.manascore.api.skill.ManasSkillInstance;
 import com.github.manasmods.manascore.api.skill.SkillAPI;
 import com.github.manasmods.manascore.api.skill.SkillEvents;
+import com.github.manasmods.manascore.api.skill.Skills;
 import com.github.manasmods.manascore.api.storage.Storage;
 import com.github.manasmods.manascore.api.storage.StorageEvents;
 import com.github.manasmods.manascore.api.world.entity.EntityEvents;
@@ -32,7 +32,7 @@ import java.util.UUID;
 import java.util.function.BiConsumer;
 
 @Log4j2
-public class SkillStorage extends Storage {
+public class SkillStorage extends Storage implements Skills {
     public static StorageKey<SkillStorage> KEY = null;
     public static final int INSTANCE_UPDATE = 20;
     public static final int PASSIVE_SKILL = 100;
@@ -45,14 +45,14 @@ public class SkillStorage extends Storage {
         EntityEvents.LIVING_POST_TICK.register(entity -> {
             Level level = entity.level();
             if (level.isClientSide()) return;
-            SkillStorage storage = SkillAPI.getSkillsFrom(entity);
+            Skills storage = SkillAPI.getSkillsFrom(entity);
             handleSkillTick(entity, level, storage);
             if (entity instanceof Player player) handleSkillHeldTick(player, level, storage);
             storage.markDirty();
         });
     }
 
-    private static void handleSkillTick(LivingEntity entity, Level level, SkillStorage storage) {
+    private static void handleSkillTick(LivingEntity entity, Level level, Skills storage) {
         MinecraftServer server = level.getServer();
 
         boolean shouldPassiveConsume = server.getTickCount() % INSTANCE_UPDATE == 0;
@@ -85,7 +85,7 @@ public class SkillStorage extends Storage {
         }
     }
 
-    private static void handleSkillHeldTick(Player player, Level level, SkillStorage storage) {
+    private static void handleSkillHeldTick(Player player, Level level, Skills storage) {
         if (!tickingSkills.containsKey(player.getUUID())) return;
         tickingSkills.get(player.getUUID()).removeIf(skill -> !skill.tick(storage, player));
     }
@@ -121,10 +121,6 @@ public class SkillStorage extends Storage {
         instance.onLearnSkill(getOwner());
         markDirty();
         return true;
-    }
-
-    public Optional<ManasSkillInstance> getSkill(@NonNull ManasSkill skill) {
-        return getSkill(skill.getRegistryName());
     }
 
     public Optional<ManasSkillInstance> getSkill(@NonNull ResourceLocation skillId) {

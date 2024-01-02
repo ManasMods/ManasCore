@@ -1,6 +1,5 @@
 package com.github.manasmods.manascore.api.skill;
 
-import com.github.manasmods.manascore.skill.SkillStorage;
 import com.github.manasmods.manascore.utils.Changeable;
 import dev.architectury.event.Event;
 import dev.architectury.event.EventFactory;
@@ -58,6 +57,6 @@ public interface SkillEvents {
 
     @FunctionalInterface
     interface SkillDamageCalculationEvent {
-        EventResult calculate(SkillStorage storage, LivingEntity entity, DamageSource source, Changeable<Float> amount);
+        EventResult calculate(Skills storage, LivingEntity entity, DamageSource source, Changeable<Float> amount);
     }
 }
