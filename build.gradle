@@ -10,8 +10,10 @@ architectury {
 }
 
 subprojects {
-    apply plugin: "dev.architectury.loom"
-    apply plugin: "io.freefair.lombok"
+    apply {
+        plugin("dev.architectury.loom")
+        plugin("io.freefair.lombok")
+    }
 
     loom {
         silentMojangMappingsLicense()
@@ -32,10 +34,11 @@ subprojects {
 }
 
 allprojects {
-    apply plugin: "java"
-    apply plugin: "architectury-plugin"
-    apply plugin: "maven-publish"
-    apply plugin: "org.sonarqube"
+    apply {
+        plugin("java")
+        plugin("architectury-plugin")
+        plugin("maven-publish")
+    }
 
     archivesBaseName = rootProject.archives_base_name
     version = rootProject.mod_version
@@ -85,8 +88,10 @@ allprojects {
             }
         }
     }
+}
 
-    sonar {
+sonar {
+    properties {
         property "sonar.projectKey", "ManasMods_ManasCore"
         property "sonar.organization", "manasmods"
         property "sonar.host.url", "https://sonarcloud.io"
