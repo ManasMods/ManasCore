@@ -27,9 +27,7 @@ public class ManasCore {
         setupEventListeners();
         setupCustomRegistries();
         REGISTER.init(ManasCore::staticContentInit);
-        LifecycleEvent.SETUP.register(StorageManager::init);
         NetworkManager.init();
-        ManasAttributeRegistry.init();
         if (Platform.getEnvironment() == Env.CLIENT) {
             ManasCoreClient.init();
         }
@@ -45,14 +43,17 @@ public class ManasCore {
             if (SkillEvents.SKILL_DAMAGE_POST_CALCULATION.invoker().calculate(storage, entity, source, amount).isFalse()) return EventResult.interruptFalse();
             return EventResult.pass();
         });
+
+        LifecycleEvent.SETUP.register(StorageManager::init);
     }
 
     private static void setupCustomRegistries() {
         SkillRegistry.init();
         SkillStorage.init();
+        ManasAttributeRegistry.init();
     }
 
     private static void staticContentInit() {
-
+        // No content yet
     }
 }
