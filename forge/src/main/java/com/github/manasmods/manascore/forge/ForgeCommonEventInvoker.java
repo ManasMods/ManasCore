@@ -13,6 +13,9 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 
 @EventBusSubscriber
 public class ForgeCommonEventInvoker {
+    private ForgeCommonEventInvoker() {
+    }
+
     @SubscribeEvent
     static void onLivingChangeTarget(final LivingChangeTargetEvent e) {
         Changeable<LivingEntity> changeableTarget = Changeable.of(e.getNewTarget());
