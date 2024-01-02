@@ -13,6 +13,9 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.LivingEntity;
 
 public final class SkillAPI {
+    private SkillAPI() {
+    }
+    
     /**
      * This Method returns the {@link ManasSkill} Registry.
      * It can be used to load {@link ManasSkill}s from the Registry.
