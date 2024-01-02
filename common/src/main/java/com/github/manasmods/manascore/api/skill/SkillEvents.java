@@ -13,7 +13,8 @@ public interface SkillEvents {
     Event<SkillActivationEvent> ACTIVATE_SKILL = EventFactory.createEventResult();
     Event<SkillReleaseEvent> RELEASE_SKILL = EventFactory.createEventResult();
     Event<SkillToggleEvent> TOGGLE_SKILL = EventFactory.createEventResult();
-    Event<SkillTickEvent> SKILL_TICK = EventFactory.createEventResult();
+    Event<SkillTickEvent> SKILL_PRE_TICK = EventFactory.createEventResult();
+    Event<SkillPostTickEvent> SKILL_POST_TICK = EventFactory.createLoop();
     Event<SkillScrollEvent> SKILL_SCROLL = EventFactory.createEventResult();
     Event<SkillDamageCalculationEvent> SKILL_DAMAGE_PRE_CALCULATION = EventFactory.createEventResult();
     Event<SkillDamageCalculationEvent> SKILL_DAMAGE_CALCULATION = EventFactory.createEventResult();
@@ -48,6 +49,11 @@ public interface SkillEvents {
     @FunctionalInterface
     interface SkillTickEvent {
         EventResult tick(ManasSkillInstance skillInstance, LivingEntity owner);
+    }
+
+    @FunctionalInterface
+    interface SkillPostTickEvent {
+        void tick(ManasSkillInstance skillInstance, LivingEntity owner);
     }
 
     @FunctionalInterface

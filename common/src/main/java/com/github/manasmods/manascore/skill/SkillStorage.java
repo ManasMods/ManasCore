@@ -24,6 +24,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -47,7 +48,7 @@ public class SkillStorage extends Storage implements Skills {
             if (level.isClientSide()) return;
             Skills storage = SkillAPI.getSkillsFrom(entity);
             handleSkillTick(entity, level, storage);
-            if (entity instanceof Player player) handleSkillHeldTick(player, level, storage);
+            if (entity instanceof Player player) handleSkillHeldTick(player, storage);
             storage.markDirty();
         });
     }
@@ -57,35 +58,53 @@ public class SkillStorage extends Storage implements Skills {
 
         boolean shouldPassiveConsume = server.getTickCount() % INSTANCE_UPDATE == 0;
         if (!shouldPassiveConsume) return;
-
-        if (entity instanceof Player) {
-            for (ManasSkillInstance instance : storage.getLearnedSkills()) {
-                // Update cool down
-                if (instance.onCoolDown()) instance.decreaseCoolDown(1);
-                // Update temporary skill timer
-                if (!instance.isTemporarySkill()) continue;
-                instance.decreaseRemoveTime(1);
-                if (!instance.shouldRemove()) continue;
-                storage.forgetSkill(instance);
-            }
-        }
+        checkPlayerOnlyEffects(entity, storage);
 
         boolean passiveSkillActivate = server.getTickCount() % PASSIVE_SKILL == 0;
         if (!passiveSkillActivate) return;
 
-        for (ManasSkillInstance instance : List.copyOf(storage.getLearnedSkills())) {
+        tickSkills(entity, storage);
+    }
+
+    private static void tickSkills(LivingEntity entity, Skills storage) {
+        List<ManasSkillInstance> tickingSkills = new ArrayList<>();
+        for (ManasSkillInstance instance : storage.getLearnedSkills()) {
             Optional<ManasSkillInstance> optional = storage.getSkill(instance.getSkill());
             if (optional.isEmpty()) continue;
 
             ManasSkillInstance skillInstance = optional.get();
             if (!skillInstance.canInteractSkill(entity)) continue;
             if (!skillInstance.getSkill().canTick(skillInstance, entity)) continue;
-            if (SkillEvents.SKILL_TICK.invoker().tick(skillInstance, entity).isFalse()) continue;
-            skillInstance.onTick(entity);
+            if (SkillEvents.SKILL_PRE_TICK.invoker().tick(skillInstance, entity).isFalse()) continue;
+            tickingSkills.add(skillInstance);
+        }
+
+        for (ManasSkillInstance instance : tickingSkills) {
+            instance.onTick(entity);
+            SkillEvents.SKILL_POST_TICK.invoker().tick(instance, entity);
         }
     }
 
-    private static void handleSkillHeldTick(Player player, Level level, Skills storage) {
+    private static void checkPlayerOnlyEffects(LivingEntity entity, Skills storage) {
+        if (!(entity instanceof Player)) return;
+        List<ManasSkillInstance> toBeRemoved = new ArrayList<>();
+
+        for (ManasSkillInstance instance : storage.getLearnedSkills()) {
+            // Update cool down
+            if (instance.onCoolDown()) instance.decreaseCoolDown(1);
+            // Update temporary skill timer
+            if (!instance.isTemporarySkill()) continue;
+            instance.decreaseRemoveTime(1);
+            if (!instance.shouldRemove()) continue;
+            toBeRemoved.add(instance);
+        }
+        // Remove temporary skills
+        for (ManasSkillInstance instance : toBeRemoved) {
+            storage.forgetSkill(instance);
+        }
+    }
+
+    private static void handleSkillHeldTick(Player player, Skills storage) {
         if (!tickingSkills.containsKey(player.getUUID())) return;
         tickingSkills.get(player.getUUID()).removeIf(skill -> !skill.tick(storage, player));
     }
