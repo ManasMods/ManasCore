@@ -3,7 +3,6 @@ package com.github.manasmods.manascore.storage;
 import com.github.manasmods.manascore.ManasCore;
 import com.github.manasmods.manascore.api.storage.Storage;
 import com.github.manasmods.manascore.api.storage.StorageHolder;
-import com.github.manasmods.manascore.api.storage.StorageType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -15,33 +14,10 @@ import java.util.Map;
 
 public class CombinedStorage {
     private final Map<ResourceLocation, Storage> storages = new HashMap<>();
-    private final StorageType type;
+    private final StorageHolder holder;
 
     public CombinedStorage(StorageHolder holder) {
-        this.type = holder.manasCore$getStorageType();
-    }
-
-    public CombinedStorage(StorageHolder holder, CompoundTag tag) {
-        this(holder);
-
-        ListTag entriesTag = tag.getList("manascore_registry_storage", ListTag.TAG_COMPOUND);
-
-        entriesTag.forEach(t -> {
-            // Get serialized storage data
-            CompoundTag entryTag = (CompoundTag) t;
-            // Get storage id
-            ResourceLocation id = new ResourceLocation(entryTag.getString("manascore_registry_storage_id"));
-            // Construct storage
-            Storage storage = StorageManager.constructStorageFor(this.type, id, holder);
-            if (storage == null) {
-                ManasCore.Logger.warn("Failed to construct storage for id {}. All information about this storage will be dropped!", id);
-                return;
-            }
-            // Load storage data
-            storage.load(entryTag);
-            // Put storage into map
-            this.storages.put(id, storage);
-        });
+        this.holder = holder;
     }
 
     public CompoundTag toNBT() {
@@ -57,6 +33,27 @@ public class CombinedStorage {
 
         tag.put("manascore_registry_storage", entriesTag);
         return tag;
+    }
+
+    public void load(CompoundTag tag) {
+        ListTag entriesTag = tag.getList("manascore_registry_storage", ListTag.TAG_COMPOUND);
+
+        entriesTag.forEach(t -> {
+            // Get serialized storage data
+            CompoundTag entryTag = (CompoundTag) t;
+            // Get storage id
+            ResourceLocation id = new ResourceLocation(entryTag.getString("manascore_registry_storage_id"));
+            // Construct storage
+            Storage storage = StorageManager.constructStorageFor(this.holder.manasCore$getStorageType(), id, holder);
+            if (storage == null) {
+                ManasCore.Logger.warn("Failed to construct storage for id {}. All information about this storage will be dropped!", id);
+                return;
+            }
+            // Load storage data
+            storage.load(entryTag);
+            // Put storage into map
+            this.storages.put(id, storage);
+        });
     }
 
     public void handleUpdatePacket(CompoundTag tag) {
