@@ -43,7 +43,7 @@ public class RequestSkillActivationPacket {
                 storage.getSkill(skillId).ifPresent(skill -> {
                     if(!skill.canInteractSkill(player)) return;
                     if (skill.onCoolDown() && !skill.canIgnoreCoolDown(player)) return;
-                    skill.onPressed(player);
+                    skill.onPressed(player, keyNumber);
                     storage.markDirty();
 
                     SkillStorage.tickingSkills.put(player.getUUID(), new TickingSkill(skill.getSkill()));

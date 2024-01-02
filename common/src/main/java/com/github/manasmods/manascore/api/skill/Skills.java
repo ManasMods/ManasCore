@@ -15,6 +15,8 @@ public interface Skills {
 
     void updateSkill(ManasSkillInstance updatedInstance, boolean sync);
 
+    boolean learnSkill(ManasSkill skill);
+
     boolean learnSkill(ManasSkillInstance instance);
 
     Optional<ManasSkillInstance> getSkill(@NonNull ResourceLocation skillId);
@@ -22,6 +24,8 @@ public interface Skills {
     default Optional<ManasSkillInstance> getSkill(@NonNull ManasSkill skill) {
         return getSkill(skill.getRegistryName());
     }
+
+    void forgetSkill(ManasSkill skill);
 
     void forgetSkill(ManasSkillInstance instance);
 

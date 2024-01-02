@@ -38,7 +38,7 @@ public class TestSkill extends ManasSkill {
         ManasCore.Logger.info("Toggled Off");
     }
 
-    public void onPressed(ManasSkillInstance instance, LivingEntity entity) {
+    public void onPressed(ManasSkillInstance instance, LivingEntity entity, int keyNumber) {
         ManasCore.Logger.info("I'm pressed");
     }
 
@@ -47,7 +47,7 @@ public class TestSkill extends ManasSkill {
         return true;
     }
 
-    public void onRelease(ManasSkillInstance instance, LivingEntity entity, int heldTicks) {
+    public void onRelease(ManasSkillInstance instance, LivingEntity entity, int heldTicks, int keyNumber) {
         ManasCore.Logger.info("I'm released after {} ticks", heldTicks);
     }
 

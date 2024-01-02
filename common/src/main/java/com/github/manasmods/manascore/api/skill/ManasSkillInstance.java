@@ -388,8 +388,8 @@ public class ManasSkillInstance {
      *
      * @param entity Affected {@link LivingEntity} owning this instance.
      */
-    public void onPressed(LivingEntity entity) {
-        this.getSkill().onPressed(this, entity);
+    public void onPressed(LivingEntity entity, int keyNumber) {
+        this.getSkill().onPressed(this, entity, keyNumber);
     }
 
     /**
@@ -408,8 +408,8 @@ public class ManasSkillInstance {
      * @param entity    Affected {@link LivingEntity} owning this instance.
      * @param heldTicks - the number of ticks the skill activation button is held down.
      */
-    public void onRelease(LivingEntity entity, int heldTicks) {
-        this.getSkill().onRelease(this, entity, heldTicks);
+    public void onRelease(LivingEntity entity, int heldTicks, int keyNumber) {
+        this.getSkill().onRelease(this, entity, heldTicks, keyNumber);
     }
 
     /**

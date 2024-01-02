@@ -1,10 +1,7 @@
 package com.github.manasmods.manascore.skill;
 
 import com.github.manasmods.manascore.ManasCore;
-import com.github.manasmods.manascore.api.skill.ManasSkillInstance;
-import com.github.manasmods.manascore.api.skill.SkillAPI;
-import com.github.manasmods.manascore.api.skill.SkillEvents;
-import com.github.manasmods.manascore.api.skill.Skills;
+import com.github.manasmods.manascore.api.skill.*;
 import com.github.manasmods.manascore.api.storage.Storage;
 import com.github.manasmods.manascore.api.storage.StorageEvents;
 import com.github.manasmods.manascore.api.world.entity.EntityEvents;
@@ -128,6 +125,10 @@ public class SkillStorage extends Storage implements Skills {
         if (sync) markDirty();
     }
 
+    public boolean learnSkill(@NonNull ManasSkill skill) {
+        return learnSkill(new ManasSkillInstance(skill));
+    }
+
     public boolean learnSkill(@NonNull ManasSkillInstance instance) {
         if (this.skillInstances.containsKey(instance.getSkillId())) {
             log.debug("Tried to register a deduplicate of {}.", instance.getSkillId());
@@ -148,6 +149,10 @@ public class SkillStorage extends Storage implements Skills {
         return Optional.ofNullable(this.skillInstances.get(skillId));
     }
 
+    public void forgetSkill(ManasSkill skill) {
+        getSkill(skill).ifPresent(this::forgetSkill);
+    }
+
     public void forgetSkill(ManasSkillInstance instance) {
         if (!this.skillInstances.containsKey(instance.getSkillId())) return;
 
@@ -165,12 +170,12 @@ public class SkillStorage extends Storage implements Skills {
         markDirty();
     }
 
-    public void handleSkillRelease(List<ResourceLocation> skillList, int heldTick) {
+    public void handleSkillRelease(List<ResourceLocation> skillList, int heldTick, int keyNumber) {
         for (final ResourceLocation skillId : skillList) {
             getSkill(skillId).ifPresent(skill -> {
                 if (!skill.canInteractSkill(getOwner())) return;
                 if (skill.onCoolDown() && !skill.canIgnoreCoolDown(getOwner())) return;
-                skill.onRelease(getOwner(), heldTick);
+                skill.onRelease(getOwner(), heldTick, keyNumber);
                 if (skill.isDirty()) markDirty();
 
                 UUID ownerID = getOwner().getUUID();
