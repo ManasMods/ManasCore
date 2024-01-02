@@ -54,7 +54,7 @@ public class ForgeCommonEventInvoker {
             case STOP_AT_CURRENT -> result = Changeable.of(ProjectileHitResult.HIT);
             case STOP_AT_CURRENT_NO_DAMAGE -> result = Changeable.of(ProjectileHitResult.HIT_NO_DAMAGE);
             case SKIP_ENTITY -> result = Changeable.of(ProjectileHitResult.PASS);
-            default -> result = Changeable.of(ProjectileHitResult.DEFUALT);
+            default -> result = Changeable.of(ProjectileHitResult.DEFAULT);
         }
 
         EntityEvents.PROJECTILE_HIT.invoker().hit(e.getRayTraceResult(), e.getProjectile(), result);

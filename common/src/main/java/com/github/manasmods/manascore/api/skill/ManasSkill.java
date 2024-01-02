@@ -219,7 +219,7 @@ public class ManasSkill {
      * @param instance Affected {@link ManasSkillInstance}
      * @param entity   Affected {@link LivingEntity} owning this Skill.
      */
-    public void onRelease(ManasSkillInstance instance, LivingEntity entity, int keyNumber, int heldTicks) {
+    public void onRelease(ManasSkillInstance instance, LivingEntity entity, int heldTicks) {
         // Override this method to add your own logic
     }
 
@@ -266,9 +266,9 @@ public class ManasSkill {
     /**
      * Called when the {@link LivingEntity} owning this Skill starts to be targeted by a mob.
      *
-     * @see ManasSkillInstance#onBeingTargeted(LivingEntity, Changeable)
+     * @see ManasSkillInstance#onBeingTargeted(Changeable, LivingEntity)
      */
-    public boolean onBeingTargeted(ManasSkillInstance instance, LivingEntity owner, Changeable<LivingEntity> target) {
+    public boolean onBeingTargeted(ManasSkillInstance instance, Changeable<LivingEntity> target, LivingEntity owner)  {
         // Override this method to add your own logic
         return true;
     }
@@ -286,9 +286,9 @@ public class ManasSkill {
     /**
      * Called when the {@link LivingEntity} owning this Skill damage another {@link LivingEntity}.
      *
-     * @see ManasSkillInstance#onDamageEntity(LivingEntity, DamageSource, Changeable)
+     * @see ManasSkillInstance#onDamageEntity(LivingEntity, LivingEntity, DamageSource, Changeable)
      */
-    public boolean onDamageEntity(ManasSkillInstance instance, LivingEntity owner, DamageSource source, Changeable<Float> amount) {
+    public boolean onDamageEntity(ManasSkillInstance instance, LivingEntity owner, LivingEntity target, DamageSource source, Changeable<Float> amount) {
         // Override this method to add your own logic
         return true;
     }
@@ -296,9 +296,9 @@ public class ManasSkill {
     /**
      * Called when the {@link LivingEntity} owning this Skill damage another {@link LivingEntity},
      *
-     * @see ManasSkillInstance#onTouchEntity(LivingEntity, DamageSource, Changeable)
+     * @see ManasSkillInstance#onTouchEntity(LivingEntity, LivingEntity, DamageSource, Changeable)
      */
-    public boolean onTouchEntity(ManasSkillInstance instance, LivingEntity entity, DamageSource source, Changeable<Float> amount) {
+    public boolean onTouchEntity(ManasSkillInstance instance, LivingEntity owner, LivingEntity target, DamageSource source, Changeable<Float> amount) {
         // Override this method to add your own logic
         return true;
     }

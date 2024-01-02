@@ -165,12 +165,12 @@ public class SkillStorage extends Storage implements Skills {
         markDirty();
     }
 
-    public void handleSkillRelease(List<ResourceLocation> skillList, int keyNumber, int heldTick) {
+    public void handleSkillRelease(List<ResourceLocation> skillList, int heldTick) {
         for (final ResourceLocation skillId : skillList) {
             getSkill(skillId).ifPresent(skill -> {
                 if (!skill.canInteractSkill(getOwner())) return;
                 if (skill.onCoolDown() && !skill.canIgnoreCoolDown(getOwner())) return;
-                skill.onRelease(getOwner(), keyNumber, heldTick);
+                skill.onRelease(getOwner(), heldTick);
                 if (skill.isDirty()) markDirty();
 
                 UUID ownerID = getOwner().getUUID();
