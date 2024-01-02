@@ -19,6 +19,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class InternalSkillPacketActions {
+    private InternalSkillPacketActions() {
+    }
+
     /**
      * This Method filters {@link ManasSkill} that meets the conditions of the {@link SkillActivationEvent} then send packet for them.
      * Only executes on client using the dist executor.
@@ -30,7 +33,7 @@ public class InternalSkillPacketActions {
         List<ResourceLocation> packetSkills = new ArrayList<>();
 
         for (ManasSkillInstance skillInstance : SkillAPI.getSkillsFrom(player).getLearnedSkills()) {
-            if(SkillEvents.ACTIVATE_SKILL.invoker().activateSkill(skillInstance, player, keyNumber).isFalse()) continue;
+            if (SkillEvents.ACTIVATE_SKILL.invoker().activateSkill(skillInstance, player, keyNumber).isFalse()) continue;
             packetSkills.add(skillInstance.getSkillId());
         }
 
@@ -49,7 +52,7 @@ public class InternalSkillPacketActions {
         List<ResourceLocation> packetSkills = new ArrayList<>();
 
         for (ManasSkillInstance skillInstance : SkillAPI.getSkillsFrom(player).getLearnedSkills()) {
-            if(SkillEvents.RELEASE_SKILL.invoker().releaseSkill(skillInstance, player, keyNumber, heldTicks).isFalse()) continue;
+            if (SkillEvents.RELEASE_SKILL.invoker().releaseSkill(skillInstance, player, keyNumber, heldTicks).isFalse()) continue;
             packetSkills.add(skillInstance.getSkillId());
         }
 
@@ -68,7 +71,7 @@ public class InternalSkillPacketActions {
         List<ResourceLocation> packetSkills = new ArrayList<>();
 
         for (ManasSkillInstance skillInstance : SkillAPI.getSkillsFrom(player).getLearnedSkills()) {
-            if(SkillEvents.TOGGLE_SKILL.invoker().toggleSkill(skillInstance, player).isFalse()) continue;
+            if (SkillEvents.TOGGLE_SKILL.invoker().toggleSkill(skillInstance, player).isFalse()) continue;
             packetSkills.add(skillInstance.getSkillId());
         }
 

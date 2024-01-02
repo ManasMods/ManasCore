@@ -2,6 +2,7 @@ package com.github.manasmods.manascore.skill;
 
 import com.github.manasmods.manascore.api.skill.ManasSkill;
 import com.github.manasmods.manascore.api.skill.ManasSkillInstance;
+import com.github.manasmods.manascore.api.skill.Skills;
 import lombok.Getter;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -17,7 +18,7 @@ public class TickingSkill {
         this.maxDuration = skill.getMaxHeldTime();
     }
 
-    public boolean tick(SkillStorage storage, LivingEntity entity) {
+    public boolean tick(Skills storage, LivingEntity entity) {
         Optional<ManasSkillInstance> optional = storage.getSkill(skill);
         if (optional.isEmpty()) return false;
 

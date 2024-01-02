@@ -3,6 +3,7 @@ package com.github.manasmods.manascore;
 import com.github.manasmods.manascore.api.registry.Register;
 import com.github.manasmods.manascore.api.skill.SkillAPI;
 import com.github.manasmods.manascore.api.skill.SkillEvents;
+import com.github.manasmods.manascore.api.skill.Skills;
 import com.github.manasmods.manascore.api.world.entity.EntityEvents;
 import com.github.manasmods.manascore.client.ManasCoreClient;
 import com.github.manasmods.manascore.network.NetworkManager;
@@ -27,9 +28,7 @@ public class ManasCore {
         setupEventListeners();
         setupCustomRegistries();
         REGISTER.init(ManasCore::staticContentInit);
-        LifecycleEvent.SETUP.register(StorageManager::init);
         NetworkManager.init();
-        ManasAttributeRegistry.init();
         if (Platform.getEnvironment() == Env.CLIENT) {
             ManasCoreClient.init();
         }
@@ -39,20 +38,23 @@ public class ManasCore {
         EntityEvent.LIVING_HURT.register((entity, source, amount) -> EntityEvents.LIVING_ATTACK.invoker().attack(entity, source, amount));
 
         EntityEvents.LIVING_HURT.register((entity, source, amount) -> {
-            SkillStorage storage = SkillAPI.getSkillsFrom(entity);
+            Skills storage = SkillAPI.getSkillsFrom(entity);
             if (SkillEvents.SKILL_DAMAGE_PRE_CALCULATION.invoker().calculate(storage, entity, source, amount).isFalse()) return EventResult.interruptFalse();
             if (SkillEvents.SKILL_DAMAGE_CALCULATION.invoker().calculate(storage, entity, source, amount).isFalse()) return EventResult.interruptFalse();
             if (SkillEvents.SKILL_DAMAGE_POST_CALCULATION.invoker().calculate(storage, entity, source, amount).isFalse()) return EventResult.interruptFalse();
             return EventResult.pass();
         });
+
+        LifecycleEvent.SETUP.register(StorageManager::init);
     }
 
     private static void setupCustomRegistries() {
         SkillRegistry.init();
         SkillStorage.init();
+        ManasAttributeRegistry.init();
     }
 
     private static void staticContentInit() {
-
+        // No content yet
     }
 }

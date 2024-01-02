@@ -13,6 +13,9 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.LivingEntity;
 
 public final class SkillAPI {
+    private SkillAPI() {
+    }
+
     /**
      * This Method returns the {@link ManasSkill} Registry.
      * It can be used to load {@link ManasSkill}s from the Registry.
@@ -31,11 +34,9 @@ public final class SkillAPI {
 
     /**
      * Can be used to load the {@link SkillStorage} from an {@link LivingEntity}.
-     *
-     * @see SkillStorage
      */
-    public static SkillStorage getSkillsFrom(@NonNull LivingEntity entity) {
-        return entity.manasCore$getStorage(SkillStorage.KEY);
+    public static Skills getSkillsFrom(@NonNull LivingEntity entity) {
+        return entity.manasCore$getStorage(SkillStorage.getKey());
     }
 
     /**

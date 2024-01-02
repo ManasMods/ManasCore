@@ -2,6 +2,7 @@ plugins {
     id "architectury-plugin" version "3.4-SNAPSHOT"
     id "dev.architectury.loom" version "1.4-SNAPSHOT" apply false
     id "io.freefair.lombok" version "8.4" apply false
+    id "org.sonarqube" version "4.4.1.3373"
 }
 
 architectury {
@@ -9,8 +10,10 @@ architectury {
 }
 
 subprojects {
-    apply plugin: "dev.architectury.loom"
-    apply plugin: "io.freefair.lombok"
+    apply {
+        plugin("dev.architectury.loom")
+        plugin("io.freefair.lombok")
+    }
 
     loom {
         silentMojangMappingsLicense()
@@ -31,9 +34,11 @@ subprojects {
 }
 
 allprojects {
-    apply plugin: "java"
-    apply plugin: "architectury-plugin"
-    apply plugin: "maven-publish"
+    apply {
+        plugin("java")
+        plugin("architectury-plugin")
+        plugin("maven-publish")
+    }
 
     archivesBaseName = rootProject.archives_base_name
     version = rootProject.mod_version
@@ -82,5 +87,13 @@ allprojects {
                 url "file://${rootProject.projectDir}/mcmodsrepo"
             }
         }
+    }
+}
+
+sonar {
+    properties {
+        property "sonar.projectKey", "ManasMods_ManasCore"
+        property "sonar.organization", "manasmods"
+        property "sonar.host.url", "https://sonarcloud.io"
     }
 }

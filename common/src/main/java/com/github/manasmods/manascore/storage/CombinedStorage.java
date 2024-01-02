@@ -3,7 +3,6 @@ package com.github.manasmods.manascore.storage;
 import com.github.manasmods.manascore.ManasCore;
 import com.github.manasmods.manascore.api.storage.Storage;
 import com.github.manasmods.manascore.api.storage.StorageHolder;
-import com.github.manasmods.manascore.api.storage.StorageType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -13,26 +12,43 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
+import static net.minecraft.nbt.Tag.TAG_COMPOUND;
+
 public class CombinedStorage {
+    private static final String STORAGE_LIST_KEY = "manascore_registry_storage";
+    private static final String STORAGE_ID_KEY = "manascore_registry_storage_id";
     private final Map<ResourceLocation, Storage> storages = new HashMap<>();
-    private final StorageType type;
+    private final StorageHolder holder;
 
     public CombinedStorage(StorageHolder holder) {
-        this.type = holder.manasCore$getStorageType();
+        this.holder = holder;
     }
 
-    public CombinedStorage(StorageHolder holder, CompoundTag tag) {
-        this(holder);
+    public CompoundTag toNBT() {
+        CompoundTag tag = new CompoundTag();
 
-        ListTag entriesTag = tag.getList("manascore_registry_storage", ListTag.TAG_COMPOUND);
+        ListTag entriesTag = new ListTag();
+        this.storages.forEach((id, storage) -> {
+            CompoundTag entryTag = new CompoundTag();
+            entryTag.putString(STORAGE_ID_KEY, id.toString());
+            storage.save(entryTag);
+            entriesTag.add(entryTag);
+        });
+
+        tag.put(STORAGE_LIST_KEY, entriesTag);
+        return tag;
+    }
+
+    public void load(CompoundTag tag) {
+        ListTag entriesTag = tag.getList(STORAGE_LIST_KEY, TAG_COMPOUND);
 
         entriesTag.forEach(t -> {
             // Get serialized storage data
             CompoundTag entryTag = (CompoundTag) t;
             // Get storage id
-            ResourceLocation id = new ResourceLocation(entryTag.getString("manascore_registry_storage_id"));
+            ResourceLocation id = new ResourceLocation(entryTag.getString(STORAGE_ID_KEY));
             // Construct storage
-            Storage storage = StorageManager.constructStorageFor(this.type, id, holder);
+            Storage storage = StorageManager.constructStorageFor(this.holder.manasCore$getStorageType(), id, holder);
             if (storage == null) {
                 ManasCore.Logger.warn("Failed to construct storage for id {}. All information about this storage will be dropped!", id);
                 return;
@@ -44,27 +60,12 @@ public class CombinedStorage {
         });
     }
 
-    public CompoundTag toNBT() {
-        CompoundTag tag = new CompoundTag();
-
-        ListTag entriesTag = new ListTag();
-        this.storages.forEach((id, storage) -> {
-            CompoundTag entryTag = new CompoundTag();
-            entryTag.putString("manascore_registry_storage_id", id.toString());
-            storage.save(entryTag);
-            entriesTag.add(entryTag);
-        });
-
-        tag.put("manascore_registry_storage", entriesTag);
-        return tag;
-    }
-
     public void handleUpdatePacket(CompoundTag tag) {
-        ListTag entriesTag = tag.getList("manascore_registry_storage", ListTag.TAG_COMPOUND);
+        ListTag entriesTag = tag.getList(STORAGE_LIST_KEY, TAG_COMPOUND);
 
         for (Tag e : entriesTag) {
             CompoundTag entryTag = (CompoundTag) e;
-            ResourceLocation id = new ResourceLocation(entryTag.getString("manascore_registry_storage_id"));
+            ResourceLocation id = new ResourceLocation(entryTag.getString(STORAGE_ID_KEY));
             Storage storage = this.storages.get(id);
             if (storage == null) {
                 ManasCore.Logger.warn("Failed to find storage for id {}. All information about this storage will be dropped!", id);
@@ -91,13 +92,13 @@ public class CombinedStorage {
         this.storages.forEach((id, storage) -> {
             if (!storage.isDirty()) return;
             CompoundTag entryTag = new CompoundTag();
-            entryTag.putString("manascore_registry_storage_id", id.toString());
+            entryTag.putString(STORAGE_ID_KEY, id.toString());
             storage.saveOutdated(entryTag);
             entriesTag.add(entryTag);
             if (clean) storage.clearDirty();
         });
 
-        tag.put("manascore_registry_storage", entriesTag);
+        tag.put(STORAGE_LIST_KEY, entriesTag);
         return tag;
     }
 

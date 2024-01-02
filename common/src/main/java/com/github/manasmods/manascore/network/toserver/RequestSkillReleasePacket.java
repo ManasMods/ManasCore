@@ -1,9 +1,7 @@
 package com.github.manasmods.manascore.network.toserver;
 
-import com.github.manasmods.manascore.api.skill.SkillAPI;
 import com.github.manasmods.manascore.skill.SkillStorage;
-import com.github.manasmods.manascore.skill.TickingSkill;
-import com.google.common.collect.Multimap;
+import com.github.manasmods.manascore.storage.StorageManager;
 import dev.architectury.networking.NetworkManager.PacketContext;
 import dev.architectury.utils.Env;
 import net.minecraft.network.FriendlyByteBuf;
@@ -11,7 +9,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.function.Supplier;
 
 public class RequestSkillReleasePacket {
@@ -42,21 +39,8 @@ public class RequestSkillReleasePacket {
         if (context.getEnvironment() != Env.SERVER) return;
         context.queue(() -> {
             Player player = context.getPlayer();
-            if(player == null) return;
-            SkillStorage storage = SkillAPI.getSkillsFrom(player);
-            for (ResourceLocation skillId : skillList) {
-                storage.getSkill(skillId).ifPresent(skill -> {
-                    if(!skill.canInteractSkill(player)) return;
-                    if (skill.onCoolDown() && !skill.canIgnoreCoolDown(player)) return;
-                    skill.onRelease(player, heldTick);
-                    storage.markDirty();
-
-                    Multimap<UUID, TickingSkill> multimap = SkillStorage.tickingSkills;
-                    if (multimap.containsKey(player.getUUID())) {
-                        multimap.get(player.getUUID()).removeIf(tickingSkill -> tickingSkill.getSkill() == skill.getSkill());
-                    }
-                });
-            }
+            if (player == null) return;
+            StorageManager.getStorage(player, SkillStorage.getKey()).handleSkillRelease(skillList, keyNumber, heldTick);
         });
     }
 }

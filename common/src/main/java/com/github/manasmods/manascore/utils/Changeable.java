@@ -1,12 +1,12 @@
 package com.github.manasmods.manascore.utils;
 
+import lombok.Synchronized;
 import org.jetbrains.annotations.Nullable;
 
 public class Changeable<T> {
     @Nullable
     private final T original;
-    @Nullable
-    private volatile T value;
+    private T value;
 
     protected Changeable(@Nullable T value) {
         this.original = value;
@@ -17,11 +17,13 @@ public class Changeable<T> {
         return new Changeable<>(value);
     }
 
+    @Synchronized
     @Nullable
     public T get() {
         return value;
     }
 
+    @Synchronized
     public void set(T value) {
         this.value = value;
     }

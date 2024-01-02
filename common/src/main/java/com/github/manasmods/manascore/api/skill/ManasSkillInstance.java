@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public class ManasSkillInstance implements Cloneable {
+public class ManasSkillInstance {
     private int mode = 1;
     private int coolDown;
     private int removeTime = -1;
@@ -50,11 +50,15 @@ public class ManasSkillInstance implements Cloneable {
     /**
      * Used to create an exact copy of the current instance.
      */
-    @SuppressWarnings("MethodDoesntCallSuperMethod")
-    @Override
-    public ManasSkillInstance clone() {
+    public ManasSkillInstance copy() {
         ManasSkillInstance clone = new ManasSkillInstance(getSkill());
         clone.dirty = this.dirty;
+        clone.mode = this.mode;
+        clone.coolDown = this.coolDown;
+        clone.removeTime = this.removeTime;
+        clone.masteryPoint = this.masteryPoint;
+        clone.toggled = this.toggled;
+        if (this.tag != null) clone.tag = this.tag.copy();
         return clone;
     }
 
@@ -64,25 +68,25 @@ public class ManasSkillInstance implements Cloneable {
      * Override {@link ManasSkillInstance#serialize(CompoundTag)} to store your custom Data.
      */
     public final CompoundTag toNBT() {
-        CompoundTag tag = new CompoundTag();
-        tag.putString("skill", this.getSkillId().toString());
-        serialize(tag);
-        return tag;
+        CompoundTag nbt = new CompoundTag();
+        nbt.putString("skill", this.getSkillId().toString());
+        serialize(nbt);
+        return nbt;
     }
 
     /**
      * Can be used to save custom data.
      *
-     * @param tag Tag with data from {@link ManasSkillInstance#fromNBT(CompoundTag)}
+     * @param nbt Tag with data from {@link ManasSkillInstance#fromNBT(CompoundTag)}
      */
-    public CompoundTag serialize(CompoundTag tag) {
-        tag.putInt("Mode", this.mode);
-        tag.putInt("CoolDown", this.coolDown);
-        tag.putInt("RemoveTime", this.removeTime);
-        tag.putInt("Mastery", this.masteryPoint);
-        tag.putBoolean("Toggled", this.toggled);
-        if (this.tag != null) tag.put("tag", this.tag.copy());
-        return tag;
+    public CompoundTag serialize(CompoundTag nbt) {
+        nbt.putInt("Mode", this.mode);
+        nbt.putInt("CoolDown", this.coolDown);
+        nbt.putInt("RemoveTime", this.removeTime);
+        nbt.putInt("Mastery", this.masteryPoint);
+        nbt.putBoolean("Toggled", this.toggled);
+        if (this.tag != null) nbt.put("tag", this.tag.copy());
+        return nbt;
     }
 
     /**
@@ -404,8 +408,8 @@ public class ManasSkillInstance implements Cloneable {
      * @param entity    Affected {@link LivingEntity} owning this instance.
      * @param heldTicks - the number of ticks the skill activation button is held down.
      */
-    public void onRelease(LivingEntity entity, int heldTicks) {
-        this.getSkill().onRelease(this, entity, heldTicks);
+    public void onRelease(LivingEntity entity, int keyNumber, int heldTicks) {
+        this.getSkill().onRelease(this, entity, keyNumber, heldTicks);
     }
 
     /**
