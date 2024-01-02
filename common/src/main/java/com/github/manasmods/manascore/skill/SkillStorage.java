@@ -139,9 +139,25 @@ public class SkillStorage extends Storage implements Skills {
         markDirty();
     }
 
-    public void forEachSkill(BiConsumer<SkillStorage,ManasSkillInstance> skillInstanceConsumer) {
+    public void forEachSkill(BiConsumer<SkillStorage, ManasSkillInstance> skillInstanceConsumer) {
         List.copyOf(this.skillInstances.values()).forEach(skillInstance -> skillInstanceConsumer.accept(this, skillInstance));
         markDirty();
+    }
+
+    public void handleSkillRelease(List<ResourceLocation> skillList, int keyNumber, int heldTick) {
+        for (final ResourceLocation skillId : skillList) {
+            getSkill(skillId).ifPresent(skill -> {
+                if (!skill.canInteractSkill(getOwner())) return;
+                if (skill.onCoolDown() && !skill.canIgnoreCoolDown(getOwner())) return;
+                skill.onRelease(getOwner(),keyNumber, heldTick);
+                if (skill.isDirty()) markDirty();
+
+                UUID ownerID = getOwner().getUUID();
+                if(tickingSkills.containsKey(ownerID)) {
+                    tickingSkills.get(ownerID).removeIf(tickingSkill -> tickingSkill.getSkill() == skill.getSkill());
+                }
+            });
+        }
     }
 
     @Override

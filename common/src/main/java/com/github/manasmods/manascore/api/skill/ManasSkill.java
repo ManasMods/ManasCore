@@ -214,7 +214,7 @@ public class ManasSkill {
      * @param instance Affected {@link ManasSkillInstance}
      * @param entity   Affected {@link LivingEntity} owning this Skill.
      */
-    public void onRelease(ManasSkillInstance instance, LivingEntity entity, int heldTicks) {
+    public void onRelease(ManasSkillInstance instance, LivingEntity entity, int keyNumber, int heldTicks) {
         // Override this method to add your own logic
     }
 
