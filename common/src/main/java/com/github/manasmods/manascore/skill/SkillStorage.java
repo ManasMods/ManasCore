@@ -35,14 +35,14 @@ import java.util.function.BiConsumer;
 @Log4j2
 public class SkillStorage extends Storage implements Skills {
     @Getter
-    private static StorageKey<SkillStorage> Key = null;
+    private static StorageKey<SkillStorage> key = null;
     public static final int INSTANCE_UPDATE = 20;
     public static final int PASSIVE_SKILL = 100;
     public static final Multimap<UUID, TickingSkill> tickingSkills = ArrayListMultimap.create();
 
     public static void init() {
         StorageEvents.REGISTER_ENTITY_STORAGE.register(registry -> {
-            Key = registry.register(new ResourceLocation(ManasCore.MOD_ID, "skill_storage"), SkillStorage.class, entity -> entity instanceof LivingEntity, target -> new SkillStorage((LivingEntity) target));
+            key = registry.register(new ResourceLocation(ManasCore.MOD_ID, "skill_storage"), SkillStorage.class, entity -> entity instanceof LivingEntity, target -> new SkillStorage((LivingEntity) target));
         });
         EntityEvents.LIVING_POST_TICK.register(entity -> {
             Level level = entity.level();
