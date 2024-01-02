@@ -127,7 +127,6 @@ public class ManasSkill {
 
     /**
      * @return the maximum mastery points that this skill can have.
-     * </p>
      */
     public int getMaxMastery() {
         return 100;
@@ -163,6 +162,7 @@ public class ManasSkill {
      * @param entity   Affected {@link LivingEntity} owning this Skill.
      */
     public void onToggleOn(ManasSkillInstance instance, LivingEntity entity) {
+        // Override this method to add your own logic
     }
 
     /**
@@ -172,6 +172,7 @@ public class ManasSkill {
      * @param entity   Affected {@link LivingEntity} owning this Skill.
      */
     public void onToggleOff(ManasSkillInstance instance, LivingEntity entity) {
+        // Override this method to add your own logic
     }
 
     /**
@@ -181,6 +182,7 @@ public class ManasSkill {
      * @param living   Affected {@link LivingEntity} owning this Skill.
      */
     public void onTick(ManasSkillInstance instance, LivingEntity living) {
+        // Override this method to add your own logic
     }
 
     /**
@@ -190,6 +192,7 @@ public class ManasSkill {
      * @param entity   Affected {@link LivingEntity} owning this Skill.
      */
     public void onPressed(ManasSkillInstance instance, LivingEntity entity) {
+        // Override this method to add your own logic
     }
 
     /**
@@ -200,6 +203,7 @@ public class ManasSkill {
      * @return true to continue ticking this Skill.
      */
     public boolean onHeld(ManasSkillInstance instance, LivingEntity living, int heldTicks) {
+        // Override this method to add your own logic
         return false;
     }
 
@@ -210,6 +214,7 @@ public class ManasSkill {
      * @param entity   Affected {@link LivingEntity} owning this Skill.
      */
     public void onRelease(ManasSkillInstance instance, LivingEntity entity, int heldTicks) {
+        // Override this method to add your own logic
     }
 
     /**
@@ -220,6 +225,7 @@ public class ManasSkill {
      * @param delta    The scroll delta of the mouse scroll.
      */
     public void onScroll(ManasSkillInstance instance, LivingEntity living, double delta) {
+        // Override this method to add your own logic
     }
 
     /**
@@ -229,6 +235,7 @@ public class ManasSkill {
      * @param living   Affected {@link LivingEntity} learning this Skill.
      */
     public void onLearnSkill(ManasSkillInstance instance, LivingEntity living) {
+        // Override this method to add your own logic
     }
 
     /**
@@ -238,6 +245,7 @@ public class ManasSkill {
      * @param living   Affected {@link LivingEntity} owning this Skill.
      */
     public void onSkillMastered(ManasSkillInstance instance, LivingEntity living) {
+        // Override this method to add your own logic
     }
 
     /**
@@ -246,6 +254,7 @@ public class ManasSkill {
      * @see ManasSkillInstance#onRightClickBlock(Player, InteractionHand, BlockPos, Direction)
      */
     public void onRightClickBlock(ManasSkillInstance instance, Player player, InteractionHand hand, BlockPos pos, Direction face) {
+        // Override this method to add your own logic
     }
 
     /**
@@ -254,6 +263,7 @@ public class ManasSkill {
      * @see ManasSkillInstance#onBeingTargeted(Changeable)
      */
     public boolean onBeingTargeted(ManasSkillInstance instance, Changeable<LivingEntity> target) {
+        // Override this method to add your own logic
         return true;
     }
 
@@ -263,6 +273,7 @@ public class ManasSkill {
      * @see ManasSkillInstance#onBeingDamaged(LivingEntity, DamageSource, float)
      */
     public boolean onBeingDamaged(ManasSkillInstance instance, LivingEntity entity, DamageSource source, float amount) {
+        // Override this method to add your own logic
         return true;
     }
 
@@ -272,6 +283,7 @@ public class ManasSkill {
      * @see ManasSkillInstance#onDamageEntity(LivingEntity, DamageSource, Changeable)
      */
     public boolean onDamageEntity(ManasSkillInstance instance, LivingEntity owner, DamageSource source, Changeable<Float> amount) {
+        // Override this method to add your own logic
         return true;
     }
 
@@ -281,6 +293,7 @@ public class ManasSkill {
      * @see ManasSkillInstance#onTouchEntity(LivingEntity, DamageSource, Changeable)
      */
     public boolean onTouchEntity(ManasSkillInstance instance, LivingEntity entity, DamageSource source, Changeable<Float> amount) {
+        // Override this method to add your own logic
         return true;
     }
 
@@ -290,6 +303,7 @@ public class ManasSkill {
      * @see ManasSkillInstance#onTakenDamage(LivingEntity, DamageSource, Changeable)
      */
     public boolean onTakenDamage(ManasSkillInstance instance, LivingEntity owner, DamageSource source, Changeable<Float> amount) {
+        // Override this method to add your own logic
         return true;
     }
 
@@ -297,7 +311,7 @@ public class ManasSkill {
      * Called when the {@link LivingEntity} is hit by a projectile.
      */
     public void onProjectileHit(ManasSkillInstance instance, LivingEntity living, EntityHitResult hitResult, Projectile projectile, Changeable<ProjectileHitResult> result) {
-
+        // Override this method to add your own logic
     }
 
     /**
@@ -306,6 +320,7 @@ public class ManasSkill {
      * @see ManasSkillInstance#onDeath(LivingEntity, DamageSource)
      */
     public boolean onDeath(ManasSkillInstance instance, LivingEntity owner, DamageSource source) {
+        // Override this method to add your own logic
         return true;
     }
 
@@ -313,5 +328,6 @@ public class ManasSkill {
      * Called when the {@link ServerPlayer} owning this Skill respawns.
      */
     public void onRespawn(ManasSkillInstance instance, ServerPlayer owner, boolean conqueredEnd) {
+        // Override this method to add your own logic
     }
 }
