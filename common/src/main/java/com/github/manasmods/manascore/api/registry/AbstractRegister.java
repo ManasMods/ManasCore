@@ -1,5 +1,7 @@
 package com.github.manasmods.manascore.api.registry;
 
+import com.github.manasmods.manascore.api.skill.ManasSkill;
+import com.github.manasmods.manascore.skill.SkillRegistry;
 import com.github.manasmods.manascore.world.entity.attribute.ManasAttributeRegistry;
 import com.mojang.datafixers.types.Type;
 import dev.architectury.registry.registries.DeferredRegister;
@@ -51,6 +53,7 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
     protected DeferredRegister<BlockEntityType<?>> blockEntities = null;
     protected DeferredRegister<EntityType<?>> entityTypes = null;
     protected DeferredRegister<Attribute> attributes = null;
+    protected DeferredRegister<ManasSkill> skills = null;
 
     AbstractRegister(final String modId) {
         this.modId = modId;
@@ -81,6 +84,7 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
         if (items != null) items.register();
         if (blockEntities != null) blockEntities.register();
         if (attributes != null) attributes.register();
+        if (skills != null) skills.register();
     }
 
     /**
@@ -148,6 +152,15 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
     public <T extends BlockEntity> BlockEntityBuilder<R, T> blockEntity(final String name, final BlockEntitySupplier<T> factory) {
         if (this.blockEntities == null) this.blockEntities = DeferredRegister.create(this.modId, Registries.BLOCK_ENTITY_TYPE);
         return new BlockEntityBuilder<>(self(), name, factory);
+    }
+
+
+    /**
+     * Creates a new {@link SkillBuilder} for the given name.
+     */
+    public <T extends ManasSkill> SkillBuilder<R, T> skill(final String name, final Supplier<T> skillFactory) {
+        if (this.skills == null) this.skills = DeferredRegister.create(this.modId, SkillRegistry.KEY);
+        return new SkillBuilder<>(self(), name, skillFactory);
     }
 
 
@@ -550,6 +563,20 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
         @Override
         public RegistrySupplier<BlockEntityType<T>> end() {
             return this.register.blockEntities.register(this.id, () -> BlockEntityType.Builder.of(this.factory, this.validBlocks.stream().map(Supplier::get).toArray(Block[]::new)).build(this.dataFixerType));
+        }
+    }
+
+    public static class SkillBuilder<R extends AbstractRegister<R>, T extends ManasSkill> extends ContentBuilder<T, R> {
+        protected final Supplier<T> skillFactory;
+
+        private SkillBuilder(R register, String name, Supplier<T> skillFactory) {
+            super(register, name);
+            this.skillFactory = skillFactory;
+        }
+
+        @Override
+        public RegistrySupplier<T> end() {
+            return this.register.skills.register(this.id, this.skillFactory);
         }
     }
 
