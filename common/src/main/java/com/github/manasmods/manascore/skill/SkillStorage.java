@@ -124,7 +124,7 @@ public class SkillStorage extends Storage {
     }
 
     public Optional<ManasSkillInstance> getSkill(@NonNull ManasSkill skill) {
-        return Optional.ofNullable(this.skillInstances.get(skill.getRegistryName()));
+        return getSkill(skill.getRegistryName());
     }
 
     public Optional<ManasSkillInstance> getSkill(@NonNull ResourceLocation skillId) {
