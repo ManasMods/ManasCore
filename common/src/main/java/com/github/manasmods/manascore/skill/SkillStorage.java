@@ -40,6 +40,7 @@ public class SkillStorage extends Storage implements Skills {
     public static final int INSTANCE_UPDATE = 20;
     public static final int PASSIVE_SKILL = 100;
     public static final Multimap<UUID, TickingSkill> tickingSkills = ArrayListMultimap.create();
+    private static final String SKILL_LIST_KEY = "skills";
 
     public static void init() {
         StorageEvents.REGISTER_ENTITY_STORAGE.register(registry -> key = registry.register(new ResourceLocation(ManasCore.MOD_ID, "skill_storage"), SkillStorage.class, LivingEntity.class::isInstance, target -> new SkillStorage((LivingEntity) target)));
@@ -186,7 +187,7 @@ public class SkillStorage extends Storage implements Skills {
             skillList.add(instance.toNBT());
             instance.resetDirty();
         });
-        data.put("skills", skillList);
+        data.put(SKILL_LIST_KEY, skillList);
     }
 
     @Override
@@ -195,7 +196,7 @@ public class SkillStorage extends Storage implements Skills {
             this.skillInstances.clear();
         }
 
-        for (Tag tag : data.getList("skills", Tag.TAG_COMPOUND)) {
+        for (Tag tag : data.getList(SKILL_LIST_KEY, Tag.TAG_COMPOUND)) {
             try {
                 ManasSkillInstance instance = ManasSkillInstance.fromNBT((CompoundTag) tag);
                 this.skillInstances.put(instance.getSkillId(), instance);
@@ -218,7 +219,7 @@ public class SkillStorage extends Storage implements Skills {
                 skillList.add(instance.toNBT());
                 instance.resetDirty();
             }
-            data.put("skills", skillList);
+            data.put(SKILL_LIST_KEY, skillList);
         }
     }
 
