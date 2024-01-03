@@ -3,6 +3,7 @@ package com.github.manasmods.manascore.api.skill;
 import com.github.manasmods.manascore.skill.SkillStorage;
 import lombok.NonNull;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -21,17 +22,21 @@ public interface Skills {
 
     boolean learnSkill(ManasSkillInstance instance);
 
-    Optional<ManasSkillInstance> getSkill(@NonNull ResourceLocation skillId);
+    Optional<ManasSkillInstance> getSkill(@NotNull ResourceLocation skillId);
 
     default Optional<ManasSkillInstance> getSkill(@NonNull ManasSkill skill) {
         return getSkill(skill.getRegistryName());
     }
 
-    default void forgetSkill(ManasSkill skill) {
-        getSkill(skill).ifPresent(this::forgetSkill);
+    void forgetSkill(@NotNull ResourceLocation skillId);
+
+    default void forgetSkill(@NonNull ManasSkill skill) {
+        forgetSkill(skill.getRegistryName());
     }
 
-    void forgetSkill(ManasSkillInstance instance);
+    default void forgetSkill(@NonNull ManasSkillInstance instance) {
+        forgetSkill(instance.getSkill());
+    }
 
     void forEachSkill(BiConsumer<SkillStorage, ManasSkillInstance> skillInstanceConsumer);
 }

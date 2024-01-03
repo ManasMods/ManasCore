@@ -1,7 +1,10 @@
 package com.github.manasmods.manascore.skill;
 
 import com.github.manasmods.manascore.ManasCore;
-import com.github.manasmods.manascore.api.skill.*;
+import com.github.manasmods.manascore.api.skill.ManasSkillInstance;
+import com.github.manasmods.manascore.api.skill.SkillAPI;
+import com.github.manasmods.manascore.api.skill.SkillEvents;
+import com.github.manasmods.manascore.api.skill.Skills;
 import com.github.manasmods.manascore.api.storage.Storage;
 import com.github.manasmods.manascore.api.storage.StorageEvents;
 import com.github.manasmods.manascore.api.world.entity.EntityEvents;
@@ -20,6 +23,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -145,8 +149,9 @@ public class SkillStorage extends Storage implements Skills {
         return Optional.ofNullable(this.skillInstances.get(skillId));
     }
 
-    public void forgetSkill(ManasSkillInstance instance) {
-        if (!this.skillInstances.containsKey(instance.getSkillId())) return;
+    public void forgetSkill(@NotNull ResourceLocation skillId) {
+        if (!this.skillInstances.containsKey(skillId)) return;
+        ManasSkillInstance instance = this.skillInstances.get(skillId);
 
         EventResult result = SkillEvents.REMOVE_SKILL.invoker().removeSkill(instance, getOwner());
         if (result.isFalse()) return;
