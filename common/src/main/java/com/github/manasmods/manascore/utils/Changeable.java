@@ -32,6 +32,10 @@ public class Changeable<T> {
         return value != null;
     }
 
+    public boolean isEmpty() {
+        return value == null;
+    }
+
     public boolean hasChanged() {
         if (original == null) return value != null;
         return !original.equals(value);

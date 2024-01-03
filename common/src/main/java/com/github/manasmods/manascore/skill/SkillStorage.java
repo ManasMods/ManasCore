@@ -143,7 +143,7 @@ public class SkillStorage extends Storage implements Skills {
 
         instance.markDirty();
         this.skillInstances.put(instance.getSkillId(), instance);
-        getOwner().sendSystemMessage(unlockMessage.get());
+        if (unlockMessage.isPresent()) getOwner().sendSystemMessage(unlockMessage.get());
         instance.onLearnSkill(getOwner());
         markDirty();
         return true;
