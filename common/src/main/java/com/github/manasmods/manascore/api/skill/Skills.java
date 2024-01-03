@@ -16,6 +16,10 @@ public interface Skills {
 
     void updateSkill(ManasSkillInstance updatedInstance, boolean sync);
 
+    default boolean learnSkill(@NotNull ResourceLocation skillId) {
+        return learnSkill(SkillAPI.getSkillRegistry().get(skillId).createDefaultInstance());
+    }
+
     default boolean learnSkill(@NonNull ManasSkill skill) {
         return learnSkill(new ManasSkillInstance(skill));
     }
@@ -35,7 +39,7 @@ public interface Skills {
     }
 
     default void forgetSkill(@NonNull ManasSkillInstance instance) {
-        forgetSkill(instance.getSkill());
+        forgetSkill(instance.getSkillId());
     }
 
     void forEachSkill(BiConsumer<SkillStorage, ManasSkillInstance> skillInstanceConsumer);
