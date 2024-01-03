@@ -24,7 +24,7 @@ public class Changeable<T> {
     }
 
     @Synchronized
-    public void set(T value) {
+    public void set(@Nullable T value) {
         this.value = value;
     }
 
