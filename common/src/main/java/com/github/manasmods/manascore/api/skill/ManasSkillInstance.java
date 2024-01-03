@@ -32,7 +32,7 @@ public class ManasSkillInstance {
     private boolean dirty = false;
     protected final RegistrySupplier<ManasSkill> skillRegistryObject;
 
-    public ManasSkillInstance(ManasSkill skill) {
+    protected ManasSkillInstance(ManasSkill skill) {
         this.skillRegistryObject = SkillAPI.getSkillRegistry().delegate(SkillAPI.getSkillRegistry().getId(skill));
     }
 
