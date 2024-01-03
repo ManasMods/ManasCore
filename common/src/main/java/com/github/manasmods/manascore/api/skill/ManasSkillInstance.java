@@ -106,7 +106,7 @@ public class ManasSkillInstance {
      * <p>
      * The {@link CompoundTag} has to be created though {@link ManasSkillInstance#toNBT()}
      */
-    public static ManasSkillInstance fromNBT(CompoundTag tag) {
+    public static ManasSkillInstance fromNBT(CompoundTag tag) throws NullPointerException {
         ResourceLocation skillLocation = ResourceLocation.tryParse(tag.getString("skill"));
         ManasSkillInstance instance = Objects.requireNonNull(SkillAPI.getSkillRegistry().get(skillLocation)).createDefaultInstance();
         instance.deserialize(tag);
