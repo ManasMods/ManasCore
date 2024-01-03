@@ -43,6 +43,7 @@ public class RegisterTest {
     private static final RegistrySupplier<BlockEntityType<TestBlockEntity>> TEST_BLOCK_ENTITY = REGISTER.blockEntity("test_block_entity", TestBlockEntity::new)
             .withValidBlocks(TEST_BLOCK)
             .end();
+    public static final RegistrySupplier<TestSkill> TEST_SKILL = REGISTER.skill("test_skill", TestSkill::new).end();
 
     public static void init() {
         ManasCore.Logger.info("Registered test content!");

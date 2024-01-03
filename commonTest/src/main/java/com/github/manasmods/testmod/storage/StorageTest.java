@@ -1,11 +1,14 @@
 package com.github.manasmods.testmod.storage;
 
 import com.github.manasmods.manascore.ManasCore;
+import com.github.manasmods.manascore.api.skill.SkillAPI;
+import com.github.manasmods.manascore.api.skill.Skills;
 import com.github.manasmods.manascore.api.storage.Storage;
 import com.github.manasmods.manascore.api.storage.StorageEvents;
 import com.github.manasmods.manascore.api.storage.StorageHolder;
 import com.github.manasmods.manascore.storage.StorageManager.StorageKey;
 import com.github.manasmods.testmod.TestMod;
+import com.github.manasmods.testmod.registry.RegisterTest;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.ChatEvent;
 import dev.architectury.event.events.common.EntityEvent;
@@ -14,6 +17,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
 
@@ -42,6 +46,14 @@ public class StorageTest {
                 serverPlayer.manasCore$getStorageOptional(ENTITY_KEY).ifPresent(TestStorage::increaseDropCount);
                 serverPlayer.level().getChunkAt(entity.blockPosition()).manasCore$getStorageOptional(CHUNK_KEY).ifPresent(TestStorage::increaseDropCount);
                 serverPlayer.level().manasCore$getStorageOptional(WORLD_KEY).ifPresent(TestStorage::increaseDropCount);
+            }
+
+            //Test giving Skills
+            if (entity.getItem().is(Items.DIAMOND)) {
+                Skills storage = SkillAPI.getSkillsFrom(player);
+                if (storage.learnSkill(RegisterTest.TEST_SKILL.get())) {
+                    ManasCore.Logger.info("Added Tested Skill!");
+                }
             }
 
             return EventResult.pass();

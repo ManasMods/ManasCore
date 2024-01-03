@@ -24,6 +24,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,6 +58,7 @@ public class SkillStorage extends Storage implements Skills {
 
     private static void handleSkillTick(LivingEntity entity, Level level, Skills storage) {
         MinecraftServer server = level.getServer();
+        if (server == null) return;
 
         boolean shouldPassiveConsume = server.getTickCount() % INSTANCE_UPDATE == 0;
         if (!shouldPassiveConsume) return;
@@ -149,8 +151,9 @@ public class SkillStorage extends Storage implements Skills {
         return Optional.ofNullable(this.skillInstances.get(skillId));
     }
 
-    public void forgetSkill(ManasSkillInstance instance) {
-        if (!this.skillInstances.containsKey(instance.getSkillId())) return;
+    public void forgetSkill(@NotNull ResourceLocation skillId) {
+        if (!this.skillInstances.containsKey(skillId)) return;
+        ManasSkillInstance instance = this.skillInstances.get(skillId);
 
         EventResult result = SkillEvents.REMOVE_SKILL.invoker().removeSkill(instance, getOwner());
         if (result.isFalse()) return;
@@ -166,12 +169,12 @@ public class SkillStorage extends Storage implements Skills {
         markDirty();
     }
 
-    public void handleSkillRelease(List<ResourceLocation> skillList, int keyNumber, int heldTick) {
+    public void handleSkillRelease(List<ResourceLocation> skillList, int heldTick, int keyNumber) {
         for (final ResourceLocation skillId : skillList) {
             getSkill(skillId).ifPresent(skill -> {
                 if (!skill.canInteractSkill(getOwner())) return;
                 if (skill.onCoolDown() && !skill.canIgnoreCoolDown(getOwner())) return;
-                skill.onRelease(getOwner(), keyNumber, heldTick);
+                skill.onRelease(getOwner(), heldTick, keyNumber);
                 if (skill.isDirty()) markDirty();
 
                 UUID ownerID = getOwner().getUUID();

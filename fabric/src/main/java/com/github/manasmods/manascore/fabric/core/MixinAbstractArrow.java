@@ -39,12 +39,12 @@ public abstract class MixinAbstractArrow extends Projectile {
 
     @WrapOperation(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/AbstractArrow;onHit(Lnet/minecraft/world/phys/HitResult;)V"))
     void onHit(AbstractArrow instance, HitResult result, Operation<Void> original, @Local LocalRef<EntityHitResult> entityHitResult) {
-        Changeable<ProjectileHitResult> resultChangeable = Changeable.of(ProjectileHitResult.DEFUALT);
+        Changeable<ProjectileHitResult> resultChangeable = Changeable.of(ProjectileHitResult.DEFAULT);
         EntityEvents.PROJECTILE_HIT.invoker().hit(result, instance, resultChangeable);
         this.onHitEventResult = resultChangeable.get();
 
         switch (this.onHitEventResult) {
-            case DEFUALT -> {
+            case DEFAULT -> {
                 original.call(instance, result);
                 this.onHitEventResult = null;
             }

@@ -38,7 +38,7 @@ public class ManasSkillInstance {
     private boolean dirty = false;
     protected final RegistrySupplier<ManasSkill> skillRegistryObject;
 
-    public ManasSkillInstance(ManasSkill skill) {
+    protected ManasSkillInstance(ManasSkill skill) {
         this.skillRegistryObject = SkillAPI.getSkillRegistry().delegate(SkillAPI.getSkillRegistry().getId(skill));
     }
 
@@ -112,7 +112,7 @@ public class ManasSkillInstance {
      * <p>
      * The {@link CompoundTag} has to be created though {@link ManasSkillInstance#toNBT()}
      */
-    public static ManasSkillInstance fromNBT(CompoundTag tag) {
+    public static ManasSkillInstance fromNBT(CompoundTag tag) throws NullPointerException {
         ResourceLocation skillLocation = ResourceLocation.tryParse(tag.getString("skill"));
         ManasSkillInstance instance = Objects.requireNonNull(SkillAPI.getSkillRegistry().get(skillLocation)).createDefaultInstance();
         instance.deserialize(tag);
@@ -394,8 +394,8 @@ public class ManasSkillInstance {
      *
      * @param entity Affected {@link LivingEntity} owning this instance.
      */
-    public void onPressed(LivingEntity entity) {
-        this.getSkill().onPressed(this, entity);
+    public void onPressed(LivingEntity entity, int keyNumber) {
+        this.getSkill().onPressed(this, entity, keyNumber);
     }
 
     /**
@@ -414,8 +414,8 @@ public class ManasSkillInstance {
      * @param entity    Affected {@link LivingEntity} owning this instance.
      * @param heldTicks - the number of ticks the skill activation button is held down.
      */
-    public void onRelease(LivingEntity entity, int keyNumber, int heldTicks) {
-        this.getSkill().onRelease(this, entity, keyNumber, heldTicks);
+    public void onRelease(LivingEntity entity, int heldTicks, int keyNumber) {
+        this.getSkill().onRelease(this, entity, heldTicks, keyNumber);
     }
 
     /**
@@ -460,8 +460,8 @@ public class ManasSkillInstance {
      *
      * @return false will stop the mob from targeting the owner.
      */
-    public boolean onBeingTargeted(Changeable<LivingEntity> target) {
-        return this.getSkill().onBeingTargeted(this, target);
+    public boolean onBeingTargeted(Changeable<LivingEntity> owner, LivingEntity mob) {
+        return this.getSkill().onBeingTargeted(this, owner, mob);
     }
 
     /**
@@ -476,27 +476,27 @@ public class ManasSkillInstance {
     }
 
     /**
-     * Called when the {@link LivingEntity} owning this instance gets hurt.
+     * Called when the {@link LivingEntity} owning this instance starts attacking another {@link LivingEntity}.
      * <p>
      * Gets executed after {@link ManasSkillInstance#onBeingDamaged}<br>
      * Gets executed before {@link ManasSkillInstance#onTouchEntity}
      *
-     * @return false will prevent the owner from taking damage.
+     * @return false will prevent the owner from dealing damage
      */
-    public boolean onDamageEntity(LivingEntity owner, DamageSource source, Changeable<Float> amount) {
-        return this.getSkill().onDamageEntity(this, owner, source, amount);
+    public boolean onDamageEntity(LivingEntity owner, LivingEntity target, DamageSource source, Changeable<Float> amount) {
+        return this.getSkill().onDamageEntity(this, owner, target, source, amount);
     }
 
     /**
-     * Called when the {@link LivingEntity} owning this instance gets hurt (after effects like Barriers are consumed the damage amount).
+     * Called when the {@link LivingEntity} owning this instance hurts another {@link LivingEntity} (after effects like Barriers are consumed the damage amount).
      * <p>
      * Gets executed after {@link ManasSkillInstance#onDamageEntity}
      * Gets executed before {@link ManasSkillInstance#onTakenDamage}
      *
-     * @return false will prevent the owner from taking damage.
+     * @return false will prevent the owner from dealing damage.
      */
-    public boolean onTouchEntity(LivingEntity owner, DamageSource source, Changeable<Float> amount) {
-        return this.getSkill().onTouchEntity(this, owner, source, amount);
+    public boolean onTouchEntity(LivingEntity owner, LivingEntity target, DamageSource source, Changeable<Float> amount) {
+        return this.getSkill().onTouchEntity(this, owner, target, source, amount);
     }
 
     /**

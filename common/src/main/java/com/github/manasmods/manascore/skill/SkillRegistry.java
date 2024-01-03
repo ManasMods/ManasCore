@@ -38,9 +38,10 @@ public class SkillRegistry {
         EntityEvents.LIVING_CHANGE_TARGET.register((entity, changeableTarget) -> {
             if (!changeableTarget.isPresent()) return EventResult.pass();
 
-            for (ManasSkillInstance instance : SkillAPI.getSkillsFrom(changeableTarget.get()).getLearnedSkills()) {
-                if (!instance.canInteractSkill(entity)) continue;
-                if (!instance.onBeingTargeted(changeableTarget)) return EventResult.interruptFalse();
+            LivingEntity owner = changeableTarget.get();
+            for (ManasSkillInstance instance : SkillAPI.getSkillsFrom(owner).getLearnedSkills()) {
+                if (!instance.canInteractSkill(owner)) continue;
+                if (!instance.onBeingTargeted(changeableTarget, entity)) return EventResult.interruptFalse();
             }
 
             return EventResult.pass();
@@ -55,19 +56,23 @@ public class SkillRegistry {
             return EventResult.pass();
         });
 
-        SkillEvents.SKILL_DAMAGE_PRE_CALCULATION.register((storage, entity, source, amount) -> {
-            for (ManasSkillInstance instance : storage.getLearnedSkills()) {
-                if (!instance.canInteractSkill(entity)) continue;
-                if (!instance.onDamageEntity(entity, source, amount)) return EventResult.interruptFalse();
+        SkillEvents.SKILL_DAMAGE_PRE_CALCULATION.register((storage, target, source, amount) -> {
+            if (!(source.getEntity() instanceof LivingEntity owner)) return EventResult.pass();
+
+            for (ManasSkillInstance instance : SkillAPI.getSkillsFrom(owner).getLearnedSkills()) {
+                if (!instance.canInteractSkill(owner)) continue;
+                if (!instance.onDamageEntity(owner, target, source, amount)) return EventResult.interruptFalse();
             }
 
             return EventResult.pass();
         });
 
-        SkillEvents.SKILL_DAMAGE_POST_CALCULATION.register((storage, entity, source, amount) -> {
-            for (ManasSkillInstance instance : storage.getLearnedSkills()) {
-                if (!instance.canInteractSkill(entity)) continue;
-                if (!instance.onTouchEntity(entity, source, amount)) return EventResult.interruptFalse();
+        SkillEvents.SKILL_DAMAGE_POST_CALCULATION.register((storage, target, source, amount) -> {
+            if (!(source.getEntity() instanceof LivingEntity owner)) return EventResult.pass();
+
+            for (ManasSkillInstance instance : SkillAPI.getSkillsFrom(owner).getLearnedSkills()) {
+                if (!instance.canInteractSkill(owner)) continue;
+                if (!instance.onTouchEntity(owner, target, source, amount)) return EventResult.interruptFalse();
             }
 
             return EventResult.pass();
