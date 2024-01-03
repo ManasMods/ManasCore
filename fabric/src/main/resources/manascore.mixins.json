@@ -16,9 +16,6 @@
     "MixinStartAttacking",
     "MixinThrowableProjectile"
   ],
-  "client": [
-    "MixinLocalPlayer"
-  ],
   "injectors": {
     "defaultRequire": 1
   }

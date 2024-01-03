@@ -125,10 +125,6 @@ public class SkillStorage extends Storage implements Skills {
         if (sync) markDirty();
     }
 
-    public boolean learnSkill(@NonNull ManasSkill skill) {
-        return learnSkill(new ManasSkillInstance(skill));
-    }
-
     public boolean learnSkill(@NonNull ManasSkillInstance instance) {
         if (this.skillInstances.containsKey(instance.getSkillId())) {
             log.debug("Tried to register a deduplicate of {}.", instance.getSkillId());
@@ -147,10 +143,6 @@ public class SkillStorage extends Storage implements Skills {
 
     public Optional<ManasSkillInstance> getSkill(@NonNull ResourceLocation skillId) {
         return Optional.ofNullable(this.skillInstances.get(skillId));
-    }
-
-    public void forgetSkill(ManasSkill skill) {
-        getSkill(skill).ifPresent(this::forgetSkill);
     }
 
     public void forgetSkill(ManasSkillInstance instance) {

@@ -15,7 +15,9 @@ public interface Skills {
 
     void updateSkill(ManasSkillInstance updatedInstance, boolean sync);
 
-    boolean learnSkill(ManasSkill skill);
+    default boolean learnSkill(@NonNull ManasSkill skill) {
+        return learnSkill(new ManasSkillInstance(skill));
+    }
 
     boolean learnSkill(ManasSkillInstance instance);
 
@@ -25,7 +27,9 @@ public interface Skills {
         return getSkill(skill.getRegistryName());
     }
 
-    void forgetSkill(ManasSkill skill);
+    default void forgetSkill(ManasSkill skill) {
+        getSkill(skill).ifPresent(this::forgetSkill);
+    }
 
     void forgetSkill(ManasSkillInstance instance);
 
