@@ -4,9 +4,15 @@ import com.github.manasmods.manascore.api.world.entity.EntityEvents.ProjectileHi
 import com.github.manasmods.manascore.utils.Changeable;
 import dev.architectury.registry.registries.RegistrySupplier;
 import lombok.Getter;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.HoverEvent.Action;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -22,12 +28,12 @@ import java.util.Objects;
 
 public class ManasSkillInstance {
     private int mode = 1;
-    private int coolDown;
+    private int coolDown = 0;
     private int removeTime = -1;
-    private int masteryPoint;
-    private boolean toggled;
+    private int masteryPoint = 0;
+    private boolean toggled = false;
     @Nullable
-    private CompoundTag tag;
+    private CompoundTag tag = null;
     @Getter
     private boolean dirty = false;
     protected final RegistrySupplier<ManasSkill> skillRegistryObject;
@@ -525,5 +531,21 @@ public class ManasSkillInstance {
      */
     public void onRespawn(ServerPlayer owner, boolean conqueredEnd) {
         this.getSkill().onRespawn(this, owner, conqueredEnd);
+    }
+
+    public MutableComponent getDisplayName() {
+        return this.getSkill().getName();
+    }
+
+    public MutableComponent getChatDisplayName(boolean withDescription) {
+        Style style = Style.EMPTY.withColor(ChatFormatting.GRAY);
+        if (withDescription) {
+            MutableComponent hoverMessage = getDisplayName().append("\n");
+            hoverMessage.append(this.getSkill().getSkillDescription().withStyle(ChatFormatting.GRAY));
+            style = style.withHoverEvent(new HoverEvent(Action.SHOW_TEXT, hoverMessage));
+        }
+
+        MutableComponent component = Component.literal("[").append(getDisplayName()).append("]");
+        return component.withStyle(style);
     }
 }

@@ -18,6 +18,7 @@ import lombok.extern.log4j.Log4j2;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.LivingEntity;
@@ -138,6 +139,7 @@ public class SkillStorage extends Storage implements Skills {
 
         instance.markDirty();
         this.skillInstances.put(instance.getSkillId(), instance);
+        getOwner().sendSystemMessage(Component.translatable("manascore.skillsystem.learn_skill", instance.getChatDisplayName(true)));
         instance.onLearnSkill(getOwner());
         markDirty();
         return true;

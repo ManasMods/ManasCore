@@ -2,6 +2,7 @@ package com.github.manasmods.manascore.api.skill;
 
 import com.github.manasmods.manascore.api.world.entity.EntityEvents.ProjectileHitResult;
 import com.github.manasmods.manascore.utils.Changeable;
+import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -20,6 +21,13 @@ import java.util.Objects;
 
 @SuppressWarnings("unused")
 public class ManasSkill {
+    @Getter
+    private final SkillRarity rarity;
+
+    public ManasSkill(final SkillRarity rarity) {
+        this.rarity = rarity;
+    }
+
     /**
      * Used to create a {@link ManasSkillInstance} of this Skill.
      * <p>
@@ -44,7 +52,7 @@ public class ManasSkill {
     public MutableComponent getName() {
         final ResourceLocation id = getRegistryName();
         if (id == null) return null;
-        return Component.translatable(String.format("%s.skill.%s", id.getNamespace(), id.getPath().replace('/', '.')));
+        return Component.translatable(String.format("%s.skill.%s", id.getNamespace(), id.getPath().replace('/', '.'))).withColor(rarity.getColor());
     }
 
     /**
@@ -60,7 +68,7 @@ public class ManasSkill {
     /**
      * Used to get the {@link MutableComponent} description of this skill for translation.
      */
-    public Component getSkillDescription() {
+    public MutableComponent getSkillDescription() {
         ResourceLocation id = this.getRegistryName();
         if (id == null) return Component.empty();
         return Component.translatable(String.format("%s.skill.%s.description", id.getNamespace(), id.getPath().replace('/', '.')));
