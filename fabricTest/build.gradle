@@ -10,6 +10,12 @@ architectury {
 loom {
     accessWidenerPath = project(":common").loom.accessWidenerPath
 
+    mods {
+        register("fabric") {
+            sourceSet('main', project(':fabric'))
+        }
+    }
+
     runs {
         client {
             runDir = 'run/client'
@@ -36,8 +42,8 @@ dependencies {
     modApi "dev.architectury:architectury-fabric:${rootProject.architectury_version}"
     modRuntimeOnly "maven.modrinth:spark:FeV5OquF"
 
-    implementation(project(path: ':common', configuration: 'transformProductionFabric')) { transitive false }
     implementation(project(path: ':fabric', configuration: 'namedElements')) { transitive false }
+    common(project(path: ':common', configuration: 'namedElements')) { transitive false }
     common(project(path: ":commonTest", configuration: "namedElements")) { transitive false }
 }
 
@@ -45,7 +51,9 @@ processResources {
     inputs.property "version", project.version
 
     filesMatching("fabric.mod.json") {
-        expand "version": project.version
+        expand "version": project.version,
+                "minecraftVersion": rootProject.minecraft_version,
+                "fabricLoader": rootProject.fabric_loader_version
     }
 }
 

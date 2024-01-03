@@ -22,7 +22,8 @@
     "manascore-common.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.15.3",
-    "minecraft": ">=1.20.4"
+    "fabricloader": ">=${fabricLoader}",
+    "minecraft": ">=${minecraftVersion}",
+    "architectury": ">=${architecturyVersion}"
   }
 }

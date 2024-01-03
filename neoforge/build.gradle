@@ -4,7 +4,9 @@ plugins {
 
 architectury {
     platformSetupLoomIde()
-    neoForge()
+    neoForge {
+        platformPackage = "neoforge"
+    }
 }
 
 loom {
@@ -39,7 +41,10 @@ processResources {
     inputs.property "version", project.version
 
     filesMatching("META-INF/mods.toml") {
-        expand "version": project.version
+        expand "version": project.version,
+                "architecturyVersion": rootProject.architectury_version,
+                "minecraftVersion": rootProject.minecraft_version,
+                "nextMinecraftVersion": "1.${(Integer.parseInt(rootProject.minecraft_version.split("\\.")[1]) + 1)}"
     }
 }
 

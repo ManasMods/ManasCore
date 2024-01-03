@@ -3,6 +3,7 @@ package com.github.manasmods.testmod.storage;
 import com.github.manasmods.manascore.ManasCore;
 import com.github.manasmods.manascore.api.storage.Storage;
 import com.github.manasmods.manascore.api.storage.StorageEvents;
+import com.github.manasmods.manascore.api.storage.StorageHolder;
 import com.github.manasmods.manascore.storage.StorageManager.StorageKey;
 import com.github.manasmods.testmod.TestMod;
 import dev.architectury.event.EventResult;
@@ -24,15 +25,15 @@ public class StorageTest {
     public static void init() {
         // Register storage
         StorageEvents.REGISTER_ENTITY_STORAGE.register(registry -> {
-            ENTITY_KEY = registry.register(new ResourceLocation(TestMod.MOD_ID, "test_storage"), TestStorage.class, entity -> entity instanceof Player, target -> new TestStorage());
+            ENTITY_KEY = registry.register(new ResourceLocation(TestMod.MOD_ID, "test_storage"), TestStorage.class, entity -> entity instanceof Player, TestStorage::new);
             ManasCore.Logger.info("Registered entity storage key: {}", ENTITY_KEY.id());
         });
         StorageEvents.REGISTER_CHUNK_STORAGE.register(registry -> {
-            CHUNK_KEY = registry.register(new ResourceLocation(TestMod.MOD_ID, "test_storage"), TestStorage.class, chunk -> true, target -> new TestStorage());
+            CHUNK_KEY = registry.register(new ResourceLocation(TestMod.MOD_ID, "test_storage"), TestStorage.class, chunk -> true, TestStorage::new);
             ManasCore.Logger.info("Registered chunk storage key: {}", CHUNK_KEY.id());
         });
         StorageEvents.REGISTER_WORLD_STORAGE.register(registry -> {
-            WORLD_KEY = registry.register(new ResourceLocation(TestMod.MOD_ID, "test_storage"), TestStorage.class, level -> true, target -> new TestStorage());
+            WORLD_KEY = registry.register(new ResourceLocation(TestMod.MOD_ID, "test_storage"), TestStorage.class, level -> true, TestStorage::new);
             ManasCore.Logger.info("Registered world storage key: {}", WORLD_KEY.id());
         });
         // Register event listeners that change the storage
@@ -76,6 +77,10 @@ public class StorageTest {
     public static class TestStorage extends Storage {
         private int dropCount = 0;
         private int deathCount = 0;
+
+        protected TestStorage(StorageHolder holder) {
+            super(holder);
+        }
 
         public void increaseDropCount() {
             dropCount++;

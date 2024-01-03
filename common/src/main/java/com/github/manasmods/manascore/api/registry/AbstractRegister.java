@@ -1,9 +1,8 @@
 package com.github.manasmods.manascore.api.registry;
 
+import com.github.manasmods.manascore.world.entity.attribute.ManasAttributeRegistry;
 import com.mojang.datafixers.types.Type;
-import dev.architectury.registry.level.entity.EntityAttributeRegistry;
 import dev.architectury.registry.registries.DeferredRegister;
-import dev.architectury.registry.registries.RegistrarManager;
 import dev.architectury.registry.registries.RegistrySupplier;
 import lombok.NonNull;
 import net.minecraft.core.registries.Registries;
@@ -16,7 +15,6 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -385,7 +383,7 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
                 return builder.build(this.id.toString());
             });
 
-            supplier.listen(type -> EntityAttributeRegistry.register(() -> type, this.attributeBuilder));
+            supplier.listen(type -> ManasAttributeRegistry.registerNew(() -> type, this.attributeBuilder));
             return supplier;
         }
     }
@@ -506,40 +504,10 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
         public RegistrySupplier<RangedAttribute> end() {
             RegistrySupplier<RangedAttribute> supplier = this.register.attributes.register(this.id, () -> (RangedAttribute) new RangedAttribute(String.format("%s.attribute.%s", this.id.getNamespace(), this.id.getPath().replaceAll("/", ".")), this.defaultValue, this.minimumValue, this.maximumValue).setSyncable(this.syncable));
 
-            supplier.listen(rangedAttribute -> {
-                // Apply to all known entities with default value
-                if (this.applyToAll) {
-                    for (EntityType<?> entityType : RegistrarManager.get(this.id.getNamespace()).get(Registries.ENTITY_TYPE)) {
-                        if (!DefaultAttributes.hasSupplier(entityType)) continue;
-                        // Cast to living entity type
-                        EntityType<? extends LivingEntity> type = (EntityType<? extends LivingEntity>) entityType;
-                        // Register attribute
-                        EntityAttributeRegistry.register(() -> type, () -> {
-                            AttributeSupplier existing = DefaultAttributes.getSupplier(type);
-                            AttributeSupplier.Builder builder = AttributeSupplier.builder();
-                            // Apply existing attributes
-                            existing.instances.keySet().forEach(attribute -> builder.add(attribute, existing.instances.get(attribute).getBaseValue()));
-                            // Apply new attribute
-                            builder.add(rangedAttribute, defaultValue);
-
-                            return builder;
-                        });
-                    }
-                }
-                // Apply overrides
-                this.applicableEntityTypes.forEach((typeSupplier, defaultValue) -> {
-                    EntityAttributeRegistry.register(typeSupplier, () -> {
-                        EntityType<? extends LivingEntity> entityType = typeSupplier.get();
-                        AttributeSupplier existing = DefaultAttributes.getSupplier(entityType);
-                        AttributeSupplier.Builder builder = AttributeSupplier.builder();
-                        // Apply existing attributes
-                        existing.instances.keySet().forEach(attribute -> builder.add(attribute, existing.instances.get(attribute).getBaseValue()));
-                        // Apply new attribute
-                        builder.add(rangedAttribute, defaultValue);
-
-                        return builder;
-                    });
-                });
+            supplier.listen(attribute -> {
+                // TODO something in here is broken on NeoForge and probably on Forge too
+                if (this.applyToAll) ManasAttributeRegistry.registerToAll(builder -> builder.add(attribute, this.defaultValue));
+                this.applicableEntityTypes.forEach((typeSupplier, defaultValue) -> ManasAttributeRegistry.register(typeSupplier, builder -> builder.add(attribute, defaultValue)));
             });
 
             return supplier;
