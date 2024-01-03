@@ -60,6 +60,7 @@ public class RegisterTest {
             if (entity.getItem().is(Items.DIAMOND)) {
                 Skills storage = SkillAPI.getSkillsFrom(player);
                 Registrar<ManasSkill> skills = SkillAPI.getSkillRegistry();
+                RegistrySupplier<TestSkill> testSkill = TEST_SKILL;
                 if (storage.learnSkill(RegisterTest.TEST_SKILL.get())) {
                     ManasCore.Logger.info("Added Tested Skill!");
                 }
