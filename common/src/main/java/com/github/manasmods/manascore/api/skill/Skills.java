@@ -21,7 +21,7 @@ public interface Skills {
     }
 
     default boolean learnSkill(@NonNull ManasSkill skill) {
-        return learnSkill(new ManasSkillInstance(skill));
+        return learnSkill(skill.createDefaultInstance());
     }
 
     boolean learnSkill(ManasSkillInstance instance);
