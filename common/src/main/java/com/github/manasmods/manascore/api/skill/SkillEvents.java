@@ -4,6 +4,7 @@ import com.github.manasmods.manascore.utils.Changeable;
 import dev.architectury.event.Event;
 import dev.architectury.event.EventFactory;
 import dev.architectury.event.EventResult;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -23,7 +24,7 @@ public interface SkillEvents {
 
     @FunctionalInterface
     interface UnlockSkillEvent {
-        EventResult unlockSkill(ManasSkillInstance skillInstance, LivingEntity owner);
+        EventResult unlockSkill(ManasSkillInstance skillInstance, LivingEntity owner, Changeable<Component> unlockMessage);
     }
 
     @FunctionalInterface

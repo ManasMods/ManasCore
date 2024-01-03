@@ -9,6 +9,7 @@ import com.github.manasmods.manascore.api.storage.Storage;
 import com.github.manasmods.manascore.api.storage.StorageEvents;
 import com.github.manasmods.manascore.api.world.entity.EntityEvents;
 import com.github.manasmods.manascore.storage.StorageManager.StorageKey;
+import com.github.manasmods.manascore.utils.Changeable;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import dev.architectury.event.EventResult;
@@ -136,12 +137,13 @@ public class SkillStorage extends Storage implements Skills {
             return false;
         }
 
-        EventResult result = SkillEvents.UNLOCK_SKILL.invoker().unlockSkill(instance, getOwner());
+        Changeable<Component> unlockMessage = Changeable.of(Component.translatable("manascore.skillsystem.learn_skill", instance.getChatDisplayName(true)));
+        EventResult result = SkillEvents.UNLOCK_SKILL.invoker().unlockSkill(instance, getOwner(), unlockMessage);
         if (result.isFalse()) return false;
 
         instance.markDirty();
         this.skillInstances.put(instance.getSkillId(), instance);
-        getOwner().sendSystemMessage(Component.translatable("manascore.skillsystem.learn_skill", instance.getChatDisplayName(true)));
+        getOwner().sendSystemMessage(unlockMessage.get());
         instance.onLearnSkill(getOwner());
         markDirty();
         return true;
