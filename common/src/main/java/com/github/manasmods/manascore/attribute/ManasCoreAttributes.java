@@ -48,14 +48,14 @@ public class ManasCoreAttributes {
             .applyTo(() -> EntityType.PLAYER)
             .syncable()
             .end();
-    public static final RegistrySupplier<RangedAttribute> STEP_HEIGHT_ADDITION = ManasCore.REGISTER.attribute("step_height_addition")
+    public static final RegistrySupplier<RangedAttribute> STEP_HEIGHT_ADDITION = ManasCore.REGISTER.attribute("step_height")
             .withDefaultValue(0)
             .withMinimumValue(-1024)
             .withMaximumValue(1024)
             .applyToAll()
             .syncable()
             .end();
-    public static final RegistrySupplier<RangedAttribute> SWIM_SPEED = ManasCore.REGISTER.attribute("swim_speed")
+    public static final RegistrySupplier<RangedAttribute> SWIM_SPEED_ADDITION = ManasCore.REGISTER.attribute("swim_speed")
             .withDefaultValue(1)
             .withMinimumValue(0)
             .withMaximumValue(1024)

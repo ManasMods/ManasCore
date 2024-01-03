@@ -38,7 +38,7 @@ public abstract class MixinPlayer {
 
     @Redirect(method = "attack", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/world/entity/player/Player;distanceToSqr(Lnet/minecraft/world/entity/Entity;)D"))
-    private double getBlockInteractDistance(Player player, Entity entity) {
+    private double sweepDistanceCheck(Player player, Entity entity) {
         double reach = ManasCoreAttributeUtils.getEntityReachAddition(player);
         double reachSquared = reach * reach * (reach < 0 ? -1 : 1);
         return player.distanceToSqr(entity) - reachSquared;

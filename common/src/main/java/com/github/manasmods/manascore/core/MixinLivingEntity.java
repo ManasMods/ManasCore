@@ -41,7 +41,7 @@ public abstract class MixinLivingEntity {
     @Inject(method = "jumpInLiquid", at = @At("HEAD"))
     protected void jumpInLiquid(TagKey<Fluid> fluidTag, CallbackInfo ci) {
         LivingEntity entity = (LivingEntity) (Object) this;
-        AttributeInstance instance = entity.getAttribute(ManasCoreAttributes.SWIM_SPEED.get());
+        AttributeInstance instance = entity.getAttribute(ManasCoreAttributes.SWIM_SPEED_ADDITION.get());
         if (instance == null) return;
         entity.setDeltaMovement(entity.getDeltaMovement().add(0.0, 0.04 * instance.getValue() - 0.04, 0.0));
     }
@@ -49,7 +49,7 @@ public abstract class MixinLivingEntity {
     @Inject(method = "goDownInWater", at = @At("HEAD"))
     protected void goDownInWater(CallbackInfo ci) {
         LivingEntity entity = (LivingEntity) (Object) this;
-        AttributeInstance instance = entity.getAttribute(ManasCoreAttributes.SWIM_SPEED.get());
+        AttributeInstance instance = entity.getAttribute(ManasCoreAttributes.SWIM_SPEED_ADDITION.get());
         if (instance == null) return;
         entity.setDeltaMovement(entity.getDeltaMovement().add(0.0, 0.04 - 0.04 * instance.getValue(), 0.0));
     }
@@ -58,7 +58,7 @@ public abstract class MixinLivingEntity {
             target = "Lnet/minecraft/world/entity/LivingEntity;moveRelative(FLnet/minecraft/world/phys/Vec3;)V", ordinal = 0))
     public float travel(float speed) {
         LivingEntity entity = (LivingEntity) (Object) this;
-        AttributeInstance instance = entity.getAttribute(ManasCoreAttributes.SWIM_SPEED.get());
+        AttributeInstance instance = entity.getAttribute(ManasCoreAttributes.SWIM_SPEED_ADDITION.get());
         if (instance == null) return speed;
         return (float) (speed * instance.getValue());
     }
