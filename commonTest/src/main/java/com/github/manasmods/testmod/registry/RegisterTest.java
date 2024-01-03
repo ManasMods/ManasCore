@@ -1,11 +1,13 @@
 package com.github.manasmods.testmod.registry;
 
 import com.github.manasmods.manascore.ManasCore;
+import com.github.manasmods.manascore.api.skill.ManasSkill;
 import com.github.manasmods.manascore.api.skill.SkillAPI;
 import com.github.manasmods.manascore.api.skill.Skills;
 import com.mojang.serialization.MapCodec;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.PlayerEvent;
+import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.EntityType;
@@ -57,6 +59,7 @@ public class RegisterTest {
             //Test giving Skills
             if (entity.getItem().is(Items.DIAMOND)) {
                 Skills storage = SkillAPI.getSkillsFrom(player);
+                Registrar<ManasSkill> skills = SkillAPI.getSkillRegistry();
                 if (storage.learnSkill(RegisterTest.TEST_SKILL.get())) {
                     ManasCore.Logger.info("Added Tested Skill!");
                 }

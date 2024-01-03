@@ -19,9 +19,10 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.EntityHitResult;
 
 public class SkillRegistry {
-    public static final Registrar<ManasSkill> SKILLS = RegistrarManager.get(ManasCore.MOD_ID).<ManasSkill>builder(new ResourceLocation(ManasCore.MOD_ID, "skills"))
+    private static final ResourceLocation registryId = new ResourceLocation(ManasCore.MOD_ID, "skills");
+    public static final Registrar<ManasSkill> SKILLS = RegistrarManager.get(ManasCore.MOD_ID).<ManasSkill>builder(registryId)
             .build();
-    public static final ResourceKey<Registry<ManasSkill>> KEY = (ResourceKey<Registry<ManasSkill>>) SKILLS.key();
+    public static final ResourceKey<Registry<ManasSkill>> KEY = ResourceKey.createRegistryKey(registryId);
 
 
     public static void init() {
