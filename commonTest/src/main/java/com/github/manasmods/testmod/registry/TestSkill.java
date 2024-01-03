@@ -3,6 +3,7 @@ package com.github.manasmods.testmod.registry;
 import com.github.manasmods.manascore.ManasCore;
 import com.github.manasmods.manascore.api.skill.ManasSkill;
 import com.github.manasmods.manascore.api.skill.ManasSkillInstance;
+import com.github.manasmods.manascore.api.skill.SkillRarity;
 import com.github.manasmods.manascore.api.world.entity.EntityEvents;
 import com.github.manasmods.manascore.utils.Changeable;
 import net.minecraft.core.BlockPos;
@@ -22,7 +23,7 @@ import net.minecraft.world.phys.EntityHitResult;
 
 public class TestSkill extends ManasSkill {
     public TestSkill() {
-        super();
+        super(SkillRarity.Unique);
         ManasCore.Logger.info("Created skill!");
     }
 
