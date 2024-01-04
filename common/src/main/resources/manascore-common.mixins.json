@@ -18,7 +18,6 @@
   ],
   "client": [
     "client.MixinGameRenderer",
-    "client.MixinGui",
     "client.MixinMinecraft",
     "client.MixinMultiPlayerGameMode"
   ],

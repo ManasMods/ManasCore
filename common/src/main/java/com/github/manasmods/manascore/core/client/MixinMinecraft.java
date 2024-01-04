@@ -1,14 +1,11 @@
 package com.github.manasmods.manascore.core.client;
 
-import com.github.manasmods.manascore.attribute.ManasCoreAttributeUtils;
+import com.github.manasmods.manascore.attribute.ManasCoreAttributes;
+import com.github.manasmods.manascore.network.NetworkManager;
+import com.github.manasmods.manascore.network.toserver.RequestSweepChancePacket;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -18,34 +15,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Minecraft.class)
 public class MixinMinecraft {
-    @Shadow protected int missTime;
-    @Shadow @Nullable public HitResult hitResult;
-
     @Shadow @Nullable public LocalPlayer player;
-    @Shadow @Nullable public MultiPlayerGameMode gameMode;
-
-    @Shadow @Nullable public ClientLevel level;
-    @Inject(method = "startAttack", at = @At("HEAD"), cancellable = true)
-    private void startAttack(CallbackInfoReturnable<Boolean> cir) {
-        if (this.missTime > 0) return;
-        if (this.hitResult == null) return;
-
-        LocalPlayer player = this.player;
+    @Inject(method = "startAttack", at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/client/player/LocalPlayer;resetAttackStrengthTicker()V", shift = At.Shift.BEFORE))
+    private void addSweepChance(CallbackInfoReturnable<Boolean> cir) {
         if (player == null) return;
-        if (player.isHandsBusy()) return;
-
-        ItemStack itemStack = this.player.getItemInHand(InteractionHand.MAIN_HAND);
-        if (level != null && !itemStack.isItemEnabled(level.enabledFeatures())) {
-            cir.setReturnValue(false);
-            return;
-        }
-
-        if (!(this.hitResult instanceof EntityHitResult entityHit)) return;
-        if (ManasCoreAttributeUtils.cantHit(player, entityHit.getEntity(), 3)) {
-            if (this.gameMode != null && this.gameMode.hasMissTime()) this.missTime = 10;
-            this.player.resetAttackStrengthTicker();
-            this.player.swing(InteractionHand.MAIN_HAND);
-            cir.setReturnValue(false);
-        }
+        AttributeInstance instance = player.getAttribute(ManasCoreAttributes.SWEEP_CHANCE.get());
+        if (instance == null || player.getRandom().nextInt(100) > instance.getValue()) return;
+        NetworkManager.CHANNEL.sendToServer(new RequestSweepChancePacket());
     }
 }

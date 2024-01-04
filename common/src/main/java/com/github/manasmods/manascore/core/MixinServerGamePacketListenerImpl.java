@@ -15,7 +15,7 @@ public class MixinServerGamePacketListenerImpl {
     @Shadow public ServerPlayer player;
     @Redirect(method = "handleUseItemOn", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/world/phys/Vec3;distanceToSqr(Lnet/minecraft/world/phys/Vec3;)D"))
-    private double getBlockInteractDistancee(Vec3 instance, Vec3 vec) {
+    private double getBlockInteractDistance(Vec3 instance, Vec3 vec) {
         double reach = ManasCoreAttributeUtils.getBlockReachAddition(player);
         double reachSquared = reach * reach * (reach < 0 ? -1 : 1);
         return instance.distanceToSqr(vec) - reachSquared;

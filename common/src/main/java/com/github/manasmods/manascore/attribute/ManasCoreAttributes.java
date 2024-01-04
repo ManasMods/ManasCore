@@ -62,6 +62,13 @@ public class ManasCoreAttributes {
             .applyToAll()
             .syncable()
             .end();
+    public static final RegistrySupplier<RangedAttribute> SWEEP_CHANCE = ManasCore.REGISTER.attribute("sweep_chance")
+            .withDefaultValue(0)
+            .withMinimumValue(0)
+            .withMaximumValue(100)
+            .applyTo(() -> EntityType.PLAYER)
+            .syncable()
+            .end();
 
     public static void init() {
     }

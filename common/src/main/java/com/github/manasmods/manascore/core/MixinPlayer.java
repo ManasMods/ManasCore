@@ -8,6 +8,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -16,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class MixinPlayer {
     @ModifyArg(method = "attack", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/world/entity/Entity;hurt(Lnet/minecraft/world/damagesource/DamageSource;F)Z"), index = 1)
-    private float getAttackDamageWithCritChance(float amount, @Local(ordinal = 1) float g, @Local(ordinal = 2) boolean bl3) {
+    private float getCritChanceDamage(float amount, @Local(ordinal = 1) float g, @Local(ordinal = 2) boolean bl3) {
         Player player = (Player) (Object) this;
         if (!bl3) {
             AttributeInstance instance = player.getAttribute(ManasCoreAttributes.CRIT_CHANCE.get());
@@ -38,10 +39,19 @@ public abstract class MixinPlayer {
 
     @Redirect(method = "attack", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/world/entity/player/Player;distanceToSqr(Lnet/minecraft/world/entity/Entity;)D"))
-    private double sweepDistanceCheck(Player player, Entity entity) {
+    private double getSweepDistanceCheck(Player player, Entity entity) {
         double reach = ManasCoreAttributeUtils.getEntityReachAddition(player);
         double reachSquared = reach * reach * (reach < 0 ? -1 : 1);
         return player.distanceToSqr(entity) - reachSquared;
+    }
+
+    @ModifyArg(method = "attack", at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/world/level/Level;getEntitiesOfClass(Ljava/lang/Class;Lnet/minecraft/world/phys/AABB;)Ljava/util/List;"), index = 1)
+    protected AABB getSweepAABB(AABB old) {
+        Player player = (Player) (Object) this;
+        double reach = Math.min(ManasCoreAttributeUtils.getEntityReachAddition(player) / 2D,
+                old.getCenter().distanceToSqr(player.getEyePosition()));
+        return old.inflate(reach, 0, reach);
     }
 
     @Inject(method = "getDestroySpeed", at = @At("RETURN"), cancellable = true)
