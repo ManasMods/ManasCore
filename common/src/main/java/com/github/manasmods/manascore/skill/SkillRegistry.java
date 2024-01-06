@@ -21,8 +21,9 @@ import net.minecraft.world.phys.EntityHitResult;
 public class SkillRegistry {
     private static final ResourceLocation registryId = new ResourceLocation(ManasCore.MOD_ID, "skills");
     public static final Registrar<ManasSkill> SKILLS = RegistrarManager.get(ManasCore.MOD_ID).<ManasSkill>builder(registryId)
+            .syncToClients()
             .build();
-    public static final ResourceKey<Registry<ManasSkill>> KEY = ResourceKey.createRegistryKey(registryId);
+    public static final ResourceKey<Registry<ManasSkill>> KEY = (ResourceKey<Registry<ManasSkill>>) SKILLS.key();
 
 
     public static void init() {

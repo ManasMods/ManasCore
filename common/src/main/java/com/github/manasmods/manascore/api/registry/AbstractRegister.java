@@ -1,7 +1,7 @@
 package com.github.manasmods.manascore.api.registry;
 
 import com.github.manasmods.manascore.api.skill.ManasSkill;
-import com.github.manasmods.manascore.skill.SkillRegistry;
+import com.github.manasmods.manascore.api.skill.SkillAPI;
 import com.github.manasmods.manascore.world.entity.attribute.ManasAttributeRegistry;
 import com.mojang.datafixers.types.Type;
 import dev.architectury.registry.registries.DeferredRegister;
@@ -159,7 +159,7 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
      * Creates a new {@link SkillBuilder} for the given name.
      */
     public <T extends ManasSkill> SkillBuilder<R, T> skill(final String name, final Supplier<T> skillFactory) {
-        if (this.skills == null) this.skills = DeferredRegister.create(this.modId, SkillRegistry.KEY);
+        if (this.skills == null) this.skills = DeferredRegister.create(this.modId, SkillAPI.getSkillRegistryKey());
         return new SkillBuilder<>(self(), name, skillFactory);
     }
 
