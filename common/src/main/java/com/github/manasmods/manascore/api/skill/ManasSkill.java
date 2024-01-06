@@ -82,11 +82,6 @@ public class ManasSkill {
         return Objects.equals(getRegistryName(), skill.getRegistryName());
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(getRegistryName());
-    }
-
     /**
      * Determine if the {@link ManasSkillInstance} of this Skill can be used by {@link LivingEntity}.
      *
