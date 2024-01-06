@@ -27,6 +27,10 @@ public class TestSkill extends ManasSkill {
         ManasCore.Logger.info("Created skill!");
     }
 
+    public boolean canBeToggled(ManasSkillInstance instance, LivingEntity entity) {
+        return entity.isShiftKeyDown();
+    }
+
     public boolean canTick(ManasSkillInstance instance, LivingEntity entity) {
         return instance.isToggled();
     }
@@ -53,8 +57,7 @@ public class TestSkill extends ManasSkill {
     }
 
     public void onTick(ManasSkillInstance instance, LivingEntity living) {
-        if (living instanceof Player player && player.isSecondaryUseActive())
-            ManasCore.Logger.info("You're sneaky");
+        if (living.isShiftKeyDown()) ManasCore.Logger.info("You're sneaky");
     }
 
     public void onScroll(ManasSkillInstance instance, LivingEntity living, double delta) {
@@ -103,7 +106,7 @@ public class TestSkill extends ManasSkill {
 
     public boolean onTakenDamage(ManasSkillInstance instance, LivingEntity owner, DamageSource source, Changeable<Float> amount) {
         owner.heal(amount.get());
-        ManasCore.Logger.info("Healed {} by {} health", owner.getName(), amount);
+        ManasCore.Logger.info("Healed {} by {} health", owner.getName(), amount.get());
         return true;
     }
 

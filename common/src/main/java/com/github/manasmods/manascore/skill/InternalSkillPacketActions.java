@@ -71,6 +71,7 @@ public class InternalSkillPacketActions {
         List<ResourceLocation> packetSkills = new ArrayList<>();
 
         for (ManasSkillInstance skillInstance : SkillAPI.getSkillsFrom(player).getLearnedSkills()) {
+            if (!skillInstance.canBeToggled(player)) continue;
             if (SkillEvents.TOGGLE_SKILL.invoker().toggleSkill(skillInstance, player).isFalse()) continue;
             packetSkills.add(skillInstance.getSkillId());
         }

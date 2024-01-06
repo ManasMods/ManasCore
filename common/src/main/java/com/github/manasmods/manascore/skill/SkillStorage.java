@@ -79,9 +79,8 @@ public class SkillStorage extends Storage implements Skills {
 
             ManasSkillInstance skillInstance = optional.get();
             if (!skillInstance.canInteractSkill(entity)) continue;
-            if (!skillInstance.getSkill().canTick(skillInstance, entity)) continue;
+            if (!skillInstance.canTick(entity)) continue;
             if (SkillEvents.SKILL_PRE_TICK.invoker().tick(skillInstance, entity).isFalse()) continue;
-            tickingSkills.add(skillInstance);
         }
 
         for (ManasSkillInstance instance : tickingSkills) {
