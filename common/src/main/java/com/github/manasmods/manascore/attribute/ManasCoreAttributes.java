@@ -6,13 +6,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 
 public class ManasCoreAttributes {
-    public static final RegistrySupplier<RangedAttribute> BLOCK_REACH = ManasCore.REGISTER.attribute("block_reach_addition")
-            .withDefaultValue(0)
-            .withMinimumValue(0)
-            .withMaximumValue(1024)
-            .applyTo(() -> EntityType.PLAYER)
-            .syncable()
-            .end();
     public static final RegistrySupplier<RangedAttribute> CRIT_CHANCE = ManasCore.REGISTER.attribute("crit_chance")
             .withDefaultValue(0)
             .withMinimumValue(0)
@@ -25,13 +18,6 @@ public class ManasCoreAttributes {
             .withMinimumValue(0)
             .withMaximumValue(1024)
             .applyToAll()
-            .syncable()
-            .end();
-    public static final RegistrySupplier<RangedAttribute> ENTITY_REACH = ManasCore.REGISTER.attribute("entity_reach_addition")
-            .withDefaultValue(0)
-            .withMinimumValue(0)
-            .withMaximumValue(1024)
-            .applyTo(() -> EntityType.PLAYER)
             .syncable()
             .end();
     public static final RegistrySupplier<RangedAttribute> JUMP_STRENGTH = ManasCore.REGISTER.attribute("jump_strength")

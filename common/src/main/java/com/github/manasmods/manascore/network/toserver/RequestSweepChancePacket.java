@@ -1,7 +1,6 @@
 package com.github.manasmods.manascore.network.toserver;
 
 import com.github.manasmods.manascore.attribute.ManasCoreAttributeUtils;
-import com.github.manasmods.manascore.attribute.ManasCoreAttributes;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.utils.Env;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +32,7 @@ public class RequestSweepChancePacket {
 
     private void sweepAttack(Player player) {
         float attack = ManasCoreAttributeUtils.getAttackDamage(player);
-        double radiusAddition = player.getAttributeValue(ManasCoreAttributes.ENTITY_REACH.get()) / 2D;
+        double radiusAddition = player.isCreative() ? 3 : 1.5F; //TODO Entity Reach Attribute
         float sweepAttack = 1.0F + EnchantmentHelper.getSweepingDamageRatio(player) * attack;
 
         AABB sweepArea = player.getBoundingBox().inflate(1.0 + radiusAddition, 0.25, 1.0 + radiusAddition)

@@ -1,14 +1,11 @@
 package com.github.manasmods.manascore.core;
 
-import com.github.manasmods.manascore.attribute.ManasCoreAttributeUtils;
 import com.github.manasmods.manascore.attribute.ManasCoreAttributes;
 import com.llamalad7.mixinextras.sugar.Local;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -35,23 +32,6 @@ public abstract class MixinPlayer {
         AttributeInstance instance = player.getAttribute(ManasCoreAttributes.CRIT_MULTIPLIER.get());
         if (instance == null) return multiplier;
         return (float) instance.getValue();
-    }
-
-    @Redirect(method = "attack", at = @At(value = "INVOKE",
-            target = "Lnet/minecraft/world/entity/player/Player;distanceToSqr(Lnet/minecraft/world/entity/Entity;)D"))
-    private double getSweepDistanceCheck(Player player, Entity entity) {
-        double reach = ManasCoreAttributeUtils.getEntityReachAddition(player);
-        double reachSquared = reach * reach * (reach < 0 ? -1 : 1);
-        return player.distanceToSqr(entity) - reachSquared;
-    }
-
-    @ModifyArg(method = "attack", at = @At(value = "INVOKE",
-            target = "Lnet/minecraft/world/level/Level;getEntitiesOfClass(Ljava/lang/Class;Lnet/minecraft/world/phys/AABB;)Ljava/util/List;"), index = 1)
-    protected AABB getSweepAABB(AABB old) {
-        Player player = (Player) (Object) this;
-        double reach = Math.min(ManasCoreAttributeUtils.getEntityReachAddition(player) / 2D,
-                old.getCenter().distanceToSqr(player.getEyePosition()));
-        return old.inflate(reach, 0, reach);
     }
 
     @Inject(method = "getDestroySpeed", at = @At("RETURN"), cancellable = true)

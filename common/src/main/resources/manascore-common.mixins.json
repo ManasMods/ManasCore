@@ -7,19 +7,14 @@
     "MixinChunkSerializer",
     "MixinDataFixTypes",
     "MixinEntity",
-    "MixinItem",
     "MixinLevel",
     "MixinLevelChunk",
     "MixinLivingEntity",
     "MixinPlayer",
-    "MixinServerGamePacketListenerImpl",
-    "MixinServerLevel",
-    "MixinServerPlayerGameMode"
+    "MixinServerLevel"
   ],
   "client": [
-    "client.MixinGameRenderer",
-    "client.MixinMinecraft",
-    "client.MixinMultiPlayerGameMode"
+    "client.MixinMinecraft"
   ],
   "injectors": {
     "defaultRequire": 1

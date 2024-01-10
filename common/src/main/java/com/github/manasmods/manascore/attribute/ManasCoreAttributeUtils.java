@@ -6,13 +6,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 
 public class ManasCoreAttributeUtils {
-    public static double getEntityReachAddition(Player player) {
-        return player.getAttributeValue(ManasCoreAttributes.ENTITY_REACH.get());
-    }
-
-    public static double getBlockReachAddition(Player player) {
-        return player.getAttributeValue(ManasCoreAttributes.BLOCK_REACH.get());
-    }
 
     public static float getAttackDamage(Player player) {
         float f = (float) player.getAttributeValue(Attributes.ATTACK_DAMAGE);
