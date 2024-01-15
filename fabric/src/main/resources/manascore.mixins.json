@@ -4,8 +4,17 @@
   "package": "com.github.manasmods.manascore.fabric.core",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-  ],
-  "client": [
+    "MixinAbstractArrow",
+    "MixinAbstractHurtingProjectile",
+    "MixinFireRocketEntity",
+    "MixinFishingHook",
+    "MixinLivingEntity",
+    "MixinLlamaSpit",
+    "MixinMob",
+    "MixinPlayer",
+    "MixinShulkerBullet",
+    "MixinStartAttacking",
+    "MixinThrowableProjectile"
   ],
   "injectors": {
     "defaultRequire": 1

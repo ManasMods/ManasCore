@@ -83,7 +83,7 @@ public class MixinEntity implements StorageHolder {
 
     @Inject(method = "load", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;readAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V", shift = Shift.AFTER))
     void loadStorage(CompoundTag compound, CallbackInfo ci) {
-        this.storage = new CombinedStorage(this, compound.getCompound("ManasCoreStorage"));
+        this.storage.load(compound.getCompound("ManasCoreStorage"));
     }
 
     @Inject(method = "tick", at = @At("RETURN"))

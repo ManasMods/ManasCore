@@ -14,7 +14,6 @@ public class TestMod {
     public static void init() {
         REGISTER.init(RegisterTest::init);
         StorageTest.init();
-        RegisterTest.init();
 
         if(Platform.getEnvironment() == Env.CLIENT) {
             TestModClient.init();
