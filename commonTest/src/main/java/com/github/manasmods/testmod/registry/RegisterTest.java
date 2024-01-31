@@ -10,8 +10,6 @@ import dev.architectury.event.events.common.PlayerEvent;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraft.world.entity.npc.Villager;
@@ -53,8 +51,6 @@ public class RegisterTest {
             .withValidBlocks(TEST_BLOCK)
             .end();
     private static final RegistrySupplier<TestSkill> TEST_SKILL = REGISTER.skill("test_skill", TestSkill::new).end();
-
-    static final TagKey<ManasSkill> TEST_SKILL_TAG = TagKey.create(SkillAPI.getSkillRegistryKey(), new ResourceLocation(ManasCore.MOD_ID, "test_skill"));
 
     public static void init() {
         ManasCore.Logger.info("Registered test content!");
