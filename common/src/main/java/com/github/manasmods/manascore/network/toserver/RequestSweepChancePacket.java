@@ -19,9 +19,11 @@ import java.util.function.Supplier;
 @RequiredArgsConstructor
 public class RequestSweepChancePacket {
     public RequestSweepChancePacket(FriendlyByteBuf buf) {
+        // No data to read
     }
 
     public void toBytes(FriendlyByteBuf buf) {
+        // No data to write
     }
 
     public void handle(Supplier<NetworkManager.PacketContext> ctx) {
