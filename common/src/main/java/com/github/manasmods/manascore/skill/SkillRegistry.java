@@ -25,7 +25,6 @@ public class SkillRegistry {
             .build();
     public static final ResourceKey<Registry<ManasSkill>> KEY = (ResourceKey<Registry<ManasSkill>>) SKILLS.key();
 
-
     public static void init() {
         InteractionEvent.RIGHT_CLICK_BLOCK.register((player, hand, pos, face) -> {
             if (player.level().isClientSide()) return EventResult.pass();

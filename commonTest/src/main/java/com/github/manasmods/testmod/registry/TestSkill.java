@@ -21,6 +21,8 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ThrownTrident;
 import net.minecraft.world.phys.EntityHitResult;
 
+import static com.github.manasmods.testmod.registry.TestTags.TEST_SKILL_TAG;
+
 public class TestSkill extends ManasSkill {
     public TestSkill() {
         super(SkillRarity.Unique);
@@ -105,8 +107,10 @@ public class TestSkill extends ManasSkill {
     }
 
     public boolean onTakenDamage(ManasSkillInstance instance, LivingEntity owner, DamageSource source, Changeable<Float> amount) {
-        owner.heal(amount.get());
-        ManasCore.Logger.info("Healed {} by {} health", owner.getName(), amount.get());
+        if (instance.is(TEST_SKILL_TAG)) {
+            owner.heal(amount.get());
+            ManasCore.Logger.info("Healed {} by {} health", owner.getName().getString(), amount.get());
+        }
         return true;
     }
 
