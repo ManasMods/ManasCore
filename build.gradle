@@ -71,6 +71,19 @@ allprojects {
                 includeGroup("com.eliotlash.mclib")
             }
         }
+
+        exclusiveContent {
+            forRepository {
+                maven {
+                    name = 'Forge'
+                    url = 'https://maven.minecraftforge.net/'
+                }
+            }
+
+            filter {
+                includeGroup "com.github.glitchfiend"
+            }
+        }
     }
 
     tasks.withType(JavaCompile) {

@@ -38,6 +38,9 @@ dependencies {
     // GeckoLib + dependency inclusion
     modImplementation "software.bernie.geckolib:geckolib-neoforge-${rootProject.minecraft_version}:${rootProject.geckolib_version}"
     include("software.bernie.geckolib:geckolib-neoforge-${rootProject.minecraft_version}:${rootProject.geckolib_version}")
+    // Terrablender + dependency inclusion
+    modImplementation "com.github.glitchfiend:TerraBlender-neoforge:${rootProject.minecraft_version}-${rootProject.terrablender_version}"
+    include("com.github.glitchfiend:TerraBlender-neoforge:${rootProject.minecraft_version}-${rootProject.terrablender_version}")
 }
 
 processResources {
