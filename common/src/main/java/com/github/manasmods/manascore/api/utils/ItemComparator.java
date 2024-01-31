@@ -30,7 +30,7 @@ public class ItemComparator<T extends Item> {
         }
 
         public static <T extends Item> Builder<T> first(BiFunction<T, T, Integer> initialTest) {
-            return new Builder<T>(initialTest);
+            return new Builder<>(initialTest);
         }
 
         public static <T extends Item> Builder<T> firstInstancesOf(Class<? extends Item> type) {
