@@ -1,10 +1,12 @@
 package com.github.manasmods.manascore.attribute;
 
+import lombok.experimental.UtilityClass;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 
+@UtilityClass
 public class ManasCoreAttributeUtils {
 
     public static float getAttackDamage(Player player) {

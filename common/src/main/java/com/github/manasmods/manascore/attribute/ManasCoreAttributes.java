@@ -2,9 +2,11 @@ package com.github.manasmods.manascore.attribute;
 
 import com.github.manasmods.manascore.ManasCore;
 import dev.architectury.registry.registries.RegistrySupplier;
+import lombok.experimental.UtilityClass;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 
+@UtilityClass
 public class ManasCoreAttributes {
     public static final RegistrySupplier<RangedAttribute> CRIT_CHANCE = ManasCore.REGISTER.attribute("crit_chance")
             .withDefaultValue(0)
