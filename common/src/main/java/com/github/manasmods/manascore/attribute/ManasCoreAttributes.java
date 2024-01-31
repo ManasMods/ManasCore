@@ -59,5 +59,6 @@ public class ManasCoreAttributes {
             .end();
 
     public static void init() {
+        // Just loads the class
     }
 }
