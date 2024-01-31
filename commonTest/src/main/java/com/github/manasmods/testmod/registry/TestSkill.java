@@ -105,8 +105,10 @@ public class TestSkill extends ManasSkill {
     }
 
     public boolean onTakenDamage(ManasSkillInstance instance, LivingEntity owner, DamageSource source, Changeable<Float> amount) {
-        owner.heal(amount.get());
-        ManasCore.Logger.info("Healed {} by {} health", owner.getName(), amount.get());
+        if (instance.is(RegisterTest.TEST_SKILL_TAG)) {
+            owner.heal(amount.get());
+            ManasCore.Logger.info("Healed {} by {} health", owner.getName(), amount.get());
+        }
         return true;
     }
 

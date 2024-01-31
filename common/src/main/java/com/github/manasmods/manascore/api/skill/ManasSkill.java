@@ -271,7 +271,7 @@ public class ManasSkill {
      *
      * @see ManasSkillInstance#onBeingTargeted(Changeable, LivingEntity)
      */
-    public boolean onBeingTargeted(ManasSkillInstance instance, Changeable<LivingEntity> target, LivingEntity owner)  {
+    public boolean onBeingTargeted(ManasSkillInstance instance, Changeable<LivingEntity> target, LivingEntity owner) {
         // Override this method to add your own logic
         return true;
     }

@@ -15,6 +15,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -547,5 +548,9 @@ public class ManasSkillInstance {
 
         MutableComponent component = Component.literal("[").append(getDisplayName()).append("]");
         return component.withStyle(style);
+    }
+
+    public boolean is(TagKey<ManasSkill> tag) {
+        return this.skillRegistryObject.is(tag);
     }
 }

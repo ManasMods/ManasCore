@@ -15,7 +15,6 @@ import dev.architectury.registry.registries.RegistrarManager;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.EntityHitResult;
 
@@ -25,8 +24,6 @@ public class SkillRegistry {
             .syncToClients()
             .build();
     public static final ResourceKey<Registry<ManasSkill>> KEY = (ResourceKey<Registry<ManasSkill>>) SKILLS.key();
-    public static final TagKey<ManasSkill> SKILL_TAG = TagKey.create(KEY, new ResourceLocation(ManasCore.MOD_ID, "skills"));
-
 
     public static void init() {
         InteractionEvent.RIGHT_CLICK_BLOCK.register((player, hand, pos, face) -> {
