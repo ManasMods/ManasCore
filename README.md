@@ -11,7 +11,12 @@ This Mod doesn't provide any new functionality for Minecraft itself. It is requi
     - Automatically syncs data between server and client
 - Events
     - ChunkEvents
-        - CHUNK_TICK -> Called every tick for every loaded chunk
+        - CHUNK_PRE_TICK -> Called every tick for every loaded chunk before the tick is executed
+        - CHUNK_POST_TICK -> Called every tick for every loaded chunk after the tick is executed
+    - EntityEvents
+        - LIVING_PRE_TICK -> Called every tick for every living entity before the tick is executed
+        - LIVING_POST_TICK -> Called every tick for every living entity after the tick is executed
+        - LIVING_CHANGE_TARGET -> Called when a living entity changes its target
 - Extended Keybindings
     - Works on Fabric, Forge and NeoForge
     - Automatically runs an action when a key is pressed (no need to check for key presses every tick)
@@ -21,6 +26,11 @@ This Mod doesn't provide any new functionality for Minecraft itself. It is requi
           the key is released
 - Builder like content creation
     - Create custom blocks, items, entities, blockEntities and attributes. with a builder like syntax
+- Skill API
+- Provided Runtime-Dependencies
+  - [Mixin Extras](https://github.com/LlamaLad7/MixinExtras) (only in Forge)
+  - [GeckoLib](https://github.com/bernie-g/geckolib)
+  - [Terrablender](https://github.com/Glitchfiend/TerraBlender)
 
 ## Development Setup
 

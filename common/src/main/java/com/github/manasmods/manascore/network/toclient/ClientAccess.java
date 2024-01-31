@@ -42,7 +42,9 @@ class ClientAccess {
         if (packet.isUpdate()) {
             holder.manasCore$getCombinedStorage().handleUpdatePacket(packet.getStorageTag());
         } else {
-            holder.manasCore$setCombinedStorage(new CombinedStorage(holder, packet.getStorageTag()));
+            CombinedStorage updatedStorage = new CombinedStorage(holder);
+            updatedStorage.load(packet.getStorageTag());
+            holder.manasCore$setCombinedStorage(updatedStorage);
         }
     }
 }

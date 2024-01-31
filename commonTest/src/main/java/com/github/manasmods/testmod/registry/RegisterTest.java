@@ -1,13 +1,20 @@
 package com.github.manasmods.testmod.registry;
 
 import com.github.manasmods.manascore.ManasCore;
+import com.github.manasmods.manascore.api.skill.ManasSkill;
+import com.github.manasmods.manascore.api.skill.SkillAPI;
+import com.github.manasmods.manascore.api.skill.Skills;
 import com.mojang.serialization.MapCodec;
+import dev.architectury.event.EventResult;
+import dev.architectury.event.events.common.PlayerEvent;
+import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -43,9 +50,24 @@ public class RegisterTest {
     private static final RegistrySupplier<BlockEntityType<TestBlockEntity>> TEST_BLOCK_ENTITY = REGISTER.blockEntity("test_block_entity", TestBlockEntity::new)
             .withValidBlocks(TEST_BLOCK)
             .end();
+    private static final RegistrySupplier<TestSkill> TEST_SKILL = REGISTER.skill("test_skill", TestSkill::new).end();
 
     public static void init() {
         ManasCore.Logger.info("Registered test content!");
+
+        PlayerEvent.DROP_ITEM.register((player, entity) -> {
+            //Test giving Skills
+            if (entity.getItem().is(Items.DIAMOND)) {
+                Skills storage = SkillAPI.getSkillsFrom(player);
+                Registrar<ManasSkill> skills = SkillAPI.getSkillRegistry();
+                RegistrySupplier<TestSkill> testSkill = TEST_SKILL;
+                if (storage.learnSkill(RegisterTest.TEST_SKILL.get())) {
+                    ManasCore.Logger.info("Added Tested Skill!");
+                }
+            }
+
+            return EventResult.pass();
+        });
     }
 
     private static class TestEntity extends Villager {

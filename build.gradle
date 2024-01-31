@@ -2,6 +2,7 @@ plugins {
     id "architectury-plugin" version "3.4-SNAPSHOT"
     id "dev.architectury.loom" version "1.4-SNAPSHOT" apply false
     id "io.freefair.lombok" version "8.4" apply false
+    id "org.sonarqube" version "4.4.1.3373"
 }
 
 architectury {
@@ -9,8 +10,10 @@ architectury {
 }
 
 subprojects {
-    apply plugin: "dev.architectury.loom"
-    apply plugin: "io.freefair.lombok"
+    apply {
+        plugin("dev.architectury.loom")
+        plugin("io.freefair.lombok")
+    }
 
     loom {
         silentMojangMappingsLicense()
@@ -25,15 +28,17 @@ subprojects {
         mappings loom.layered() {
             officialMojangMappings()
             //parchment("org.parchmentmc.data:parchment-${rootProject.minecraft_version}:${rootProject.parchment_version}@zip")
-            parchment("org.parchmentmc.data:parchment-1.20.2:${rootProject.parchment_version}@zip")
+            parchment("org.parchmentmc.data:parchment-1.20.3:${rootProject.parchment_version}@zip")
         }
     }
 }
 
 allprojects {
-    apply plugin: "java"
-    apply plugin: "architectury-plugin"
-    apply plugin: "maven-publish"
+    apply {
+        plugin("java")
+        plugin("architectury-plugin")
+        plugin("maven-publish")
+    }
 
     archivesBaseName = rootProject.archives_base_name
     version = rootProject.mod_version
@@ -55,6 +60,28 @@ allprojects {
 
             filter {
                 includeGroup "maven.modrinth"
+            }
+        }
+
+        maven {
+            name = 'GeckoLib'
+            url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+            content {
+                includeGroupByRegex("software\\.bernie.*")
+                includeGroup("com.eliotlash.mclib")
+            }
+        }
+
+        exclusiveContent {
+            forRepository {
+                maven {
+                    name = 'Forge'
+                    url = 'https://maven.minecraftforge.net/'
+                }
+            }
+
+            filter {
+                includeGroup "com.github.glitchfiend"
             }
         }
     }
@@ -82,5 +109,13 @@ allprojects {
                 url "file://${rootProject.projectDir}/mcmodsrepo"
             }
         }
+    }
+}
+
+sonar {
+    properties {
+        property "sonar.projectKey", "ManasMods_ManasCore"
+        property "sonar.organization", "manasmods"
+        property "sonar.host.url", "https://sonarcloud.io"
     }
 }
