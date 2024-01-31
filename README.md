@@ -27,6 +27,9 @@ This Mod doesn't provide any new functionality for Minecraft itself. It is requi
 - Builder like content creation
     - Create custom blocks, items, entities, blockEntities and attributes. with a builder like syntax
 - Skill API
+- Provided Runtime-Dependencies
+  - [Mixin Extras](https://github.com/LlamaLad7/MixinExtras) (only in Forge)
+  - [GeckoLib](https://github.com/bernie-g/geckolib)
 
 ## Development Setup
 
