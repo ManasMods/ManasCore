@@ -10,9 +10,12 @@
     "MixinLevel",
     "MixinLevelChunk",
     "MixinLivingEntity",
+    "MixinPlayer",
     "MixinServerLevel"
   ],
   "client": [
+    "client.MixinGuiGraphics",
+    "client.MixinMinecraft"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -5,6 +5,7 @@ import com.github.manasmods.manascore.api.skill.SkillAPI;
 import com.github.manasmods.manascore.api.skill.SkillEvents;
 import com.github.manasmods.manascore.api.skill.Skills;
 import com.github.manasmods.manascore.api.world.entity.EntityEvents;
+import com.github.manasmods.manascore.attribute.ManasCoreAttributes;
 import com.github.manasmods.manascore.client.ManasCoreClient;
 import com.github.manasmods.manascore.network.NetworkManager;
 import com.github.manasmods.manascore.skill.SkillRegistry;
@@ -55,6 +56,6 @@ public class ManasCore {
     }
 
     private static void staticContentInit() {
-        // No content yet
+        ManasCoreAttributes.init();
     }
 }

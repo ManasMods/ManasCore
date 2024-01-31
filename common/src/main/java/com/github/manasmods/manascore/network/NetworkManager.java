@@ -7,6 +7,7 @@ import com.github.manasmods.manascore.network.toserver.RequestSkillActivationPac
 import com.github.manasmods.manascore.network.toserver.RequestSkillReleasePacket;
 import com.github.manasmods.manascore.network.toserver.RequestSkillScrollPacket;
 import com.github.manasmods.manascore.network.toserver.RequestSkillTogglePacket;
+import com.github.manasmods.manascore.network.toserver.RequestSweepChancePacket;
 import dev.architectury.networking.NetworkChannel;
 import net.minecraft.resources.ResourceLocation;
 
@@ -22,5 +23,6 @@ public class NetworkManager {
         CHANNEL.register(RequestSkillReleasePacket.class, RequestSkillReleasePacket::encode, RequestSkillReleasePacket::new, RequestSkillReleasePacket::handle);
         CHANNEL.register(RequestSkillTogglePacket.class, RequestSkillTogglePacket::encode, RequestSkillTogglePacket::new, RequestSkillTogglePacket::handle);
         CHANNEL.register(RequestSkillScrollPacket.class, RequestSkillScrollPacket::encode, RequestSkillScrollPacket::new, RequestSkillScrollPacket::handle);
+        CHANNEL.register(RequestSweepChancePacket.class, RequestSweepChancePacket::toBytes, RequestSweepChancePacket::new, RequestSweepChancePacket::handle);
     }
 }
