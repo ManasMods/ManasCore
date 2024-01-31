@@ -11,8 +11,6 @@ import java.util.function.Predicate;
 public class StreamUtils {
     public static <T> Predicate<T> distinctBy(Function<? super T, ?> keyExtractor) {
         Set<Object> seen = ConcurrentHashMap.newKeySet();
-        return (t) -> {
-            return seen.add(keyExtractor.apply(t));
-        };
+        return (value) -> seen.add(keyExtractor.apply(value));
     }
 }
