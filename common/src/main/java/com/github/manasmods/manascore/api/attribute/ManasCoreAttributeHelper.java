@@ -1,5 +1,6 @@
 package com.github.manasmods.manascore.api.attribute;
 
+import lombok.experimental.UtilityClass;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -9,6 +10,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import java.util.Optional;
 import java.util.UUID;
 
+@UtilityClass
 public class ManasCoreAttributeHelper {
     /**
      * Safe way to apply {@link AttributeModifier} to an {@link LivingEntity}

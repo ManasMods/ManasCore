@@ -14,6 +14,7 @@
     "MixinServerLevel"
   ],
   "client": [
+    "client.MixinGuiGraphics",
     "client.MixinMinecraft"
   ],
   "injectors": {

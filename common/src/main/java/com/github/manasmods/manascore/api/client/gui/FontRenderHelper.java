@@ -58,7 +58,7 @@ public final class FontRenderHelper {
             }
         }
 
-        renderScaledText(graphics, font, scaling, font.split(text, Math.round(width / scaling)), x, y, color, shadow, spacePerLine);
+        graphics.renderScaledText(scaling, font.split(text, Math.round(width / scaling)), x, y, color, shadow, spacePerLine);
     }
 
     public static void renderScaledWrappedText(final GuiGraphics graphics, final Font font,
@@ -94,21 +94,6 @@ public final class FontRenderHelper {
                 break;
             }
         }
-
-        renderScaledText(graphics, font, scaling, font.split(text, Math.round(width / scaling)),
-                x, y, color, shadow, spacePerLine);
-    }
-
-    private static void renderScaledText(final GuiGraphics graphics, final Font font, final float scaling,
-                                         final List<FormattedCharSequence> text, final float x, float y,
-                                         final int color, final boolean shadow, final float spacePerLine) {
-        graphics.pose().scale(scaling, scaling, scaling);
-
-        for (FormattedCharSequence charSequence : text) {
-            graphics.drawString(font, charSequence, (int) (x / scaling), (int) (y / scaling), color, shadow);
-            y += (font.lineHeight + spacePerLine) * scaling;
-        }
-
-        graphics.pose().scale(1 / scaling, 1 / scaling, 1 / scaling);
+        graphics.renderScaledText(scaling, font.split(text, Math.round(width / scaling)), x, y, color, shadow, spacePerLine);
     }
 }
