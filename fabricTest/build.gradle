@@ -24,6 +24,12 @@ loom {
         server {
             runDir = 'run/server'
         }
+
+        gametest {
+            runDir = 'run/gametest'
+            server()
+            property("fabric-api.gametest", "true")
+        }
     }
 }
 

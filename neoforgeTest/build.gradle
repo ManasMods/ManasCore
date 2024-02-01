@@ -24,6 +24,13 @@ loom {
         server {
             runDir = 'run/server'
         }
+
+        gametest {
+            runDir = 'run/gametest'
+            server()
+            property("neoforge.gameTestServer", "true")
+            property("neoforge.enabledGameTestNamespaces", "testmod")
+        }
     }
 }
 
