@@ -15,6 +15,9 @@
     ],
     "client": [
       "com.github.manasmods.manascore.fabric.client.ManasCoreFabricClient"
+    ],
+    "fabric-datagen": [
+      "com.github.manasmods.manascore.fabric.datagen.DatagenProvider"
     ]
   },
   "mixins": [
