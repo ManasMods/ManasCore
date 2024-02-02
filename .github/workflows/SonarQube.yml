@@ -4,6 +4,7 @@ on:
     branches:
       - master
       - 1.19.2/master
+      - 1.20.4/master
   pull_request:
     types: [opened, synchronize, reopened]
 jobs:
@@ -13,12 +14,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: 17
-          distribution: 'zulu' # Alternative distribution options are available
+          distribution: 'zulu'
       - name: Cache SonarCloud packages
         uses: actions/cache@v3
         with:
@@ -34,7 +35,9 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
       - name: Build
-        run: ./gradlew build
+        run: ./gradlew build --stacktrace
+      - name: Game Tests
+        run: ./gradlew runGametest --stacktrace | tee /dev/fd/2 | grep -q 'Failed to start the minecraft server' && exit 1
       - name: Analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
