@@ -1,5 +1,6 @@
 plugins {
     id "com.github.johnrengelman.shadow" version "7.1.2"
+    id "jacoco"
 }
 
 architectury {
@@ -28,8 +29,8 @@ loom {
         gametest {
             runDir = 'run/gametest'
             server()
-            property("neoforge.gameTestServer", "true")
-            property("neoforge.enabledGameTestNamespaces", "testmod")
+            property("forge.gameTestServer", "true")
+            property("forge.enabledGameTestNamespaces", "testmod")
         }
     }
 }

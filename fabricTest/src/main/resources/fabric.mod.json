@@ -14,6 +14,9 @@
       "com.github.manasmods.testmod.TestModFabric"
     ],
     "client": [
+    ],
+    "fabric-gametest": [
+      "com.github.manasmods.testmod.gametest.SkillTests"
     ]
   },
   "depends": {

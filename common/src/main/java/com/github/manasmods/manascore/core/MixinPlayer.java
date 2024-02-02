@@ -12,8 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Player.class)
 public abstract class MixinPlayer {
-    @ModifyArg(method = "attack", at = @At(value = "INVOKE",
-            target = "Lnet/minecraft/world/entity/Entity;hurt(Lnet/minecraft/world/damagesource/DamageSource;F)Z"), index = 1)
+    @ModifyArg(method = "attack", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;hurt(Lnet/minecraft/world/damagesource/DamageSource;F)Z"), index = 1)
     private float getCritChanceDamage(float amount, @Local(ordinal = 1) float g, @Local(ordinal = 2) boolean bl3) {
         Player player = (Player) (Object) this;
         if (!bl3) {
