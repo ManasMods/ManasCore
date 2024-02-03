@@ -2,6 +2,7 @@ package com.github.manasmods.manascore.fabric.datagen;
 
 import com.github.manasmods.manascore.ManasCore;
 import com.github.manasmods.manascore.datagen.events.DatagenEvents;
+import com.github.manasmods.manascore.fabric.datagen.helpers.FabricBlockLootHelper;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
@@ -17,6 +18,7 @@ public class DatagenProvider implements DataGeneratorEntrypoint {
         FabricDataGenerator.Pack pack = fabricDataGenerator.createPack();
 
         pack.addProvider(AdvancementsGenerator::new);
+        pack.addProvider(FabricBlockLootHelper::new);
     }
 
     static class AdvancementsGenerator extends FabricAdvancementProvider {
