@@ -26,31 +26,31 @@ import org.jetbrains.annotations.Nullable;
 import static com.github.manasmods.testmod.TestMod.REGISTER;
 
 public class RegisterTest {
-    private static final RegistrySupplier<Item> TEST_ITEM = REGISTER.item("test_item")
+    public static final RegistrySupplier<Item> TEST_ITEM = REGISTER.item("test_item")
             .withStackSize(4)
             .end();
-    private static final RegistrySupplier<TestBlock> TEST_BLOCK = REGISTER.block("test_block", TestBlock::new)
+    public static final RegistrySupplier<TestBlock> TEST_BLOCK = REGISTER.block("test_block", TestBlock::new)
             .withBlockItem(builder -> builder
                     .withStackSize(16))
             .end();
-    private static final RegistrySupplier<EntityType<TestEntity>> TEST_ENTITY = REGISTER.entity("test_entity", TestEntity::new)
+    public static final RegistrySupplier<EntityType<TestEntity>> TEST_ENTITY = REGISTER.entity("test_entity", TestEntity::new)
             .fireImmune()
             .withSize(1, 1)
             .end();
-    private static final RegistrySupplier<RangedAttribute> TEST_ATTRIBUTE = REGISTER.attribute("test_attribute")
+    public static final RegistrySupplier<RangedAttribute> TEST_ATTRIBUTE = REGISTER.attribute("test_attribute")
             .withDefaultValue(69)
             .withMaximumValue(420)
             .applyToAll()
             .end();
-    private static final RegistrySupplier<RangedAttribute> TEST_ENTITY_ATTRIBUTE = REGISTER.attribute("test_player_attribute")
+    public static final RegistrySupplier<RangedAttribute> TEST_ENTITY_ATTRIBUTE = REGISTER.attribute("test_player_attribute")
             .withDefaultValue(5)
             .withMaximumValue(10)
             .applyTo(() -> EntityType.PLAYER)
             .end();
-    private static final RegistrySupplier<BlockEntityType<TestBlockEntity>> TEST_BLOCK_ENTITY = REGISTER.blockEntity("test_block_entity", TestBlockEntity::new)
+    public static final RegistrySupplier<BlockEntityType<TestBlockEntity>> TEST_BLOCK_ENTITY = REGISTER.blockEntity("test_block_entity", TestBlockEntity::new)
             .withValidBlocks(TEST_BLOCK)
             .end();
-    private static final RegistrySupplier<TestSkill> TEST_SKILL = REGISTER.skill("test_skill", TestSkill::new).end();
+    public static final RegistrySupplier<TestSkill> TEST_SKILL = REGISTER.skill("test_skill", TestSkill::new).end();
 
     public static void init() {
         ManasCore.Logger.info("Registered test content!");
@@ -70,20 +70,20 @@ public class RegisterTest {
         });
     }
 
-    private static class TestEntity extends Villager {
+    public static class TestEntity extends Villager {
         public TestEntity(EntityType<TestEntity> entityType, Level level) {
             super(TEST_ENTITY.get(), level);
         }
     }
 
-    private static class TestBlockEntity extends BlockEntity {
+    public static class TestBlockEntity extends BlockEntity {
         TestBlockEntity(BlockPos pos, BlockState blockState) {
             super(TEST_BLOCK_ENTITY.get(), pos, blockState);
             ManasCore.Logger.info("Created block entity!");
         }
     }
 
-    private static class TestBlock extends BaseEntityBlock {
+    public static class TestBlock extends BaseEntityBlock {
         private static final MapCodec<TestBlock> TEST_BLOCK_MAP_CODEC = simpleCodec(TestBlock::new);
 
         TestBlock(Properties properties) {

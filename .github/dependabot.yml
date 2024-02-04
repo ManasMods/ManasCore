@@ -1,0 +1,122 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "01:00"
+      timezone: "Europe/Berlin"
+    commit-message:
+      prefix: "actions: "
+      prefix-development: "dev actions: "
+      include: "scope"
+    reviewers:
+      - "Charismara"
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "01:00"
+      timezone: "Europe/Berlin"
+    commit-message:
+      prefix: "gradle: "
+      prefix-development: "dev gradle: "
+      include: "scope"
+    reviewers:
+      - "Charismara"
+  - package-ecosystem: "gradle"
+    directory: "/common"
+    schedule:
+      interval: "daily"
+      time: "01:00"
+      timezone: "Europe/Berlin"
+    commit-message:
+      prefix: "gradle: "
+      prefix-development: "dev gradle: "
+      include: "scope"
+    reviewers:
+      - "Charismara"
+  - package-ecosystem: "gradle"
+    directory: "/commonTest"
+    schedule:
+      interval: "daily"
+      time: "01:00"
+      timezone: "Europe/Berlin"
+    commit-message:
+      prefix: "gradle: "
+      prefix-development: "dev gradle: "
+      include: "scope"
+    reviewers:
+      - "Charismara"
+  - package-ecosystem: "gradle"
+    directory: "/fabric"
+    schedule:
+      interval: "daily"
+      time: "01:00"
+      timezone: "Europe/Berlin"
+    commit-message:
+      prefix: "gradle: "
+      prefix-development: "dev gradle: "
+      include: "scope"
+    reviewers:
+      - "Charismara"
+  - package-ecosystem: "gradle"
+    directory: "/fabricTest"
+    schedule:
+      interval: "daily"
+      time: "01:00"
+      timezone: "Europe/Berlin"
+    commit-message:
+      prefix: "gradle: "
+      prefix-development: "dev gradle: "
+      include: "scope"
+    reviewers:
+      - "Charismara"
+  - package-ecosystem: "gradle"
+    directory: "/forge"
+    schedule:
+      interval: "daily"
+      time: "01:00"
+      timezone: "Europe/Berlin"
+    commit-message:
+      prefix: "gradle: "
+      prefix-development: "dev gradle: "
+      include: "scope"
+    reviewers:
+      - "Charismara"
+  - package-ecosystem: "gradle"
+    directory: "/forgeTest"
+    schedule:
+      interval: "daily"
+      time: "01:00"
+      timezone: "Europe/Berlin"
+    commit-message:
+      prefix: "gradle: "
+      prefix-development: "dev gradle: "
+      include: "scope"
+    reviewers:
+      - "Charismara"
+  - package-ecosystem: "gradle"
+    directory: "/neoforge"
+    schedule:
+      interval: "daily"
+      time: "01:00"
+      timezone: "Europe/Berlin"
+    commit-message:
+      prefix: "gradle: "
+      prefix-development: "dev gradle: "
+      include: "scope"
+    reviewers:
+      - "Charismara"
+  - package-ecosystem: "gradle"
+    directory: "/neoforgeTest"
+    schedule:
+      interval: "daily"
+      time: "01:00"
+      timezone: "Europe/Berlin"
+    commit-message:
+      prefix: "gradle: "
+      prefix-development: "dev gradle: "
+      include: "scope"
+    reviewers:
+      - "Charismara"

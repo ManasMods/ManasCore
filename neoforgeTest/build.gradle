@@ -1,5 +1,6 @@
 plugins {
     id "com.github.johnrengelman.shadow" version "7.1.2"
+    id "jacoco"
 }
 
 architectury {
@@ -23,6 +24,13 @@ loom {
 
         server {
             runDir = 'run/server'
+        }
+
+        gametest {
+            runDir = 'run/gametest'
+            server()
+            property("forge.gameTestServer", "true")
+            property("forge.enabledGameTestNamespaces", "testmod")
         }
     }
 }

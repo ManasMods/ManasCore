@@ -2,20 +2,22 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches:
+      - master
+      - 1.19.2/master
+      - 1.20.4/master
   pull_request:
-    branches: [master]
+    branches:
+      - master
+      - 1.19.2/master
+      - 1.20.4/master
 
 permissions:
   contents: read
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-    env:
-      MANAS_REPO_USER: ${{ secrets.MANAS_REPO_USER }}
-      MANAS_REPO_USER_PASSWORD: ${{ secrets.MANAS_REPO_USER_PASSWORD }}
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 17
@@ -30,3 +32,51 @@ jobs:
         uses: gradle/gradle-build-action@0d13054264b0bb894ded474f08ebb30921341cee
         with:
           arguments: build
+  fabric-gametests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+      - name: Set Gradle Permissions
+        run: chmod +x gradlew
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@0d13054264b0bb894ded474f08ebb30921341cee
+        with:
+          arguments: :fabricTest:runGametest
+  forge-gametests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+      - name: Set Gradle Permissions
+        run: chmod +x gradlew
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@0d13054264b0bb894ded474f08ebb30921341cee
+        with:
+          arguments: :forgeTest:runGametest
+  neoforge-gametests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+      - name: Set Gradle Permissions
+        run: chmod +x gradlew
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@0d13054264b0bb894ded474f08ebb30921341cee
+        with:
+          arguments: :neoforgeTest:runGametest
