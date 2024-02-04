@@ -2,18 +2,45 @@ package com.github.manasmods.manascore.forge;
 
 import com.github.manasmods.manascore.api.world.entity.EntityEvents;
 import com.github.manasmods.manascore.api.world.entity.EntityEvents.ProjectileHitResult;
+import com.github.manasmods.manascore.attribute.ManasCoreAttributes;
 import com.github.manasmods.manascore.utils.Changeable;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.living.LivingChangeTargetEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.event.entity.player.CriticalHitEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 
 @EventBusSubscriber
 public class ForgeCommonEventInvoker {
     private ForgeCommonEventInvoker() {
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public static void onCriticalHit(final CriticalHitEvent e) {
+        double critChance = e.getEntity().getAttributeValue(ManasCoreAttributes.CRIT_CHANCE.get()) / 100;
+        RandomSource rand = e.getEntity().getRandom();
+
+        if (!e.isVanillaCritical() && rand.nextFloat() > critChance) return;
+        float critMultiplier = (float) e.getEntity().getAttributeValue(ManasCoreAttributes.CRIT_MULTIPLIER.get());
+        float critModifier = e.getDamageModifier() * critMultiplier;
+
+        e.setDamageModifier(critModifier);
+        e.setResult(Event.Result.ALLOW);
+    }
+
+    @SubscribeEvent
+    public static void modifyMiningSpeed(final PlayerEvent.BreakSpeed e) {
+        AttributeInstance instance = e.getEntity().getAttribute(ManasCoreAttributes.MINING_SPEED_MULTIPLIER.get());
+        if (instance == null) return;
+        e.setNewSpeed((float) (e.getOriginalSpeed() * instance.getValue()));
     }
 
     @SubscribeEvent
