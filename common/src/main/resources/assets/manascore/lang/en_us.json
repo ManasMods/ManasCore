@@ -1,3 +1,12 @@
 {
-  "manascore.skillsystem.learn_skill": "You unlocked the skill %s."
+  "manascore.skillsystem.learn_skill": "You unlocked the skill %s.",
+  "manascore.attribute.crit_chance": "Critical Chance",
+  "manascore.attribute.crit_multiplier": "Critical Multiplier",
+  "manascore.attribute.jump_strength": "Jump Strength",
+  "manascore.attribute.flying_speed_multiplier": "Flying Speed Multiplier",
+  "manascore.attribute.mining_speed_multiplier": "Mining Speed Multiplier",
+  "manascore.attribute.sprinting_speed_multiplier": "Sprinting Speed Multiplier",
+  "manascore.attribute.step_height": "Step Height Addition",
+  "manascore.attribute.swim_speed": "Swim Speed Addition",
+  "manascore.attribute.sweep_chance": "Sweeping Chance"
 }

@@ -1,7 +1,6 @@
 package com.github.manasmods.manascore.core;
 
 import com.github.manasmods.manascore.api.world.entity.EntityEvents;
-import net.minecraft.world.entity.LivingEntity;
 import com.github.manasmods.manascore.attribute.ManasCoreAttributes;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.LivingEntity;
@@ -64,6 +63,24 @@ public abstract class MixinLivingEntity {
         AttributeInstance instance = entity.getAttribute(ManasCoreAttributes.SWIM_SPEED_ADDITION.get());
         if (instance == null) return speed;
         return (float) (speed * instance.getValue());
+    }
+
+    @Inject(method = "getFrictionInfluencedSpeed", at = @At(value = "RETURN"), cancellable = true)
+    private void additionSprintingSpeed(float friction, CallbackInfoReturnable<Float> cir) {
+        LivingEntity entity = (LivingEntity) (Object) this;
+        if (!entity.onGround() || !entity.isSprinting()) return;
+
+        AttributeInstance instance = entity.getAttribute(ManasCoreAttributes.SPRINTING_SPEED_MULTIPLIER.get());
+        if (instance == null) return;
+        cir.setReturnValue((float) (cir.getReturnValue() * instance.getValue()));
+    }
+
+    @Inject(method = "getFlyingSpeed", at = @At(value = "RETURN"), cancellable = true)
+    private void flyingSpeedMultiplier(CallbackInfoReturnable<Float> cir) {
+        LivingEntity entity = (LivingEntity) (Object) this;
+        AttributeInstance instance = entity.getAttribute(ManasCoreAttributes.FLYING_SPEED_MULTIPLIER.get());
+        if (instance == null) return;
+        cir.setReturnValue((float) (cir.getReturnValue() * instance.getValue()));
     }
 
     @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;tick()V", shift = Shift.BEFORE))
