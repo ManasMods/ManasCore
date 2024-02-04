@@ -29,11 +29,25 @@ public class ManasCoreAttributes {
             .applyToAll()
             .syncable()
             .end();
+    public static final RegistrySupplier<RangedAttribute> FLYING_SPEED_MULTIPLIER = ManasCore.REGISTER.attribute("flying_speed_multiplier")
+            .withDefaultValue(1)
+            .withMinimumValue(0)
+            .withMaximumValue(1024)
+            .applyToAll()
+            .syncable()
+            .end();
     public static final RegistrySupplier<RangedAttribute> MINING_SPEED_MULTIPLIER = ManasCore.REGISTER.attribute("mining_speed_multiplier")
             .withDefaultValue(1.0)
             .withMinimumValue(0)
             .withMaximumValue(1024)
             .applyTo(() -> EntityType.PLAYER)
+            .syncable()
+            .end();
+    public static final RegistrySupplier<RangedAttribute> SPRINTING_SPEED_MULTIPLIER = ManasCore.REGISTER.attribute("sprinting_speed_multiplier")
+            .withDefaultValue(1)
+            .withMinimumValue(0)
+            .withMaximumValue(1024)
+            .applyToAll()
             .syncable()
             .end();
     public static final RegistrySupplier<RangedAttribute> STEP_HEIGHT_ADDITION = ManasCore.REGISTER.attribute("step_height")

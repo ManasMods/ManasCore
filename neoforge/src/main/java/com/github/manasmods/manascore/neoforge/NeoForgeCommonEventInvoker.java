@@ -1,18 +1,45 @@
 package com.github.manasmods.manascore.neoforge;
 
 import com.github.manasmods.manascore.api.world.entity.EntityEvents;
+import com.github.manasmods.manascore.attribute.ManasCoreAttributes;
 import com.github.manasmods.manascore.utils.Changeable;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.neoforged.bus.api.Event;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.event.entity.ProjectileImpactEvent;
 import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingHurtEvent;
+import net.neoforged.neoforge.event.entity.player.CriticalHitEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 
 @Mod.EventBusSubscriber
 public class NeoForgeCommonEventInvoker {
     private NeoForgeCommonEventInvoker() {
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public static void onCriticalHit(final CriticalHitEvent e) {
+        double critChance = e.getEntity().getAttributeValue(ManasCoreAttributes.CRIT_CHANCE.get()) / 100;
+        RandomSource rand = e.getEntity().getRandom();
+
+        if (!e.isVanillaCritical() && rand.nextFloat() > critChance) return;
+        float critMultiplier = (float) e.getEntity().getAttributeValue(ManasCoreAttributes.CRIT_MULTIPLIER.get());
+        float critModifier = e.getDamageModifier() * critMultiplier;
+
+        e.setDamageModifier(critModifier);
+        e.setResult(Event.Result.ALLOW);
+    }
+
+    @SubscribeEvent
+    public static void modifyMiningSpeed(final PlayerEvent.BreakSpeed e) {
+        AttributeInstance instance = e.getEntity().getAttribute(ManasCoreAttributes.MINING_SPEED_MULTIPLIER.get());
+        if (instance == null) return;
+        e.setNewSpeed((float) (e.getOriginalSpeed() * instance.getValue()));
     }
 
     @SubscribeEvent
