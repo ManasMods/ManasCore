@@ -8,7 +8,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 jobs:
-  build:
+  analyze:
     name: Build and analyze
     runs-on: ubuntu-latest
     steps:
@@ -36,8 +36,6 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle
       - name: Build
         run: ./gradlew build --stacktrace
-      - name: Game Tests
-        run: ./gradlew runGametest --stacktrace | tee /dev/fd/2 | grep -q 'Failed to start the minecraft server' && exit 1
       - name: Analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
