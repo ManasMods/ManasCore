@@ -187,6 +187,7 @@ public class ServerEventListenerHandler {
             if (!skillInstance.canInteractSkill(player)) continue;
 
             skillInstance.onRespawn(e);
+            if (skillInstance.isToggled()) skillInstance.onToggleOn(player);
         }
         skillStorage.syncChanges();
     }

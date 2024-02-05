@@ -7,13 +7,15 @@
   "mixins": [
     "BlockLootAccessor",
     "MixinAnvilMenu",
+    "MixinLivingEntity",
     "MixinServerLevel",
     "RegistryBuilderAccessor",
     "ShapedRecipeBuilderAccessor"
   ],
   "client": [
     "AbstractContainerScreenAccessor",
-    "MixinAnvilScreen"
+    "MixinAnvilScreen",
+    "MixinMinecraft"
   ],
   "injectors": {
     "defaultRequire": 1
