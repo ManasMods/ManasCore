@@ -2,6 +2,7 @@
   "manascore.attribute.crit_chance.name": "% Critical Chance",
   "manascore.attribute.crit_multiplier.name": "Additional Critical Multiplier",
   "manascore.attribute.jump_power.name": "Jump Power",
+  "manascore.attribute.flying_speed.name": "Flying Speed Multiplier",
   "manascore.attribute.mining_speed.name": "Mining Speed Multiplier",
   "manascore.attribute.sprinting_speed.name": "Sprinting Speed Multiplier",
   "manascore.attribute.sweep_chance.name": "Sweeping Chance",

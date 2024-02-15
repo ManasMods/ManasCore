@@ -13,10 +13,14 @@ public class MixinLivingEntity {
     @Inject(method = "getFrictionInfluencedSpeed", at = @At(value = "RETURN"), cancellable = true)
     private void additionSprintingSpeed(float friction, CallbackInfoReturnable<Float> cir) {
         LivingEntity entity = (LivingEntity) (Object) this;
-        if (!entity.isOnGround() || !entity.isSprinting()) return;
-
-        AttributeInstance instance = entity.getAttribute(ManasCoreAttributes.SPRINTING_SPEED_MULTIPLIER.get());
-        if (instance == null) return;
-        cir.setReturnValue((float) (cir.getReturnValue() * instance.getValue()));
+        if (!entity.isOnGround()) {
+            AttributeInstance instance = entity.getAttribute(ManasCoreAttributes.FLYING_SPEED_MULTIPLIER.get());
+            if (instance == null) return;
+            cir.setReturnValue((float) (cir.getReturnValue() * instance.getValue()));
+        } else if (entity.isSprinting()) {
+            AttributeInstance instance = entity.getAttribute(ManasCoreAttributes.SPRINTING_SPEED_MULTIPLIER.get());
+            if (instance == null) return;
+            cir.setReturnValue((float) (cir.getReturnValue() * instance.getValue()));
+        }
     }
 }

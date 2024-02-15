@@ -165,8 +165,8 @@ public class ManasSkillInstance implements Cloneable {
      * @return the maximum number of ticks that this skill can be held down with the skill activation button.
      * </p>
      */
-    public int getMaxHeldTime() {
-        return this.getSkill().getMaxHeldTime();
+    public int getMaxHeldTime(LivingEntity living) {
+        return this.getSkill().getMaxHeldTime(this, living);
     }
 
     /**
