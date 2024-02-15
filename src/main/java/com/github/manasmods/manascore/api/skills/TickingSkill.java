@@ -8,26 +8,25 @@ import java.util.Optional;
 
 public class TickingSkill {
     private int duration = 0;
-    private final int maxDuration;
     @Getter
     private final ManasSkill skill;
     public TickingSkill(ManasSkill skill) {
         this.skill = skill;
-        this.maxDuration = skill.getMaxHeldTime();
     }
 
     public boolean tick(SkillStorage storage, LivingEntity entity) {
         Optional<ManasSkillInstance> optional = storage.getSkill(skill);
         if (optional.isEmpty()) return false;
 
-        if (reachedMaxDuration()) return false;
         ManasSkillInstance instance = optional.get();
+        if (reachedMaxDuration(instance, entity)) return false;
 
         if (!instance.canInteractSkill(entity)) return false;
         return instance.onHeld(entity, this.duration++);
     }
 
-    public boolean reachedMaxDuration() {
+    public boolean reachedMaxDuration(ManasSkillInstance instance, LivingEntity entity) {
+        int maxDuration = instance.getMaxHeldTime(entity);
         if (maxDuration == -1) return false;
         return duration >= maxDuration;
     }

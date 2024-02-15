@@ -23,6 +23,8 @@ public class ManasCoreAttributes {
             () -> new RangedAttribute("manascore.attribute.crit_multiplier.name", 1.5, 0, 1024).setSyncable(true));
     public static final RegistryObject<Attribute> JUMP_POWER = registry.register("jump_power",
             () -> new RangedAttribute("manascore.attribute.jump_power.name", 0.42, 0, 1024).setSyncable(true));
+    public static final RegistryObject<Attribute> FLYING_SPEED_MULTIPLIER = registry.register("flying_speed_multiplier",
+            () -> new RangedAttribute("manascore.attribute.flying_speed.name", 1.0, 0, 1024).setSyncable(true));
     public static final RegistryObject<Attribute> MINING_SPEED_MULTIPLIER = registry.register("mining_speed_multiplier",
             () -> new RangedAttribute("manascore.attribute.mining_speed.name", 1.0, 0, 1024).setSyncable(true));
     public static final RegistryObject<Attribute> SPRINTING_SPEED_MULTIPLIER = registry.register("sprinting_speed_multiplier",
@@ -43,6 +45,7 @@ public class ManasCoreAttributes {
         e.getTypes().forEach(type -> {
             e.add(type, CRIT_CHANCE.get());
             e.add(type, CRIT_MULTIPLIER.get());
+            e.add(type, FLYING_SPEED_MULTIPLIER.get());
             e.add(type, SPRINTING_SPEED_MULTIPLIER.get());
         });
     }

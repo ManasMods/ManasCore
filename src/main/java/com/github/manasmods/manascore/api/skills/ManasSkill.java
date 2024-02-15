@@ -108,7 +108,7 @@ public class ManasSkill {
      * @return the maximum number of ticks that this skill can be held down with the skill activation button.
      * </p>
      */
-    public int getMaxHeldTime() {
+    public int getMaxHeldTime(ManasSkillInstance instance , LivingEntity living) {
         return 72000;
     }
 
