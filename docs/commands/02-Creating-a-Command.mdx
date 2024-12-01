@@ -1,0 +1,37 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Creating Commands
+
+Commands can be created using a dedicated Command Class and the `@Command` Annotation.
+
+```java
+@Command("foo")
+public static class TestCommand {
+    @Execute
+    public boolean runsWhenCommandIsExecuted(@Sender CommandSourceStack sender) {
+        sender.sendSystemMessage(RESPONSE);
+        return true;
+    }
+}
+```
+
+## Registration
+
+Every command classes must then be registered using the `CommandRegistry.registerCommand` method.
+
+```java
+CommandRegistry.registerCommand(TestCommand.class);
+```
+
+<Tabs queryString groupId={"modloader"}>
+    <TabItem value="Architectury" label="Architectury" default>
+        This should be done in the common package at entrypoint invocation (In fabric the `ModInitializer#onInitialize` and on NeoForge the mod constructor).
+    </TabItem>
+    <TabItem value="Fabric" label="Fabric">
+        This should be done in the `ModInitializer#onInitialize` method.
+    </TabItem>
+    <TabItem value="NeoForge" label="NeoForge">
+        This should be done in the mod constructor.
+    </TabItem>
+</Tabs>
