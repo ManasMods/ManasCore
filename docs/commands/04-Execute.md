@@ -10,37 +10,37 @@ The following parameter types can be used in execution methods
 
 ### `Boolean` / `boolean`
 
-They require a [@Bool](05-Boolean.md) Annotation.
+They require a [@Bool](arguments/05-Boolean.md) Annotation.
 
 ### `Double` / `double`
 
-They require a [@DoubleNumber](09-Double.md) Annotation.
+They require a [@DoubleNumber](arguments/09-Double.md) Annotation.
 
 ### `Float` / `float`
 
-They require a [@FloatNumber](08-Float.md) Annotation.
+They require a [@FloatNumber](arguments/08-Float.md) Annotation.
 
 ### `Integer` / `int`
 
-They require a [@IntegerNumber](06-Integer.md) Annotation.
+They require a [@IntegerNumber](arguments/06-Integer.md) Annotation.
 
 ### `Long` / `long`
 
-They require a [@LongNumber](07-Long.md) Annotation.
+They require a [@LongNumber](arguments/07-Long.md) Annotation.
 
 ### `String`
 
-They require a [@Text](10-String.md) Annotation.
+They require a [@Text](arguments/10-String.md) Annotation.
 
 ### `CommandSourceStack` / `CommandSource` / `ServerPlayer`
 
-They require a [@Sender](03-Sender.md) Annotation.
+They require a [@Sender](arguments/03-Sender.md) Annotation.
 
 ### Enum
 
-They require a [@Enum](11-Enum.md) Annotation.
+They require a [@Enum](arguments/11-Enum.md) Annotation.
 
 ### Literal
 
-They require a [@Literal](04-Literal.md) Annotation.
+They require a [@Literal](arguments/04-Literal.md) Annotation.
 
