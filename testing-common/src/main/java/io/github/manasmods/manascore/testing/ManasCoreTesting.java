@@ -7,6 +7,7 @@ package io.github.manasmods.manascore.testing;
 
 import dev.architectury.platform.Platform;
 import io.github.manasmods.manascore.testing.client.ManasCoreTestingClient;
+import io.github.manasmods.manascore.testing.module.CommandModuleTest;
 import io.github.manasmods.manascore.testing.module.StorageModuleTest;
 import net.fabricmc.api.EnvType;
 import org.slf4j.Logger;
@@ -20,5 +21,6 @@ public final class ManasCoreTesting {
             ManasCoreTestingClient.init();
         }
         StorageModuleTest.init();
+        CommandModuleTest.init();
     }
 }

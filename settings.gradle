@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2024. ManasMods
+ * GNU General Public License 3
+ */
+
 pluginManagement {
     repositories {
         maven { url "https://maven.fabricmc.net/" }
@@ -9,7 +14,7 @@ pluginManagement {
 
 rootProject.name = 'manascore'
 
-["network", "storage", "testing", "inventory", "skill"].forEach { module ->
+["network", "storage", "testing", "inventory", "command"].forEach { module ->
     include ":$module-common"
     include ":$module-fabric"
     include ":$module-neoforge"

@@ -1,0 +1,9 @@
+/*
+ * Copyright (c) 2024. ManasMods
+ * GNU General Public License 3
+ */
+
+dependencies {
+    modImplementation "me.lucko:fabric-permissions-api:$fabric_permissions_api_version"
+}
+

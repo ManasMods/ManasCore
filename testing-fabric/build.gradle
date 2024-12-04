@@ -27,4 +27,7 @@ dependencies {
         implementation(project(path: "$it-fabric", configuration: 'namedElements'))
     }
     modImplementation("com.terraformersmc:modmenu:11.0.2")
+
+    modImplementation("maven.modrinth:fabric-permissions-api:$fabric_permissions_api_version")
+    modImplementation("maven.modrinth:luckperms:$fabric_luckperms_version")
 }
