@@ -30,11 +30,4 @@ public abstract class MixinPlayer {
     void cancelActuallyHurt(DamageSource damageSource, float damageAmount, CallbackInfo ci) {
         if (damageAmount <= 0F) ci.cancel();
     }
-
-    @ModifyVariable(method = "actuallyHurt", at = @At(value = "LOAD", ordinal = 6), argsOnly = true)
-    float modifyTotalDamage(float amount, @Local(argsOnly = true) DamageSource damageSource) {
-        Changeable<Float> changeable = Changeable.of(amount);
-        if (EntityEvents.LIVING_DAMAGE.invoker().damage((LivingEntity) (Object) this, damageSource, changeable).isFalse()) return 0.0F;
-        return changeable.get();
-    }
 }

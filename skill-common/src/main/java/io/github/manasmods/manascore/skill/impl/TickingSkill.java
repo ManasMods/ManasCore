@@ -18,7 +18,7 @@ public class TickingSkill {
     @Getter
     private final ManasSkill skill;
     @Getter
-    private int mode = 0;
+    private int mode;
     public TickingSkill(ManasSkill skill, int mode) {
         this.skill = skill;
         this.mode = mode;

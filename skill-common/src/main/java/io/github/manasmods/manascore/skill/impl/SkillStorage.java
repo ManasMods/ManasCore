@@ -49,6 +49,14 @@ public class SkillStorage  extends Storage implements Skills {
     public static void init() {
         StorageEvents.REGISTER_ENTITY_STORAGE.register(registry -> key = registry.register(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "skill_storage"), SkillStorage.class, LivingEntity.class::isInstance, target -> new SkillStorage((LivingEntity) target)));
 
+        EntityEvents.LIVING_HURT.register((entity, source, changeable) -> {
+            Skills skills = SkillAPI.getSkillsFrom(entity);
+            if (SkillEvents.SKILL_DAMAGE_PRE_CALCULATION.invoker().calculate(skills, entity, source, changeable).isFalse()) return EventResult.interruptFalse();
+            if (SkillEvents.SKILL_DAMAGE_CALCULATION.invoker().calculate(skills, entity, source, changeable).isFalse()) return EventResult.interruptFalse();
+            if (SkillEvents.SKILL_DAMAGE_POST_CALCULATION.invoker().calculate(skills, entity, source, changeable).isFalse()) return EventResult.interruptFalse();
+            return EventResult.pass();
+        });
+
         EntityEvents.LIVING_POST_TICK.register(entity -> {
             Level level = entity.level();
             if (level.isClientSide()) return;
@@ -131,13 +139,13 @@ public class SkillStorage  extends Storage implements Skills {
     private static void handleSkillHeldTick(Player player, Skills storage) {
         if (!tickingSkills.containsKey(player.getUUID())) return;
         tickingSkills.get(player.getUUID()).removeIf(skill -> {
-            boolean shouldRemove = !skill.tick(storage, player);
-            if (shouldRemove) {
+            if (!skill.tick(storage, player)) {
                 Optional<ManasSkillInstance> instance = storage.getSkill(skill.getSkill());
                 if (instance.isEmpty()) return true;
                 skill.getSkill().removeAttributeModifiers(instance.get(), player, skill.getMode());
+                return true;
             }
-            return true;
+            return false;
         });
     }
 

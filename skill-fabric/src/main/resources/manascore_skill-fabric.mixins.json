@@ -10,8 +10,10 @@
     "MixinAbstractHurtingProjectile",
     "MixinFireworkRocketEntity",
     "MixinFishingHook",
+    "MixinLivingEntity",
     "MixinLlamaSpit",
     "MixinMob",
+    "MixinPlayer",
     "MixinShulkerBullet",
     "MixinThrowableProjectile"
   ],

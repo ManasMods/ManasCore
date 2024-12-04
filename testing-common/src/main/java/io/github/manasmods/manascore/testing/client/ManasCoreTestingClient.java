@@ -14,6 +14,7 @@ import net.minecraft.client.Minecraft;
 
 public class ManasCoreTestingClient {
     public static void init() {
+        KeybindingTest.init();
         ClientChatEvent.RECEIVED.register((type, message) -> {
             var player = Minecraft.getInstance().player;
             if (player != null) StorageModuleTest.printTestStorage(player);
