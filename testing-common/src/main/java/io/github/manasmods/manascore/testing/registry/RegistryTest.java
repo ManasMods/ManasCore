@@ -15,12 +15,12 @@ import io.github.manasmods.manascore.skill.api.SkillAPI;
 import io.github.manasmods.manascore.skill.api.Skills;
 import io.github.manasmods.manascore.testing.ManasCoreTesting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -29,6 +29,8 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.projectile.windcharge.AbstractWindCharge;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -50,6 +52,7 @@ public class RegistryTest {
             .fireImmune()
             .withSize(1, 1)
             .end();
+
     private static final RegistrySupplier<Attribute> TEST_ATTRIBUTE = REGISTER.attribute("test_attribute")
             .withDefaultValue(69)
             .withMaximumValue(420)
@@ -60,6 +63,7 @@ public class RegistryTest {
             .withMaximumValue(10)
             .applyTo(() -> EntityType.PLAYER)
             .end();
+
     private static final RegistrySupplier<BlockEntityType<TestBlockEntity>> TEST_BLOCK_ENTITY = REGISTER.blockEntity("test_block_entity", TestBlockEntity::new)
             .withValidBlocks(TEST_BLOCK)
             .end();
@@ -69,12 +73,13 @@ public class RegistryTest {
             .withAddedSoundEvent(SoundEvents.ALLAY_DEATH)
             .withBlendDurationTicks(60)
             .end();
-
     private static final RegistrySupplier<MobEffect> TEST_MOB_EFFECT_PARTICLE = REGISTER.mobEffect("test_effect_particle", TestMobEffect::new)
             .withCategory(MobEffectCategory.BENEFICIAL)
             .withColor(5882118)
-            .withAddedSoundEvent(SoundEvents.VEX_DEATH)
-            .withParticleOptions(ParticleTypes.ANGRY_VILLAGER)
+            .end();
+    private static final RegistrySupplier<Potion> TEST_POTION = REGISTER.potion("test_potion", Potion::new)
+            .withEffectInstance(new MobEffectInstance(TEST_MOB_EFFECT, 100, 10))
+            .withEffectInstance(new MobEffectInstance(TEST_MOB_EFFECT_PARTICLE, 200, 5, false, false, false))
             .end();
     private static final RegistrySupplier<TestSkill> TEST_SKILL = REGISTER.skill("test_skill", TestSkill::new).end();
 
@@ -114,20 +119,19 @@ public class RegistryTest {
             super(mobEffectCategory, i);
         }
 
-        protected TestMobEffect(MobEffectCategory mobEffectCategory, int i, ParticleOptions options) {
-            super(mobEffectCategory, i, options);
-        }
-
-        public void onMobRemoved(LivingEntity livingEntity, int i, Entity.RemovalReason removalReason) {
+        public void onMobRemoved(LivingEntity entity, int i, Entity.RemovalReason removalReason) {
             if (removalReason == Entity.RemovalReason.KILLED) {
-                Level var5 = livingEntity.level();
-                if (var5 instanceof ServerLevel) {
-                    ServerLevel serverLevel = (ServerLevel)var5;
-                    double d = livingEntity.getX();
-                    double e = livingEntity.getY() + (double)(livingEntity.getBbHeight() / 2.0F);
-                    double f = livingEntity.getZ();
-                    float g = 10.0F + livingEntity.getRandom().nextFloat() * 2.0F;
-                    serverLevel.explode(livingEntity, null, AbstractWindCharge.EXPLOSION_DAMAGE_CALCULATOR, d, e, f, g, false, Level.ExplosionInteraction.TRIGGER, ParticleTypes.GUST_EMITTER_SMALL, ParticleTypes.GUST_EMITTER_LARGE, SoundEvents.BREEZE_WIND_CHARGE_BURST);
+                if (entity.level() instanceof ServerLevel level) {
+                    double d = entity.getX();
+                    double e = entity.getY() + (double)(entity.getBbHeight() / 2.0F);
+                    double f = entity.getZ();
+                    float g = 10.0F + entity.getRandom().nextFloat() * 2.0F;
+                    if (this.equals(RegistryTest.TEST_MOB_EFFECT_PARTICLE.get()))
+                        level.explode(entity, null, AbstractWindCharge.EXPLOSION_DAMAGE_CALCULATOR, d, e, f, g,
+                                false, Level.ExplosionInteraction.TRIGGER, ParticleTypes.GUST_EMITTER_SMALL,
+                                ParticleTypes.GUST_EMITTER_LARGE, SoundEvents.BREEZE_WIND_CHARGE_BURST);
+                    else level.explode(entity, Explosion.getDefaultDamageSource(level, entity), null, d, e, f, g,
+                            false, Level.ExplosionInteraction.MOB, ParticleTypes.EXPLOSION, ParticleTypes.EXPLOSION_EMITTER, SoundEvents.GENERIC_EXPLODE);
                 }
             }
         }

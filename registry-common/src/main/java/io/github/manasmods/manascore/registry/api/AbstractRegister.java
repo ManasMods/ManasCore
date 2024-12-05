@@ -11,17 +11,14 @@ import dev.architectury.registry.registries.RegistrySupplier;
 import lombok.NonNull;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
-import net.minecraft.core.particles.ColorParticleOption;
 import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.util.FastColor;
-import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.EntityType.EntityFactory;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -29,6 +26,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -59,6 +57,7 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
     protected DeferredRegister<EntityType<?>> entityTypes = null;
     protected DeferredRegister<Attribute> attributes = null;
     protected DeferredRegister<MobEffect> mobEffects = null;
+    protected DeferredRegister<Potion> potions = null;
 
     protected AbstractRegister(final String modId) {
         this.modId = modId;
@@ -90,6 +89,7 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
         if (blockEntities != null) blockEntities.register();
         if (attributes != null) attributes.register();
         if (mobEffects != null) mobEffects.register();
+        if (potions != null) potions.register();
     }
 
     /**
@@ -165,6 +165,14 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
     public MobEffectBuilder<R> mobEffect(final String name, final MobEffectBuilder.MobEffectSupplier<MobEffect> factory) {
         if (this.mobEffects == null) this.mobEffects = DeferredRegister.create(this.modId, Registries.MOB_EFFECT);
         return new MobEffectBuilder<>(self(), name, factory);
+    }
+
+    /**
+     * Creates a new {@link Potion} for the given name.
+     */
+    public <T extends Potion> PotionBuilder<R, T> potion(final String name, final PotionBuilder.PotionSupplier<T> factory) {
+        if (this.potions == null) this.potions = DeferredRegister.create(this.modId, Registries.POTION);
+        return new PotionBuilder<>(self(), name, factory);
     }
 
     /**
@@ -631,7 +639,7 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
         }
 
         public MobEffectBuilder<R> withAddedSoundEvent(SoundEvent soundEvent) {
-            this.addedSoundEvent =  soundEvent;
+            this.addedSoundEvent = soundEvent;
             return this;
         }
 
@@ -643,13 +651,10 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
         @Override
         public RegistrySupplier<MobEffect> end() {
             return this.register.mobEffects.register(this.id, () -> {
-                MobEffect effect = this.effectFactory.create(this.category, this.colorId, this.particleOptions)
-                        .withSoundOnAdded(this.addedSoundEvent)
+                MobEffect effect = this.effectFactory.create(this.category, this.colorId)
                         .setBlendDuration(this.blendDurationTicks);
-                if (this.particleOptions == null) effect.particleFactory = (mobEffectInstance) -> {
-                    int j = mobEffectInstance.isAmbient() ? Mth.floor(38.25F) : 255;
-                    return ColorParticleOption.create(ParticleTypes.ENTITY_EFFECT, FastColor.ARGB32.color(j, this.colorId));
-                };
+                if (this.addedSoundEvent != null) effect = effect.withSoundOnAdded(this.addedSoundEvent);
+                if (this.particleOptions != null) effect.particleFactory = (mobEffectInstance) -> this.particleOptions;
                 return effect;
             });
         }
@@ -661,7 +666,40 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
 
         @FunctionalInterface
         public interface MobEffectSupplier<T extends MobEffect> {
-            T create(MobEffectCategory category, int color, ParticleOptions options);
+            T create(MobEffectCategory category, int color);
+        }
+    }
+
+    /**
+     * Builder class for {@link Potion}s.
+     */
+    public static class PotionBuilder<R extends AbstractRegister<R>, T extends Potion> extends ContentBuilder<T, R> {
+        private final PotionSupplier<T> potionFactory;
+        private final ArrayList<MobEffectInstance> instances = new ArrayList<>();
+        private PotionBuilder(R register, String name, PotionSupplier<T> effectFactory) {
+            super(register, name);
+            this.potionFactory = effectFactory;
+        }
+
+        public PotionBuilder<R, T> withEffectInstance(final MobEffectInstance instance) {
+            this.instances.add(instance);
+            return this;
+        }
+
+        @Override
+        public RegistrySupplier<T> end() {
+            return this.register.potions.register(this.id,
+                    () -> this.potionFactory.create(this.instances.toArray(new MobEffectInstance[0])));
+        }
+
+        @Override
+        public Holder<T> endAsHolder() {
+            return this.end().getRegistrar().getHolder(this.id);
+        }
+
+        @FunctionalInterface
+        public interface PotionSupplier<T extends Potion> {
+            T create(MobEffectInstance[] instance);
         }
     }
 
