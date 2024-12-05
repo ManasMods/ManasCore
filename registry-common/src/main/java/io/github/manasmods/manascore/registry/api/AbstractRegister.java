@@ -11,9 +11,17 @@ import dev.architectury.registry.registries.RegistrySupplier;
 import lombok.NonNull;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.particles.ColorParticleOption;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.FastColor;
+import net.minecraft.util.Mth;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.EntityType.EntityFactory;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -50,6 +58,7 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
     protected DeferredRegister<BlockEntityType<?>> blockEntities = null;
     protected DeferredRegister<EntityType<?>> entityTypes = null;
     protected DeferredRegister<Attribute> attributes = null;
+    protected DeferredRegister<MobEffect> mobEffects = null;
 
     protected AbstractRegister(final String modId) {
         this.modId = modId;
@@ -80,6 +89,7 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
         if (items != null) items.register();
         if (blockEntities != null) blockEntities.register();
         if (attributes != null) attributes.register();
+        if (mobEffects != null) mobEffects.register();
     }
 
     /**
@@ -149,6 +159,13 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
         return new BlockEntityBuilder<>(self(), name, factory);
     }
 
+    /**
+     * Creates a new {@link MobEffectBuilder} for the given name.
+     */
+    public MobEffectBuilder<R> mobEffect(final String name, final MobEffectBuilder.MobEffectSupplier<MobEffect> factory) {
+        if (this.mobEffects == null) this.mobEffects = DeferredRegister.create(this.modId, Registries.MOB_EFFECT);
+        return new MobEffectBuilder<>(self(), name, factory);
+    }
 
     /**
      * Builder class for {@link Item}s.
@@ -579,6 +596,72 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
         @Override
         public Holder<BlockEntityType<T>> endAsHolder() {
             return this.end().getRegistrar().getHolder(this.id);
+        }
+    }
+
+    /**
+     * Builder class for {@link MobEffect}s.
+     */
+    public static class MobEffectBuilder<R extends AbstractRegister<R>> extends ContentBuilder<MobEffect, R> {
+        private final MobEffectSupplier<MobEffect> effectFactory;
+        private MobEffectCategory category;
+        private int colorId = 1;
+        private @Nullable ParticleOptions particleOptions = null;
+        private SoundEvent addedSoundEvent;
+        private int blendDurationTicks;
+
+        private MobEffectBuilder(R register, String name, MobEffectSupplier<MobEffect> effectFactory) {
+            super(register, name);
+            this.effectFactory = effectFactory;
+        }
+
+        public MobEffectBuilder<R> withCategory(final MobEffectCategory category) {
+            this.category = category;
+            return this;
+        }
+
+        public MobEffectBuilder<R> withColor(int colorId) {
+            this.colorId = colorId;
+            return this;
+        }
+
+        public MobEffectBuilder<R> withParticleOptions(ParticleOptions particleOptions) {
+            this.particleOptions = particleOptions;
+            return this;
+        }
+
+        public MobEffectBuilder<R> withAddedSoundEvent(SoundEvent soundEvent) {
+            this.addedSoundEvent =  soundEvent;
+            return this;
+        }
+
+        public MobEffectBuilder<R> withBlendDurationTicks(int ticks) {
+            this.blendDurationTicks = ticks;
+            return this;
+        }
+
+        @Override
+        public RegistrySupplier<MobEffect> end() {
+            return this.register.mobEffects.register(this.id, () -> {
+                MobEffect effect = this.effectFactory.create(this.category, this.colorId, this.particleOptions)
+                        .withSoundOnAdded(this.addedSoundEvent)
+                        .setBlendDuration(this.blendDurationTicks);
+                if (this.particleOptions == null) effect.particleFactory = (mobEffectInstance) -> {
+                    int j = mobEffectInstance.isAmbient() ? Mth.floor(38.25F) : 255;
+                    return ColorParticleOption.create(ParticleTypes.ENTITY_EFFECT, FastColor.ARGB32.color(j, this.colorId));
+                };
+                return effect;
+            });
+        }
+
+        @Override
+        public Holder<MobEffect> endAsHolder() {
+            return this.end().getRegistrar().getHolder(this.id);
+        }
+
+        @FunctionalInterface
+        public interface MobEffectSupplier<T extends MobEffect> {
+            T create(MobEffectCategory category, int color, ParticleOptions options);
         }
     }
 
