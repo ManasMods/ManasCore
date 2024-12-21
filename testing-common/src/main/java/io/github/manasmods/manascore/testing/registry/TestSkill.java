@@ -5,11 +5,13 @@
 
 package io.github.manasmods.manascore.testing.registry;
 
+import io.github.manasmods.manascore.config.ConfigRegistry;
 import io.github.manasmods.manascore.skill.api.ManasSkill;
 import io.github.manasmods.manascore.skill.api.ManasSkillInstance;
 import io.github.manasmods.manascore.skill.utils.Changeable;
 import io.github.manasmods.manascore.skill.utils.EntityEvents;
 import io.github.manasmods.manascore.testing.ManasCoreTesting;
+import io.github.manasmods.manascore.testing.configs.TestConfig;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
@@ -118,11 +120,12 @@ public class TestSkill extends ManasSkill {
     }
 
     public boolean onDamageEntity(ManasSkillInstance instance, LivingEntity owner, LivingEntity target, DamageSource source, Changeable<Float> amount) {
-        if (target instanceof Creeper creeper) {
+        TestConfig config = ConfigRegistry.getConfig(TestConfig.class);
+        if (target instanceof Creeper creeper && config.instaKillCreeper) {
             creeper.kill();
             ManasCoreTesting.LOG.info("No creeper");
         } else if (target instanceof IronGolem) {
-            amount.set(amount.get() * 100F);
+            amount.set(amount.get() * config.ironGolemDamageMultiplier);
             ManasCoreTesting.LOG.info("Dealt {} damage.", amount.get());
         }
         return true;

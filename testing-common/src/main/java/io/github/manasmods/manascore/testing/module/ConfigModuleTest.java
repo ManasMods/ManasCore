@@ -10,10 +10,7 @@ public class ConfigModuleTest {
         ConfigRegistry.registerConfig(new TestConfig());
         ConfigRegistry.createConfigs();
 
-        TestConfig config = (TestConfig) ConfigRegistry.getConfig(TestConfig.class);
-        System.out.println(config.test);
-
+        TestConfig config = ConfigRegistry.getConfig(TestConfig.class);
+        System.out.println(config.initialMessage);
     }
-
-
 }

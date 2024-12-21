@@ -48,6 +48,7 @@ public class ManasAttributeRegistryImpl {
             // Map all keys to their resolved values
             REGISTRY.forEach((key, value) -> keyResolvedMap.put(key.get(), value));
 
+            /*
             entityTypes.forEach(entityType -> {
                 AttributeSupplier.Builder builder = new AttributeSupplier.Builder();
                 // Apply existing attributes
@@ -63,7 +64,7 @@ public class ManasAttributeRegistryImpl {
                 if (keyResolvedMap.containsKey(entityType)) keyResolvedMap.get(entityType).forEach(consumer -> consumer.accept(builder));
                 // Register the attributes
                 FabricDefaultAttributeRegistry.register(entityType, builder);
-            });
+            });*/
 
             // Clear the registry
             REGISTRY.clear();

@@ -45,9 +45,10 @@ public class ConfigRegistry {
         });
     }
 
-    public static ManasConfig getConfig(Class<? extends ManasConfig> clazz) {
+    public static <T extends ManasConfig> T getConfig(Class<T> clazz) {
         return loadedConfigs.stream()
                 .filter(config -> config.getClass().getSimpleName().equalsIgnoreCase(clazz.getSimpleName().toLowerCase()))
+                .map(config -> (T) config)
                 .findFirst()
                 .orElse(null);
     }
