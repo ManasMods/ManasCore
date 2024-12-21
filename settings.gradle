@@ -14,7 +14,7 @@ pluginManagement {
 
 rootProject.name = 'manascore'
 
-["network", "storage", "testing", "inventory", "config", "command"].forEach { module ->
+["registry", "keybinding", "network", "storage", "testing", "inventory", "skill", "config", "command"].forEach { module ->
     include ":$module-common"
     include ":$module-fabric"
     include ":$module-neoforge"

@@ -1,0 +1,12 @@
+/*
+ * Copyright (c) 2024. ManasMods
+ * GNU General Public License 3
+ */
+
+loom {
+    accessWidenerPath = project(":registry-common").loom.accessWidenerPath
+}
+
+remapJar {
+    atAccessWideners.add("${project.mod_id}.accesswidener")
+}
