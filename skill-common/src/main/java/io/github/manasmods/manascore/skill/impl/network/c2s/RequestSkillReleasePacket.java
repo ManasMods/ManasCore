@@ -42,7 +42,7 @@ public record RequestSkillReleasePacket(
         context.queue(() -> {
             Player player = context.getPlayer();
             if (player == null) return;
-            StorageManager.getStorage(player, SkillStorage.getKey()).handleSkillRelease(skillList, heldTick, keyNumber, 0);
+            StorageManager.getStorage(player, SkillStorage.getKey()).handleSkillRelease(skillList, heldTick, keyNumber, keyNumber);
         });
     }
 

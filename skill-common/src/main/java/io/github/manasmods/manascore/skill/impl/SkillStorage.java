@@ -117,10 +117,11 @@ public class SkillStorage  extends Storage implements Skills {
         List<ManasSkillInstance> toBeRemoved = new ArrayList<>();
 
         for (ManasSkillInstance instance : storage.getLearnedSkills()) {
-            // Update cool down
-            if (instance.onCoolDown()) {
-                if (!SkillEvents.SKILL_UPDATE_COOLDOWN.invoker().cooldown(instance, entity, instance.getCoolDown()).isFalse())
-                    instance.decreaseCoolDown(1);
+            // Update cooldown
+            for (int i = 0; i < instance.getModes(); i++) {
+                if (!instance.onCoolDown(i)) continue;
+                if (!SkillEvents.SKILL_UPDATE_COOLDOWN.invoker().cooldown(instance, entity, instance.getCoolDown(i), i).isFalse())
+                    instance.decreaseCoolDown(1, i);
             }
 
             // Update temporary skill timer
@@ -209,17 +210,18 @@ public class SkillStorage  extends Storage implements Skills {
     public void handleSkillRelease(List<ResourceLocation> skillList, int heldTick, int keyNumber, int mode) {
         for (final ResourceLocation skillId : skillList) {
             getSkill(skillId).ifPresent(skill -> {
-                if (!skill.canInteractSkill(getOwner())) return;
-                if (skill.onCoolDown() && !skill.canIgnoreCoolDown(getOwner(), mode)) return;
 
-                skill.onRelease(getOwner(), heldTick, keyNumber, mode);
-                if (skill.isDirty()) markDirty();
-                skill.removeAttributeModifiers(getOwner(), mode);
-
-                UUID ownerID = getOwner().getUUID();
-                if (tickingSkills.containsKey(ownerID)) {
-                    tickingSkills.get(ownerID).removeIf(tickingSkill -> tickingSkill.getSkill() == skill.getSkill());
+                if (skill.canInteractSkill(getOwner()) && mode < skill.getModes()) {
+                    if (!skill.onCoolDown(mode) || skill.canIgnoreCoolDown(getOwner(), mode)) {
+                        skill.onRelease(getOwner(), heldTick, keyNumber, mode);
+                        if (skill.isDirty()) markDirty();
+                    }
                 }
+
+                skill.removeAttributeModifiers(getOwner(), mode);
+                UUID ownerID = getOwner().getUUID();
+                if (tickingSkills.containsKey(ownerID))
+                    tickingSkills.get(ownerID).removeIf(tickingSkill -> tickingSkill.getSkill() == skill.getSkill());
             });
         }
     }

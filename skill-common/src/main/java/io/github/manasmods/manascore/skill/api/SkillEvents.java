@@ -13,8 +13,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 
-import java.awt.*;
-
 public interface SkillEvents {
     Event<UnlockSkillEvent> UNLOCK_SKILL = EventFactory.createEventResult();
     Event<RemoveSkillEvent> REMOVE_SKILL = EventFactory.createEventResult();
@@ -72,7 +70,7 @@ public interface SkillEvents {
 
     @FunctionalInterface
     interface SkillUpdateCooldownEvent {
-        EventResult cooldown(ManasSkillInstance skillInstance, LivingEntity owner, int currentCooldown);
+        EventResult cooldown(ManasSkillInstance skillInstance, LivingEntity owner, int currentCooldown, int mode);
     }
 
     @FunctionalInterface

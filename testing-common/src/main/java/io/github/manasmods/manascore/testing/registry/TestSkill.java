@@ -37,12 +37,20 @@ public class TestSkill extends ManasSkill {
         this.addHeldAttributeModifier(Attributes.MOVEMENT_SPEED, ResourceLocation.withDefaultNamespace("skill.speed"), 1, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
     }
 
+    public int getModes() {
+        return 2;
+    }
+
     public boolean canBeToggled(ManasSkillInstance instance, LivingEntity entity) {
         return entity.isShiftKeyDown();
     }
 
     public boolean canTick(ManasSkillInstance instance, LivingEntity entity) {
         return instance.isToggled();
+    }
+
+    public boolean canIgnoreCoolDown(ManasSkillInstance instance, LivingEntity entity, int mode) {
+        return mode == 1 && entity.isShiftKeyDown();
     }
 
     public void onToggleOn(ManasSkillInstance instance, LivingEntity entity) {
@@ -55,15 +63,21 @@ public class TestSkill extends ManasSkill {
 
     public void onPressed(ManasSkillInstance instance, LivingEntity entity, int keyNumber, int mode) {
         ManasCoreTesting.LOG.info("I'm pressed");
+        if (mode == 1) ManasCoreTesting.LOG.info("In second mode");
     }
 
     public boolean onHeld(ManasSkillInstance instance, LivingEntity living, int heldTicks, int mode) {
         ManasCoreTesting.LOG.info("Held for {} ticks", heldTicks);
+        if (mode == 1) ManasCoreTesting.LOG.info("In second mode");
         return true;
     }
 
     public void onRelease(ManasSkillInstance instance, LivingEntity entity, int heldTicks, int keyNumber, int mode) {
         ManasCoreTesting.LOG.info("I'm released after {} ticks", heldTicks);
+        if (mode == 1) {
+            ManasCoreTesting.LOG.info("In second mode");
+            instance.setCoolDown(5, mode);
+        }
     }
 
     public void onTick(ManasSkillInstance instance, LivingEntity living) {

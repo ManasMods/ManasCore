@@ -10,14 +10,11 @@ import io.github.manasmods.manascore.skill.impl.SkillStorage;
 import io.github.manasmods.manascore.skill.utils.Changeable;
 import io.github.manasmods.manascore.skill.utils.EntityEvents;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -26,7 +23,6 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileDeflection;
 import net.minecraft.world.phys.EntityHitResult;
@@ -160,6 +156,13 @@ public class ManasSkill {
      */
     public boolean canTick(ManasSkillInstance instance, LivingEntity entity) {
         return false;
+    }
+
+    /**
+     * @return the number of modes that this skill can have.
+     */
+    public int getModes() {
+        return 1;
     }
 
     /**

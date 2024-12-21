@@ -10,8 +10,7 @@ import io.github.manasmods.manascore.skill.utils.Changeable;
 import io.github.manasmods.manascore.skill.utils.EntityEvents;
 import lombok.Getter;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
@@ -20,25 +19,26 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileDeflection;
 import net.minecraft.world.phys.EntityHitResult;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class ManasSkillInstance {
-    private int coolDown = 0;
     private int removeTime = -1;
-    private int masteryPoint = 0;
+    private double masteryPoint = 0;
     private boolean toggled = false;
+    private List<Integer> cooldownList;
     @Nullable
     private CompoundTag tag = null;
     @Getter
@@ -47,6 +47,7 @@ public class ManasSkillInstance {
 
     protected ManasSkillInstance(ManasSkill skill) {
         this.skillRegistryObject = SkillAPI.getSkillRegistry().delegate(SkillAPI.getSkillRegistry().getId(skill));
+        cooldownList = NonNullList.withSize(skill.getModes(), 0);
     }
 
     /**
@@ -66,7 +67,7 @@ public class ManasSkillInstance {
     public ManasSkillInstance copy() {
         ManasSkillInstance clone = new ManasSkillInstance(getSkill());
         clone.dirty = this.dirty;
-        clone.coolDown = this.coolDown;
+        clone.cooldownList = this.cooldownList;
         clone.removeTime = this.removeTime;
         clone.masteryPoint = this.masteryPoint;
         clone.toggled = this.toggled;
@@ -92,10 +93,10 @@ public class ManasSkillInstance {
      * @param nbt Tag with data from {@link ManasSkillInstance#fromNBT(CompoundTag)}
      */
     public CompoundTag serialize(CompoundTag nbt) {
-        nbt.putInt("CoolDown", this.coolDown);
         nbt.putInt("RemoveTime", this.removeTime);
-        nbt.putInt("Mastery", this.masteryPoint);
+        nbt.putDouble("Mastery", this.masteryPoint);
         nbt.putBoolean("Toggled", this.toggled);
+        nbt.putIntArray("CooldownList", this.cooldownList);
         if (this.tag != null) nbt.put("tag", this.tag.copy());
         return nbt;
     }
@@ -104,10 +105,10 @@ public class ManasSkillInstance {
      * Can be used to load custom data.
      */
     public void deserialize(CompoundTag tag) {
-        this.coolDown = tag.getInt("CoolDown");
         this.removeTime = tag.getInt("RemoveTime");
-        this.masteryPoint = tag.getInt("Mastery");
+        this.masteryPoint = tag.getDouble("Mastery");
         this.toggled = tag.getBoolean("Toggled");
+        this.cooldownList = Arrays.stream(tag.getIntArray("CooldownList")).boxed().collect(Collectors.toList());
         if (tag.contains("tag", 10)) this.tag = tag.getCompound("tag");
     }
 
@@ -203,6 +204,14 @@ public class ManasSkillInstance {
     }
 
     /**
+     * @return the number of modes that this skill instance has.
+     * </p>
+     */
+    public int getModes() {
+        return this.getSkill().getModes();
+    }
+
+    /**
      * @return the maximum mastery points that this skill instance can have.
      * </p>
      */
@@ -231,45 +240,49 @@ public class ManasSkillInstance {
     /**
      * @return the mastery point of the {@link ManasSkill} type of this instance.
      */
-    public int getMastery() {
+    public double getMastery() {
         return this.masteryPoint;
     }
 
     /**
      * Set the mastery point of the {@link ManasSkill} type of this instance.
      */
-    public void setMastery(int point) {
+    public void setMastery(double point) {
         this.masteryPoint = point;
         markDirty();
     }
 
     /**
-     * @return the cooldown of this instance.
+     * @return the cooldown of a specific mode of this instance.
      */
-    public int getCoolDown() {
-        return this.coolDown;
+    public int getCoolDown(int mode) {
+        if (mode < 0 || mode >= cooldownList.size()) return 0;
+        return this.cooldownList.get(mode);
     }
 
     /**
-     * @return if this instance is on cooldown.
+     * @return if a specific mode of this instance is on cooldown.
      */
-    public boolean onCoolDown() {
-        return this.coolDown > 0;
+    public boolean onCoolDown(int mode) {
+        if (mode < 0 || mode >= cooldownList.size()) return false;
+        return this.cooldownList.get(mode) > 0;
     }
 
     /**
-     * Set the cooldown of this instance.
+     * Set the cooldown of a specific mode of this instance.
      */
-    public void setCoolDown(int coolDown) {
-        this.coolDown = coolDown;
+    public void setCoolDown(int coolDown, int mode) {
+        if (mode < 0 || mode >= cooldownList.size()) return;
+        this.cooldownList.set(mode, coolDown);
         markDirty();
     }
 
     /**
-     * Decrease the cooldown of this instance.
+     * Decrease the cooldown of a specific mode of this instance.
      */
-    public void decreaseCoolDown(int coolDown) {
-        this.coolDown -= coolDown;
+    public void decreaseCoolDown(int coolDown, int mode) {
+        if (mode < 0 || mode >= cooldownList.size()) return;
+        this.cooldownList.set(mode, this.cooldownList.get(mode) - coolDown);
         markDirty();
     }
 

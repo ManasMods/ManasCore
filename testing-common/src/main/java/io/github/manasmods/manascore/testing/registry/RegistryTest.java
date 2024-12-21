@@ -95,6 +95,10 @@ public class RegistryTest {
                 if (storage.learnSkill(RegistryTest.TEST_SKILL.get())) {
                     ManasCoreTesting.LOG.info("Added Tested Skill!");
                 }
+            } else if (entity.getItem().is(Items.EMERALD)) {
+                Skills storage = SkillAPI.getSkillsFrom(player);
+                storage.forgetSkill(RegistryTest.TEST_SKILL.get());
+                ManasCoreTesting.LOG.info("Forgot Tested Skill!");
             }
 
             return EventResult.pass();

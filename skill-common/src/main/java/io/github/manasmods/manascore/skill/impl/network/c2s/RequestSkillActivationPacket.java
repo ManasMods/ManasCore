@@ -47,8 +47,9 @@ public record RequestSkillActivationPacket(
                 storage.getSkill(skillId).ifPresent(skill -> {
                     if(!skill.canInteractSkill(player)) return;
 
-                    int mode = 0;
-                    if (skill.onCoolDown() && !skill.canIgnoreCoolDown(player, mode)) return;
+                    int mode = keyNumber;
+                    if (mode >= skill.getModes()) return;
+                    if (skill.onCoolDown(mode) && !skill.canIgnoreCoolDown(player, mode)) return;
 
                     skill.onPressed(player, keyNumber, mode);
                     skill.addHeldAttributeModifiers(player, mode);

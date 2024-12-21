@@ -23,6 +23,9 @@ public class KeybindingTest {
                 new ManasKeybinding("manascore.keybinding.skill", category,
                         () -> SkillAPI.skillActivationPacket(0),
                         duration -> SkillAPI.skillReleasePacket(0, (int) (duration / 50))),
+                new ManasKeybinding("manascore.keybinding.skill_2", category,
+                        () -> SkillAPI.skillActivationPacket(1),
+                        duration -> SkillAPI.skillReleasePacket(1, (int) (duration / 50))),
                 new ManasKeybinding("manascore.keybinding.skill_toggle", category, SkillAPI::skillTogglePacket)
         );
     }
