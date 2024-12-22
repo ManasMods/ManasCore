@@ -81,7 +81,7 @@ public class RegistryTest {
             .withEffectInstance(new MobEffectInstance(TEST_MOB_EFFECT, 100, 10))
             .withEffectInstance(new MobEffectInstance(TEST_MOB_EFFECT_PARTICLE, 200, 5, false, false, false))
             .end();
-    private static final RegistrySupplier<TestSkill> TEST_SKILL = REGISTER.skill("test_skill", TestSkill::new).end();
+    public static final RegistrySupplier<TestSkill> TEST_SKILL = REGISTER.skill("test_skill", TestSkill::new).end();
 
     public static void init() {
         ManasCoreTesting.LOG.info("Registered test content!");

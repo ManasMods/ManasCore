@@ -11,7 +11,7 @@ import io.github.manasmods.manascore.skill.api.ManasSkillInstance;
 import io.github.manasmods.manascore.skill.utils.Changeable;
 import io.github.manasmods.manascore.skill.utils.EntityEvents;
 import io.github.manasmods.manascore.testing.ManasCoreTesting;
-import io.github.manasmods.manascore.testing.configs.TestConfig;
+import io.github.manasmods.manascore.testing.configs.SkillConfig;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
@@ -97,9 +97,9 @@ public class TestSkill extends ManasSkill {
     public boolean onEffectAdded(ManasSkillInstance instance, LivingEntity entity, @Nullable Entity source, Changeable<MobEffectInstance> effect) {
         MobEffectInstance effectInstance = effect.get();
         if (effectInstance == null) return false;
-        if (effectInstance.getEffect().is(MobEffects.BLINDNESS)) return false;
+        if (effectInstance.getEffect().equals(MobEffects.BLINDNESS)) return false;
 
-        if (effectInstance.getEffect().is(MobEffects.POISON)) {
+        if (effectInstance.getEffect().equals(MobEffects.POISON)) {
             ManasCoreTesting.LOG.info("Poison is bad!");
             effect.set(new MobEffectInstance(MobEffects.GLOWING, effectInstance.getDuration(), effectInstance.getAmplifier()));
         }
@@ -120,7 +120,7 @@ public class TestSkill extends ManasSkill {
     }
 
     public boolean onDamageEntity(ManasSkillInstance instance, LivingEntity owner, LivingEntity target, DamageSource source, Changeable<Float> amount) {
-        TestConfig config = ConfigRegistry.getConfig(TestConfig.class);
+        SkillConfig config = ConfigRegistry.getConfig(SkillConfig.class);
         if (target instanceof Creeper creeper && config.instaKillCreeper) {
             creeper.kill();
             ManasCoreTesting.LOG.info("No creeper");

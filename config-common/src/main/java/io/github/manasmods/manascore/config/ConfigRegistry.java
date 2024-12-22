@@ -23,20 +23,20 @@ public class ConfigRegistry {
 
     public static void registerConfig(ManasConfig config) {
         registeredConfigs.add(config);
-        ManasCoreConfig.LOG.info(config.getClass().getSimpleName() + " registered");
+        ManasCoreConfig.LOG.info(config.getClass().getSimpleName() + " registered.");
     }
 
     public static void loadConfigs() {
         registeredConfigs.forEach(config -> {
-            Path startPath = Paths.get("config/" + config.getClass().getSimpleName().toLowerCase() + ".json");
+            Path startPath = Paths.get(config.getParentPath() + "/" + config.getClass().getSimpleName().toLowerCase() + ".json");
             try {
                 if (Files.exists(startPath)) {
                     String string = Files.readString(startPath);
                     ManasConfig loadedConfig = gson.fromJson(string, config.getClass());
                     loadedConfigs.add(loadedConfig);
-                    ManasCoreConfig.LOG.info( config.getClass().getSimpleName() + " loaded");
+                    ManasCoreConfig.LOG.info( config.getClass().getSimpleName() + " loaded.");
                 } else {
-                    ManasCoreConfig.LOG.info( config.getClass().getSimpleName() + " not found");
+                    ManasCoreConfig.LOG.info( config.getClass().getSimpleName() + " not found.");
                 }
             } catch (IOException e) {
                 ManasCoreConfig.LOG.error("Error loading config: " + config.getClass().getSimpleName());
@@ -56,14 +56,14 @@ public class ConfigRegistry {
     public static void createConfigs() {
         registeredConfigs.forEach(config -> {
             String content = gson.toJson(config);
-            Path startPath = Paths.get("config/" + "/" + config.getClass().getSimpleName() + ".json");
+            Path startPath = Paths.get(config.getParentPath() + "/" + config.getClass().getSimpleName() + ".json");
             try {
                 if (!Files.exists(startPath)) {
                     Files.createDirectories(startPath.getParent());
                     Files.write(startPath, content.getBytes());
-                    ManasCoreConfig.LOG.info("Config: " + config.getClass().getSimpleName() + " created");
+                    ManasCoreConfig.LOG.info("Config: " + config.getClass().getSimpleName() + " created.");
                 } else {
-                    ManasCoreConfig.LOG.info("Config: " + config.getClass().getSimpleName() + " already exists");
+                    ManasCoreConfig.LOG.info("Config: " + config.getClass().getSimpleName() + " already exists.");
                 }
             } catch (IOException e) {
                 ManasCoreConfig.LOG.error("Error creating config: " + config.getClass().getSimpleName());
