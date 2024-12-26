@@ -1,0 +1,15 @@
+/*
+ * Copyright (c) 2024. ManasMods
+ * GNU General Public License 3
+ */
+
+package io.github.manasmods.manascore.register;
+
+import net.neoforged.fml.common.Mod;
+
+@Mod(ModuleConstants.MOD_ID)
+public final class ManasCoreRegisterNeoForge {
+    public ManasCoreRegisterNeoForge() {
+        ManasCoreRegister.init();
+    }
+}

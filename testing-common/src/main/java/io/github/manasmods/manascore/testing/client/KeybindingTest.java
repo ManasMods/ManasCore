@@ -5,9 +5,9 @@
 
 package io.github.manasmods.manascore.testing.client;
 
-import io.github.manasmods.manascore.keybinding.api.KeybindingCategory;
-import io.github.manasmods.manascore.keybinding.api.KeybindingManager;
-import io.github.manasmods.manascore.keybinding.api.ManasKeybinding;
+import io.github.manasmods.manascore.keybind.api.KeybindingCategory;
+import io.github.manasmods.manascore.keybind.api.KeybindingManager;
+import io.github.manasmods.manascore.keybind.api.ManasKeybinding;
 import io.github.manasmods.manascore.skill.api.SkillAPI;
 import io.github.manasmods.manascore.testing.ManasCoreTesting;
 

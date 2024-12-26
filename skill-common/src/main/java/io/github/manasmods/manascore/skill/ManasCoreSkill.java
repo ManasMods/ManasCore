@@ -17,8 +17,8 @@ public final class ManasCoreSkill {
     public static final Logger LOG = LoggerFactory.getLogger("ManasCore - Skill");
 
     public static void init() {
-        SkillRegistry.init();
         SkillStorage.init();
+        SkillRegistry.init();
         ManasSkillNetwork.init();
         if (Platform.getEnvironment() == Env.CLIENT) {
             ManasCoreSkillClient.init();

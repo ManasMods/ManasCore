@@ -7,7 +7,7 @@ package io.github.manasmods.manascore.skill.api;
 
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
-import io.github.manasmods.manascore.registry.api.AbstractRegister;
+import io.github.manasmods.manascore.register.api.AbstractRegister;
 import net.minecraft.core.Holder;
 
 import java.util.function.Supplier;

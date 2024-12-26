@@ -22,12 +22,12 @@ public final class ManasCoreTesting {
 
     public static void init() {
         StorageModuleTest.init();
+        ConfigModuleTest.init();
         REGISTER.init(RegistryTest::init);
         if (Platform.getEnv() == EnvType.CLIENT) {
             ManasCoreTestingClient.init();
         }
         StorageModuleTest.init();
-        ConfigModuleTest.init();
         CommandModuleTest.init();
     }
 }

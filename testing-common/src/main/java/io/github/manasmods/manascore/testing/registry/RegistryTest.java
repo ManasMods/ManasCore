@@ -10,10 +10,12 @@ import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.PlayerEvent;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrySupplier;
+import io.github.manasmods.manascore.config.ConfigRegistry;
 import io.github.manasmods.manascore.skill.api.ManasSkill;
 import io.github.manasmods.manascore.skill.api.SkillAPI;
 import io.github.manasmods.manascore.skill.api.Skills;
 import io.github.manasmods.manascore.testing.ManasCoreTesting;
+import io.github.manasmods.manascore.testing.configs.TestConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -42,7 +44,7 @@ import static io.github.manasmods.manascore.testing.ManasCoreTesting.REGISTER;
 
 public class RegistryTest {
     private static final RegistrySupplier<Item> TEST_ITEM = REGISTER.item("test_item")
-            .withStackSize(4)
+            .withStackSize(ConfigRegistry.getConfig(TestConfig.class).intList.getFirst())
             .end();
     private static final RegistrySupplier<TestBlock> TEST_BLOCK = REGISTER.block("test_block", TestBlock::new)
             .withBlockItem(builder -> builder.withStackSize(16))
@@ -77,10 +79,11 @@ public class RegistryTest {
             .withCategory(MobEffectCategory.BENEFICIAL)
             .withColor(5882118)
             .end();
+    /*
     private static final RegistrySupplier<Potion> TEST_POTION = REGISTER.potion("test_potion", Potion::new)
             .withEffectInstance(new MobEffectInstance(TEST_MOB_EFFECT, 100, 10))
             .withEffectInstance(new MobEffectInstance(TEST_MOB_EFFECT_PARTICLE, 200, 5, false, false, false))
-            .end();
+            .end();*/
     public static final RegistrySupplier<TestSkill> TEST_SKILL = REGISTER.skill("test_skill", TestSkill::new).end();
 
     public static void init() {
