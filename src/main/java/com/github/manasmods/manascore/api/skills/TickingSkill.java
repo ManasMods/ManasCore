@@ -3,6 +3,7 @@ package com.github.manasmods.manascore.api.skills;
 import com.github.manasmods.manascore.api.skills.capability.SkillStorage;
 import lombok.Getter;
 import net.minecraft.world.entity.LivingEntity;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
@@ -14,11 +15,14 @@ public class TickingSkill {
         this.skill = skill;
     }
 
-    public boolean tick(SkillStorage storage, LivingEntity entity) {
+    public @Nullable ManasSkillInstance getSkillInstance(SkillStorage storage, LivingEntity entity) {
         Optional<ManasSkillInstance> optional = storage.getSkill(this.getSkill());
-        if (optional.isEmpty()) return false;
+        return optional.orElse(null);
+    }
 
-        ManasSkillInstance instance = optional.get();
+    public boolean tick(SkillStorage storage, LivingEntity entity) {
+        ManasSkillInstance instance = this.getSkillInstance(storage, entity);
+        if (instance == null) return false;
         if (reachedMaxDuration(instance, entity)) return false;
 
         if (!instance.canInteractSkill(entity)) {

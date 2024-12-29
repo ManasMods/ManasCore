@@ -222,8 +222,11 @@ public class ServerEventListenerHandler {
         Player player = e.getEntity();
         Multimap<UUID, TickingSkill> multimap = TickEventListenerHandler.tickingSkills;
         if (multimap.containsKey(player.getUUID())) {
-            for (TickingSkill tickingSkill : multimap.get(player.getUUID()))
-                tickingSkill.getSkill().removeHeldAttributeModifiers(player);
+            for (TickingSkill tickingSkill : multimap.get(player.getUUID())) {
+                ManasSkillInstance instance = tickingSkill.getSkillInstance(SkillAPI.getSkillsFrom(player), player);
+                if (instance == null) continue;
+                instance.removeHeldAttributeModifiers(player);
+            }
             multimap.removeAll(player.getUUID());
         }
     }

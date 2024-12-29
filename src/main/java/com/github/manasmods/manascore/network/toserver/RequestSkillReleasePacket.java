@@ -52,12 +52,13 @@ public class RequestSkillReleasePacket {
                     if (optional.isEmpty()) continue;
                     ManasSkillInstance skillInstance = optional.get();
 
-                    if (!skillInstance.canInteractSkill(player)) continue;
-                    if (skillInstance.onCoolDown() && !skillInstance.canIgnoreCoolDown(player)) continue;
+                    if (skillInstance.canInteractSkill(player)) {
+                        if (!skillInstance.onCoolDown() || skillInstance.canIgnoreCoolDown(player)) {
+                            skillInstance.onRelease(player, this.heldTick);
+                        }
+                    }
 
-                    skillInstance.onRelease(player, this.heldTick);
-                    skillInstance.getSkill().removeHeldAttributeModifiers(player);
-
+                    skillInstance.removeHeldAttributeModifiers(player);
                     Multimap<UUID, TickingSkill> multimap = TickEventListenerHandler.tickingSkills;
                     if (multimap.containsKey(player.getUUID())) multimap.get(player.getUUID()).removeIf(tickingSkill -> tickingSkill.getSkill() == skillInstance.getSkill());
                 }

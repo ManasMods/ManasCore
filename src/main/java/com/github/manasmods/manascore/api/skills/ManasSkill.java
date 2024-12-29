@@ -226,8 +226,9 @@ public class ManasSkill {
      * Removes the attribute modifiers of this skill from the {@link LivingEntity} holding the skill activation button.
      *
      * @param entity   Affected {@link LivingEntity} owning this Skill.
+     * @param instance Affected {@link ManasSkillInstance}
      */
-    public void removeHeldAttributeModifiers(LivingEntity entity) {
+    public void removeHeldAttributeModifiers(ManasSkillInstance instance, LivingEntity entity) {
         for(Map.Entry<Attribute, AttributeModifier> entry : this.onHeldAttributeModifiers.entrySet()) {
             AttributeInstance attributeinstance = entity.getAttributes().getInstance(entry.getKey());
             if (attributeinstance != null) attributeinstance.removeModifier(entry.getValue());
