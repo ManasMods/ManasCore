@@ -230,4 +230,18 @@ public class ServerEventListenerHandler {
             multimap.removeAll(player.getUUID());
         }
     }
+
+    @SubscribeEvent
+    public static void onChangingDimension(final PlayerEvent.PlayerChangedDimensionEvent e) {
+        Player player = e.getEntity();
+        Multimap<UUID, TickingSkill> multimap = TickEventListenerHandler.tickingSkills;
+        if (multimap.containsKey(player.getUUID())) {
+            for (TickingSkill tickingSkill : multimap.get(player.getUUID())) {
+                ManasSkillInstance instance = tickingSkill.getSkillInstance(SkillAPI.getSkillsFrom(player), player);
+                if (instance == null) continue;
+                instance.removeHeldAttributeModifiers(player);
+            }
+            multimap.removeAll(player.getUUID());
+        }
+    }
 }

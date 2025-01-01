@@ -399,7 +399,7 @@ public class ManasSkillInstance implements Cloneable {
      * @param entity   Affected {@link LivingEntity} owning this Skill.
      */
     public void removeHeldAttributeModifiers(LivingEntity entity) {
-        this.getSkill().addHeldAttributeModifiers(this, entity);
+        this.getSkill().removeHeldAttributeModifiers(this, entity);
     }
 
     /**
