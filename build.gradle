@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. ManasMods
+ * Copyright (c) 2024-2025. ManasMods
  * GNU General Public License 3
  */
 
@@ -81,8 +81,7 @@ subprojects {
         }
 
         mixin {
-            useLegacyMixinAp = true
-            defaultRefmapName = "${project.mod_id}-${project.module_type}.refmap.json"
+            useLegacyMixinAp = false
         }
 
         interfaceInjection {
