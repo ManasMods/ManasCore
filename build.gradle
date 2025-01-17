@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. ManasMods
+ * Copyright (c) 2024-2025. ManasMods
  * GNU General Public License 3
  */
 
@@ -81,8 +81,7 @@ subprojects {
         }
 
         mixin {
-            useLegacyMixinAp = true
-            defaultRefmapName = "${project.mod_id}-${project.module_type}.refmap.json"
+            useLegacyMixinAp = false
         }
 
         interfaceInjection {
@@ -271,6 +270,17 @@ subprojects {
             } else if (project.name.endsWith("fabric")) {
                 filesMatching('fabric.mod.json') {
                     expand placeholders
+
+                    if (!project.name.startsWith("testing")) {
+                        filter { String line ->
+                            if (line.contains('"mixins":')) {
+                                var modifiedLine = "  \"accessWidener\": \"${project.mod_id}.accesswidener\",\n" + line
+
+                                return modifiedLine
+                            }
+                            return line
+                        }
+                    }
                 }
             }
         }
