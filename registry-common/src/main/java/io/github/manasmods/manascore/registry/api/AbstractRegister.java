@@ -422,7 +422,7 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
                 return builder.build(this.id.toString());
             });
 
-            //supplier.listen(type -> ManasAttributeRegistry.registerNew(() -> type, this.attributeBuilder));
+            supplier.listen(type -> ManasAttributeRegistry.registerNew(() -> type, this.attributeBuilder));
             return supplier;
         }
 

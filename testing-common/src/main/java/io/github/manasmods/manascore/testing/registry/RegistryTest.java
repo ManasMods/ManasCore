@@ -53,7 +53,7 @@ public class RegistryTest {
             .withSize(1, 1)
             .end();
     
-    /*private static final RegistrySupplier<Attribute> TEST_ATTRIBUTE = REGISTER.attribute("test_attribute")
+    private static final RegistrySupplier<Attribute> TEST_ATTRIBUTE = REGISTER.attribute("test_attribute")
             .withDefaultValue(69)
             .withMaximumValue(420)
             .applyToAll()
@@ -62,7 +62,7 @@ public class RegistryTest {
             .withDefaultValue(5)
             .withMaximumValue(10)
             .applyTo(() -> EntityType.PLAYER)
-            .end();*/
+            .end();
 
     private static final RegistrySupplier<BlockEntityType<TestBlockEntity>> TEST_BLOCK_ENTITY = REGISTER.blockEntity("test_block_entity", TestBlockEntity::new)
             .withValidBlocks(TEST_BLOCK)
@@ -78,10 +78,10 @@ public class RegistryTest {
             .withColor(5882118)
             .end();
 
-    /*private static final RegistrySupplier<Potion> TEST_POTION = REGISTER.potion("test_potion", Potion::new)
+    private static final RegistrySupplier<Potion> TEST_POTION = REGISTER.potion("test_potion", Potion::new)
             .withEffectInstance(new MobEffectInstance(TEST_MOB_EFFECT, 100, 10))
             .withEffectInstance(new MobEffectInstance(TEST_MOB_EFFECT_PARTICLE, 200, 5, false, false, false))
-            .end();*/
+            .end();
     public static final RegistrySupplier<TestSkill> TEST_SKILL = REGISTER.skill("test_skill", TestSkill::new).end();
 
     public static void init() {
