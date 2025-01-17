@@ -77,10 +77,11 @@ public class RegistryTest {
             .withCategory(MobEffectCategory.BENEFICIAL)
             .withColor(5882118)
             .end();
-    private static final RegistrySupplier<Potion> TEST_POTION = REGISTER.potion("test_potion", Potion::new)
+
+    /*private static final RegistrySupplier<Potion> TEST_POTION = REGISTER.potion("test_potion", Potion::new)
             .withEffectInstance(new MobEffectInstance(TEST_MOB_EFFECT, 100, 10))
             .withEffectInstance(new MobEffectInstance(TEST_MOB_EFFECT_PARTICLE, 200, 5, false, false, false))
-            .end();
+            .end();*/
     public static final RegistrySupplier<TestSkill> TEST_SKILL = REGISTER.skill("test_skill", TestSkill::new).end();
 
     public static void init() {

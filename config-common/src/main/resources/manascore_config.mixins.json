@@ -1,17 +1,11 @@
 {
   "required": true,
-  "package": "io.github.manasmods.manascore.storage.mixin",
+  "package": "io.github.manasmods.manascore.config.mixin",
   "compatibilityLevel": "JAVA_21",
   "minVersion": "0.8",
   "client": [
   ],
   "mixins": [
-    "MixinChunkSerializer",
-    "MixinDataFixTypes",
-    "MixinEntity",
-    "MixinLevel",
-    "MixinLevelChunk",
-    "MixinServerLevel"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -81,8 +81,8 @@ subprojects {
         }
 
         mixin {
-            useLegacyMixinAp = true
-            defaultRefmapName = "${project.mod_id}-${project.module_type}.refmap.json"
+            useLegacyMixinAp = false
+            //defaultRefmapName = "${project.mod_id}-${project.module_type}.refmap.json"
         }
 
         interfaceInjection {
