@@ -270,6 +270,17 @@ subprojects {
             } else if (project.name.endsWith("fabric")) {
                 filesMatching('fabric.mod.json') {
                     expand placeholders
+
+                    if (!project.name.startsWith("testing")) {
+                        filter { String line ->
+                            if (line.contains('"mixins":')) {
+                                var modifiedLine = "  \"accessWidener\": \"${project.mod_id}.accesswidener\",\n" + line
+
+                                return modifiedLine
+                            }
+                            return line
+                        }
+                    }
                 }
             }
         }
