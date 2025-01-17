@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. ManasMods
+ * Copyright (c) 2025. ManasMods
  * GNU General Public License 3
  */
 
@@ -24,6 +24,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.projectile.windcharge.AbstractWindCharge;
 import net.minecraft.world.item.Item;
@@ -51,9 +52,8 @@ public class RegistryTest {
             .fireImmune()
             .withSize(1, 1)
             .end();
-
-    /*
-    private static final RegistrySupplier<Attribute> TEST_ATTRIBUTE = REGISTER.attribute("test_attribute")
+    
+    /*private static final RegistrySupplier<Attribute> TEST_ATTRIBUTE = REGISTER.attribute("test_attribute")
             .withDefaultValue(69)
             .withMaximumValue(420)
             .applyToAll()
