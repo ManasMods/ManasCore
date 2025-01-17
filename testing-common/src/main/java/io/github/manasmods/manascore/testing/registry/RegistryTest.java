@@ -26,6 +26,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.projectile.windcharge.AbstractWindCharge;
 import net.minecraft.world.item.Item;
@@ -54,8 +55,7 @@ public class RegistryTest {
             .withSize(1, 1)
             .end();
 
-    /*
-    private static final RegistrySupplier<Attribute> TEST_ATTRIBUTE = REGISTER.attribute("test_attribute")
+    /*private static final RegistrySupplier<Attribute> TEST_ATTRIBUTE = REGISTER.attribute("test_attribute")
             .withDefaultValue(69)
             .withMaximumValue(420)
             .applyToAll()
@@ -79,8 +79,7 @@ public class RegistryTest {
             .withCategory(MobEffectCategory.BENEFICIAL)
             .withColor(5882118)
             .end();
-    /*
-    private static final RegistrySupplier<Potion> TEST_POTION = REGISTER.potion("test_potion", Potion::new)
+    /*private static final RegistrySupplier<Potion> TEST_POTION = REGISTER.potion("test_potion", Potion::new)
             .withEffectInstance(new MobEffectInstance(TEST_MOB_EFFECT, 100, 10))
             .withEffectInstance(new MobEffectInstance(TEST_MOB_EFFECT_PARTICLE, 200, 5, false, false, false))
             .end();*/

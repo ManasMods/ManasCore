@@ -3,7 +3,7 @@
  * GNU General Public License 3
  */
 
-package io.github.manasmods.manascore.register.api;
+package io.github.manasmods.manascore.registry.api;
 
 import com.mojang.datafixers.types.Type;
 import dev.architectury.registry.registries.DeferredRegister;
@@ -422,7 +422,7 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
                 return builder.build(this.id.toString());
             });
 
-            //supplier.listen(type -> ManasAttributeRegister.registerNew(() -> type, this.attributeBuilder));
+            //supplier.listen(type -> ManasAttributeRegistry.registerNew(() -> type, this.attributeBuilder));
             return supplier;
         }
 
@@ -553,9 +553,9 @@ public abstract class AbstractRegister<R extends AbstractRegister<R>> {
             RegistrySupplier<Attribute> supplier = this.register.attributes.register(this.id, () -> attribute);
 
             if (this.applyToAll) {
-                ManasAttributeRegister.registerToAll(builder -> builder.add(holder, this.defaultValue));
+                ManasAttributeRegistry.registerToAll(builder -> builder.add(holder, this.defaultValue));
             } else this.applicableEntityTypes.forEach((typeSupplier, defaultValue) ->
-                    ManasAttributeRegister.register(typeSupplier, builder -> builder.add(holder, defaultValue)));
+                    ManasAttributeRegistry.register(typeSupplier, builder -> builder.add(holder, defaultValue)));
             return supplier;
         }
 
