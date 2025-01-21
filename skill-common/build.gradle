@@ -3,7 +3,6 @@ loom {
 }
 
 dependencies {
-    implementation(project(path: ":registry-common", configuration: 'namedElements')) { transitive false }
     implementation(project(path: ":network-common", configuration: 'namedElements')) { transitive false }
     implementation(project(path: ":storage-common", configuration: 'namedElements')) { transitive false }
 }

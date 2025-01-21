@@ -1,4 +1,0 @@
-accessWidener v2 named
-accessible field net/minecraft/world/entity/ai/attributes/AttributeSupplier instances Ljava/util/Map;
-accessible field net/minecraft/world/effect/MobEffect particleFactory Ljava/util/function/Function;
-mutable field net/minecraft/world/effect/MobEffect particleFactory Ljava/util/function/Function;

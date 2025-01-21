@@ -8,84 +8,117 @@ package io.github.manasmods.manascore.testing.registry;
 import com.mojang.serialization.MapCodec;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.PlayerEvent;
+import dev.architectury.registry.CreativeTabRegistry;
+import dev.architectury.registry.level.entity.EntityAttributeRegistry;
+import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrySupplier;
 import io.github.manasmods.manascore.skill.api.ManasSkill;
 import io.github.manasmods.manascore.skill.api.SkillAPI;
 import io.github.manasmods.manascore.skill.api.Skills;
+import io.github.manasmods.manascore.skill.impl.SkillRegistry;
 import io.github.manasmods.manascore.testing.ManasCoreTesting;
+import io.github.manasmods.manascore.testing.ModuleConstants;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.projectile.windcharge.AbstractWindCharge;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static io.github.manasmods.manascore.testing.ManasCoreTesting.REGISTER;
-
 public class RegistryTest {
-    private static final RegistrySupplier<Item> TEST_ITEM = REGISTER.item("test_item")
-            .withStackSize(4)
-            .end();
-    private static final RegistrySupplier<TestBlock> TEST_BLOCK = REGISTER.block("test_block", TestBlock::new)
-            .withBlockItem(builder -> builder.withStackSize(16))
-            .end();
-    private static final RegistrySupplier<EntityType<TestEntity>> TEST_ENTITY = REGISTER.entity("test_entity", TestEntity::new)
-            .fireImmune()
-            .withSize(1, 1)
-            .end();
-    
-    private static final RegistrySupplier<Attribute> TEST_ATTRIBUTE = REGISTER.attribute("test_attribute")
-            .withDefaultValue(69)
-            .withMaximumValue(420)
-            .applyToAll()
-            .end();
-    private static final RegistrySupplier<Attribute> TEST_ENTITY_ATTRIBUTE = REGISTER.attribute("test_player_attribute")
-            .withDefaultValue(5)
-            .withMaximumValue(10)
-            .applyTo(() -> EntityType.PLAYER)
-            .end();
+    public static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(ModuleConstants.MOD_ID, Registries.CREATIVE_MODE_TAB);
+    public static final RegistrySupplier<CreativeModeTab> TESTING_TAB = TABS.register("test_tab", () ->
+            CreativeTabRegistry.create(Component.literal("Testing Creative Tab"),
+                    () -> new ItemStack(RegistryTest.TEST_ITEM.get())));
 
-    private static final RegistrySupplier<BlockEntityType<TestBlockEntity>> TEST_BLOCK_ENTITY = REGISTER.blockEntity("test_block_entity", TestBlockEntity::new)
-            .withValidBlocks(TEST_BLOCK)
-            .end();
-    private static final RegistrySupplier<MobEffect> TEST_MOB_EFFECT = REGISTER.mobEffect("test_effect", TestMobEffect::new)
-            .withCategory(MobEffectCategory.NEUTRAL)
-            .withColor(5882118)
-            .withAddedSoundEvent(SoundEvents.ALLAY_DEATH)
-            .withBlendDurationTicks(60)
-            .end();
-    private static final RegistrySupplier<MobEffect> TEST_MOB_EFFECT_PARTICLE = REGISTER.mobEffect("test_effect_particle", TestMobEffect::new)
-            .withCategory(MobEffectCategory.BENEFICIAL)
-            .withColor(5882118)
-            .end();
+    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ModuleConstants.MOD_ID, Registries.ITEM);
+    public static final RegistrySupplier<Item> TEST_ITEM = ITEMS.register("test_item",
+                    () -> new Item(new Item.Properties().arch$tab(TESTING_TAB).stacksTo(69)
+                            .attributes(ItemAttributeModifiers.builder()
+                                    .add(Attributes.BLOCK_INTERACTION_RANGE, new AttributeModifier(ResourceLocation.withDefaultNamespace("test_block_reach"), 10,
+                                            AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.OFFHAND).build())));
 
-    private static final RegistrySupplier<Potion> TEST_POTION = REGISTER.potion("test_potion", Potion::new)
-            .withEffectInstance(new MobEffectInstance(TEST_MOB_EFFECT, 100, 10))
-            .withEffectInstance(new MobEffectInstance(TEST_MOB_EFFECT_PARTICLE, 200, 5, false, false, false))
-            .end();
-    public static final RegistrySupplier<TestSkill> TEST_SKILL = REGISTER.skill("test_skill", TestSkill::new).end();
+    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ModuleConstants.MOD_ID, Registries.BLOCK);
+    public static final RegistrySupplier<Block> TEST_BLOCK = BLOCKS.register("test_block",
+            () -> new TestBlock(BlockBehaviour.Properties.of().lightLevel(value -> 15)));
+    public static final RegistrySupplier<BlockItem> TEST_BLOCK_ITEM = ITEMS.register("test_block_item",
+            () -> new BlockItem(RegistryTest.TEST_BLOCK.get(), new Item.Properties().arch$tab(TESTING_TAB).stacksTo(42)
+                    .attributes(ItemAttributeModifiers.builder()
+                    .add(Attributes.ENTITY_INTERACTION_RANGE, new AttributeModifier(ResourceLocation.withDefaultNamespace("test_entity_reach"), 10,
+                            AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND).build())));
+
+    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ModuleConstants.MOD_ID, Registries.BLOCK_ENTITY_TYPE);
+    public static final RegistrySupplier<BlockEntityType<?>> TEST_BLOCK_ENTITY = BLOCK_ENTITIES.register("test_block_entity",
+            () -> BlockEntityType.Builder.of(TestBlockEntity::new, RegistryTest.TEST_BLOCK.get()).build(null));
+
+    public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(ModuleConstants.MOD_ID, Registries.ENTITY_TYPE);
+    public static final RegistrySupplier<EntityType<? extends Villager>> TEST_ENTITY_TYPE = ENTITY_TYPES.register("test_entity",
+            () -> EntityType.Builder.of(TestEntity::new, MobCategory.MONSTER).fireImmune()
+                    .sized(1F, 1F).clientTrackingRange(4).updateInterval(10).build("test_entity"));
+
+    public static final DeferredRegister<Attribute> ATTRIBUTES = DeferredRegister.create(ModuleConstants.MOD_ID, Registries.ATTRIBUTE);
+    public static final RegistrySupplier<Attribute> TEST_ATTRIBUTE_PLAYER = ATTRIBUTES.register("test_attribute_player",
+            () -> new RangedAttribute("test_attribute_player", 69, 0, 420).setSyncable(true));
+    public static final RegistrySupplier<Attribute> TEST_ATTRIBUTE_ALL = ATTRIBUTES.register("test_attribute_all",
+            () -> new RangedAttribute("test_attribute_all", 420, 69, 4200).setSyncable(true));
+
+    public static final DeferredRegister<MobEffect> MOB_EFFECTS = DeferredRegister.create(ModuleConstants.MOD_ID, Registries.MOB_EFFECT);
+    public static final RegistrySupplier<MobEffect> TEST_MOB_EFFECT = MOB_EFFECTS.register("test_mob_effect",
+            () -> new TestMobEffect(MobEffectCategory.NEUTRAL, 4201604)
+                    .withSoundOnAdded(SoundEvents.ALLAY_DEATH).setBlendDuration(60));
+    public static final RegistrySupplier<MobEffect> TEST_MOB_EFFECT_PARTICLE = MOB_EFFECTS.register("test_mob_effect_particle",
+            () -> new TestMobEffect(MobEffectCategory.HARMFUL, 6901604, ParticleTypes.ANGRY_VILLAGER)
+                    .withSoundOnAdded(SoundEvents.BREWING_STAND_BREW)
+                    .addAttributeModifier(Attributes.WATER_MOVEMENT_EFFICIENCY, ResourceLocation.withDefaultNamespace("test_swim_speed"),
+                            3, AttributeModifier.Operation.ADD_VALUE));
+
+    public static final DeferredRegister<Potion> POTIONS = DeferredRegister.create(ModuleConstants.MOD_ID, Registries.POTION);
+    public static final RegistrySupplier<Potion> TEST_POTION = POTIONS.register("test_potion",
+            () -> new Potion("lmao_potion", new MobEffectInstance(TEST_MOB_EFFECT, 100, 10),
+                    new MobEffectInstance(TEST_MOB_EFFECT_PARTICLE, 200, 5, false, false, false)));
+
+    public static final DeferredRegister<ManasSkill> SKILLS = DeferredRegister.create(ModuleConstants.MOD_ID, SkillRegistry.KEY);
+    public static final RegistrySupplier<TestSkill> TEST_SKILL = SKILLS.register("test_skill", TestSkill::new);
 
     public static void init() {
         ManasCoreTesting.LOG.info("Registered test content!");
+        TABS.register();
+        BLOCKS.register();
+        ITEMS.register();
+        BLOCK_ENTITIES.register();
+        ENTITY_TYPES.register();
+        ATTRIBUTES.register();
+        MOB_EFFECTS.register();
+        POTIONS.register();
+        SKILLS.register();
+
+        EntityAttributeRegistry.register(TEST_ENTITY_TYPE, Villager::createAttributes);
 
         PlayerEvent.DROP_ITEM.register((player, entity) -> {
             //Test giving Skills
@@ -108,7 +141,7 @@ public class RegistryTest {
 
     private static class TestEntity extends Villager {
         public TestEntity(EntityType<TestEntity> entityType, Level level) {
-            super(TEST_ENTITY.get(), level);
+            super(TEST_ENTITY_TYPE.get(), level);
         }
     }
 
@@ -122,6 +155,10 @@ public class RegistryTest {
     private static class TestMobEffect extends MobEffect {
         protected TestMobEffect(MobEffectCategory mobEffectCategory, int i) {
             super(mobEffectCategory, i);
+        }
+
+        protected TestMobEffect(MobEffectCategory mobEffectCategory, int i, ParticleOptions particleOptions) {
+            super(mobEffectCategory, i, particleOptions);
         }
 
         public void onMobRemoved(LivingEntity entity, int i, Entity.RemovalReason removalReason) {

@@ -122,7 +122,7 @@ public class TestSkill extends ManasSkill {
     public boolean onDamageEntity(ManasSkillInstance instance, LivingEntity owner, LivingEntity target, DamageSource source, Changeable<Float> amount) {
         SkillConfig config = ConfigRegistry.getConfig(SkillConfig.class);
         if (target instanceof Creeper creeper && config.instaKillCreeper) {
-            creeper.kill();
+            creeper.hurt(owner.level().damageSources().dragonBreath(), 100);
             ManasCoreTesting.LOG.info("No creeper");
         } else if (target instanceof IronGolem) {
             amount.set(amount.get() * config.ironGolemDamageMultiplier);
