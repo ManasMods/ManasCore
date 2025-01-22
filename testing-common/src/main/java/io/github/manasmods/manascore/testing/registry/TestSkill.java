@@ -22,9 +22,13 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.IronGolem;
+import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.animal.axolotl.Axolotl;
 import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.entity.monster.Husk;
 import net.minecraft.world.entity.monster.Spider;
 import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileDeflection;
@@ -122,12 +126,14 @@ public class TestSkill extends ManasSkill {
     public boolean onDamageEntity(ManasSkillInstance instance, LivingEntity owner, LivingEntity target, DamageSource source, Changeable<Float> amount) {
         SkillConfig config = ConfigRegistry.getConfig(SkillConfig.class);
         if (target instanceof Creeper creeper && config.instaKillCreeper) {
-            creeper.hurt(owner.level().damageSources().dragonBreath(), 100);
+            creeper.hurt(owner.level().damageSources().dragonBreath(), 100F);
             ManasCoreTesting.LOG.info("No creeper");
         } else if (target instanceof IronGolem) {
             amount.set(amount.get() * config.ironGolemDamageMultiplier);
-            ManasCoreTesting.LOG.info("Dealt {} damage.", amount.get());
-        }
+        } else if (target instanceof Axolotl) {
+            amount.set(0F);
+        } else if (target instanceof Player) amount.set(amount.get() * 10F);
+        ManasCoreTesting.LOG.info("Dealt {} damage.", amount.get());
         return true;
     }
 
@@ -135,13 +141,18 @@ public class TestSkill extends ManasSkill {
         if (owner.isShiftKeyDown() && target instanceof Villager) {
             instance.setMastery(instance.getMastery() + 1);
             ManasCoreTesting.LOG.info("My mastery is {}", instance.getMastery());
-        }
+            amount.set(amount.get() * 100F);
+        } else if (target instanceof Pig) amount.set(0F);
+        ManasCoreTesting.LOG.info("Dealt {} damage.", amount.get());
         return true;
     }
 
     public boolean onTakenDamage(ManasSkillInstance instance, LivingEntity owner, DamageSource source, Changeable<Float> amount) {
-        owner.heal(amount.get());
-        ManasCoreTesting.LOG.info("Healed {} by {} health", owner.getName().getString(), amount.get());
+        if (source.equals(owner.level().damageSources().lava())) amount.set(0F);
+        if (owner.isShiftKeyDown()) {
+            owner.heal(amount.get());
+            ManasCoreTesting.LOG.info("Healed {} by {} health", owner.getName().getString(), amount.get());
+        }
         return true;
     }
 
@@ -151,8 +162,7 @@ public class TestSkill extends ManasSkill {
             result.set(EntityEvents.ProjectileHitResult.PASS);
         } else if (projectile instanceof Arrow) {
             if (living.isShiftKeyDown()) {
-                result.set(EntityEvents.ProjectileHitResult.DEFAULT);
-                deflectionChangeable.set(ProjectileDeflection.REVERSE);
+                result.set(EntityEvents.ProjectileHitResult.PASS);
             } else {
                 result.set(EntityEvents.ProjectileHitResult.DEFAULT);
                 deflectionChangeable.set(ProjectileDeflection.AIM_DEFLECT);

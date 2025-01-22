@@ -11,7 +11,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ProjectileDeflection;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.common.damagesource.DamageContainer;
 import net.neoforged.neoforge.event.entity.ProjectileImpactEvent;
 import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
@@ -36,7 +35,6 @@ public class NeoForgeCommonEventInvoker {
 
     @SubscribeEvent
     static void onLivingDamage(final LivingDamageEvent.Pre e) {
-        DamageContainer container = e.getContainer();
         Changeable<Float> changeableDamage = Changeable.of(e.getNewDamage());
         if (EntityEvents.LIVING_DAMAGE.invoker().damage(e.getEntity(), e.getSource(), changeableDamage).isFalse()) {
             e.setNewDamage(0);

@@ -8,8 +8,15 @@ package io.github.manasmods.manascore.testing.module;
 import io.github.manasmods.manascore.command.api.*;
 import io.github.manasmods.manascore.command.api.parameter.Enum;
 import io.github.manasmods.manascore.command.api.parameter.*;
+import io.github.manasmods.manascore.skill.api.SkillAPI;
+import io.github.manasmods.manascore.skill.api.Skills;
+import io.github.manasmods.manascore.testing.ManasCoreTesting;
+import io.github.manasmods.manascore.testing.registry.RegistryTest;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 
 import java.util.UUID;
 
@@ -45,6 +52,14 @@ public class CommandModuleTest {
         @Execute
         public boolean uuidArg(@Sender CommandSourceStack sender, @Literal("uuid") String l, @Uuid UUID uuid) {
             sender.sendSystemMessage(RESPONSE);
+            if (sender.getPlayer() != null) {
+                Entity entity = ((ServerLevel) sender.getPlayer().level()).getEntity(uuid);
+                if (entity instanceof LivingEntity living) {
+                    Skills storage = SkillAPI.getSkillsFrom(living);
+                    if (storage.learnSkill(RegistryTest.TEST_SKILL.get()))
+                        ManasCoreTesting.LOG.info("Added Tested Skill to Entity!");
+                }
+            }
             return true;
         }
 

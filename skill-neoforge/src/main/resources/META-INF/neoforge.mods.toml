@@ -43,3 +43,6 @@ logoFile = "icon.png"
 
 [[mixins]]
 config = "${mod_id}.mixins.json"
+
+[[mixins]]
+config = "manascore_skill-neoforge.mixins.json"

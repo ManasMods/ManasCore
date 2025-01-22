@@ -266,6 +266,16 @@ subprojects {
             if (project.name.endsWith("neoforge")) {
                 filesMatching('META-INF/neoforge.mods.toml') {
                     expand placeholders
+
+                    if (project.name.startsWith("skill")) {
+                        filter { String line ->
+                            if (line.contains('"mixins":')) {
+                                var modifiedLine = "  \"accessWidener\": \"manascore_skill-neoforge.accesswidener\",\n" + line
+                                return modifiedLine
+                            }
+                            return line
+                        }
+                    }
                 }
             } else if (project.name.endsWith("fabric")) {
                 filesMatching('fabric.mod.json') {

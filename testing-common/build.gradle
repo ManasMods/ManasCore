@@ -5,13 +5,13 @@
 
 ext {
     includedProjects = [
-            ":keybinding",
             ":network",
             ":storage",
             ":inventory",
+            ":command",
             ":skill",
-            ":config",
-            ':command'
+            ":keybind",
+            ":config"
     ]
 }
 
