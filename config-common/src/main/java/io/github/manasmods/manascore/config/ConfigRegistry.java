@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class ConfigRegistry {
-
     private static final Gson gson = new GsonBuilder()
             .disableHtmlEscaping()
             .setPrettyPrinting()

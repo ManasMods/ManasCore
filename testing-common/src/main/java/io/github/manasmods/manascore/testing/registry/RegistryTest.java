@@ -13,12 +13,14 @@ import dev.architectury.registry.level.entity.EntityAttributeRegistry;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrySupplier;
+import io.github.manasmods.manascore.attribute.api.ManasCoreAttributes;
 import io.github.manasmods.manascore.skill.api.ManasSkill;
 import io.github.manasmods.manascore.skill.api.SkillAPI;
 import io.github.manasmods.manascore.skill.api.Skills;
 import io.github.manasmods.manascore.skill.impl.SkillRegistry;
 import io.github.manasmods.manascore.testing.ManasCoreTesting;
 import io.github.manasmods.manascore.testing.ModuleConstants;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
@@ -31,10 +33,8 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.projectile.windcharge.AbstractWindCharge;
 import net.minecraft.world.item.*;
@@ -54,15 +54,17 @@ import org.jetbrains.annotations.Nullable;
 public class RegistryTest {
     public static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(ModuleConstants.MOD_ID, Registries.CREATIVE_MODE_TAB);
     public static final RegistrySupplier<CreativeModeTab> TESTING_TAB = TABS.register("test_tab", () ->
-            CreativeTabRegistry.create(Component.literal("Testing Creative Tab"),
+            CreativeTabRegistry.create(Component.literal("Testing Creative Tab").withStyle(ChatFormatting.RED),
                     () -> new ItemStack(RegistryTest.TEST_ITEM.get())));
 
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ModuleConstants.MOD_ID, Registries.ITEM);
     public static final RegistrySupplier<Item> TEST_ITEM = ITEMS.register("test_item",
                     () -> new Item(new Item.Properties().arch$tab(TESTING_TAB).stacksTo(69)
                             .attributes(ItemAttributeModifiers.builder()
-                                    .add(Attributes.BLOCK_INTERACTION_RANGE, new AttributeModifier(ResourceLocation.withDefaultNamespace("test_block_reach"), 10,
-                                            AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.OFFHAND).build())));
+                                    .add(ManasCoreAttributes.CRITICAL_DAMAGE_MULTIPLIER, new AttributeModifier(ResourceLocation.withDefaultNamespace("test_critical_multiplier"), 10,
+                                            AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL), EquipmentSlotGroup.OFFHAND)
+                                    .add(ManasCoreAttributes.CRITICAL_ATTACK_CHANCE, new AttributeModifier(ResourceLocation.withDefaultNamespace("test_critical_multiplier"), 50,
+                                            AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL), EquipmentSlotGroup.OFFHAND).build())));
 
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ModuleConstants.MOD_ID, Registries.BLOCK);
     public static final RegistrySupplier<Block> TEST_BLOCK = BLOCKS.register("test_block",
@@ -70,8 +72,10 @@ public class RegistryTest {
     public static final RegistrySupplier<BlockItem> TEST_BLOCK_ITEM = ITEMS.register("test_block_item",
             () -> new BlockItem(RegistryTest.TEST_BLOCK.get(), new Item.Properties().arch$tab(TESTING_TAB).stacksTo(42)
                     .attributes(ItemAttributeModifiers.builder()
-                    .add(Attributes.ENTITY_INTERACTION_RANGE, new AttributeModifier(ResourceLocation.withDefaultNamespace("test_entity_reach"), 10,
-                            AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND).build())));
+                            .add(TestAttributeRegistry.TEST_ATTRIBUTE_PLAYER, new AttributeModifier(ResourceLocation.withDefaultNamespace("test_critical_chance"),
+                                    69, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND)
+                            .add(TestAttributeRegistry.TEST_ATTRIBUTE_ALL, new AttributeModifier(ResourceLocation.withDefaultNamespace("test_critical_chance"),
+                                    420, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND).build())));
 
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ModuleConstants.MOD_ID, Registries.BLOCK_ENTITY_TYPE);
     public static final RegistrySupplier<BlockEntityType<?>> TEST_BLOCK_ENTITY = BLOCK_ENTITIES.register("test_block_entity",
@@ -81,12 +85,6 @@ public class RegistryTest {
     public static final RegistrySupplier<EntityType<? extends Villager>> TEST_ENTITY_TYPE = ENTITY_TYPES.register("test_entity",
             () -> EntityType.Builder.of(TestEntity::new, MobCategory.MONSTER).fireImmune()
                     .sized(1F, 1F).clientTrackingRange(4).updateInterval(10).build("test_entity"));
-
-    public static final DeferredRegister<Attribute> ATTRIBUTES = DeferredRegister.create(ModuleConstants.MOD_ID, Registries.ATTRIBUTE);
-    public static final RegistrySupplier<Attribute> TEST_ATTRIBUTE_PLAYER = ATTRIBUTES.register("test_attribute_player",
-            () -> new RangedAttribute("test_attribute_player", 69, 0, 420).setSyncable(true));
-    public static final RegistrySupplier<Attribute> TEST_ATTRIBUTE_ALL = ATTRIBUTES.register("test_attribute_all",
-            () -> new RangedAttribute("test_attribute_all", 420, 69, 4200).setSyncable(true));
 
     public static final DeferredRegister<MobEffect> MOB_EFFECTS = DeferredRegister.create(ModuleConstants.MOD_ID, Registries.MOB_EFFECT);
     public static final RegistrySupplier<MobEffect> TEST_MOB_EFFECT = MOB_EFFECTS.register("test_mob_effect",
@@ -113,7 +111,6 @@ public class RegistryTest {
         ITEMS.register();
         BLOCK_ENTITIES.register();
         ENTITY_TYPES.register();
-        ATTRIBUTES.register();
         MOB_EFFECTS.register();
         POTIONS.register();
         SKILLS.register();

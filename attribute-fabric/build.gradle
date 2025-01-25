@@ -1,0 +1,8 @@
+/*
+ * Copyright (c) 2025. ManasMods
+ * GNU General Public License 3
+ */
+
+loom {
+    accessWidenerPath = project(":attribute-common").loom.accessWidenerPath
+}
