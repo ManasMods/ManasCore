@@ -6,3 +6,7 @@
 loom {
     accessWidenerPath = file('src/main/resources/manascore_attribute.accesswidener')
 }
+
+dependencies {
+    implementation(project(path: ":network-common", configuration: 'namedElements')) { transitive false }
+}

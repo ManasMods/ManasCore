@@ -6,6 +6,7 @@
 package io.github.manasmods.manascore.skill.api;
 
 import dev.architectury.event.Event;
+import io.github.manasmods.manascore.skill.ModuleConstants;
 import io.github.manasmods.manascore.skill.impl.SkillStorage;
 import io.github.manasmods.manascore.skill.utils.Changeable;
 import io.github.manasmods.manascore.skill.utils.EntityEvents;
@@ -204,6 +205,10 @@ public class ManasSkill {
         this.attributeModifiers.put(holder, new AttributeTemplate(resourceLocation, amount, operation));
     }
 
+    public void addHeldAttributeModifier(Holder<Attribute> holder, String id, double amount, AttributeModifier.Operation operation) {
+        this.attributeModifiers.put(holder, new AttributeTemplate(id, amount, operation));
+    }
+
     /**
      * @return the amplifier for each attribute template that this skill applies.
      * </p>
@@ -238,10 +243,11 @@ public class ManasSkill {
      * @param entity   Affected {@link LivingEntity} owning this Skill.
      */
     public void removeAttributeModifiers(ManasSkillInstance instance, LivingEntity entity, int mode) {
-        AttributeMap attributeMap = entity.getAttributes();
+        AttributeMap map = entity.getAttributes();
         for (Map.Entry<Holder<Attribute>, AttributeTemplate> entry : this.attributeModifiers.entrySet()) {
-            AttributeInstance attributeInstance = attributeMap.getInstance(entry.getKey());
-            if (attributeInstance != null) attributeInstance.removeModifier(entry.getValue().id());
+            AttributeInstance attributeInstance = map.getInstance(entry.getKey());
+            if (attributeInstance == null) continue;
+            attributeInstance.removeModifier(entry.getValue().id());
         }
     }
 
@@ -430,6 +436,10 @@ public class ManasSkill {
             this.id = id;
             this.amount = amount;
             this.operation = operation;
+        }
+
+        public AttributeTemplate(String id, double amount, AttributeModifier.Operation operation) {
+            this(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, id), amount, operation);
         }
 
         public AttributeModifier create(double i) {

@@ -8,8 +8,8 @@ package io.github.manasmods.manascore.attribute.api;
 import net.minecraft.network.protocol.game.ClientboundAnimatePacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -18,7 +18,6 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 public class ManasCoreAttributeUtils {
@@ -49,13 +48,8 @@ public class ManasCoreAttributeUtils {
             level.getChunkSource().broadcastAndSend(target, new ClientboundAnimatePacket(target, 4));
     }
 
-    public static Vec3 getLookTowardVec(Player player, double distance) {
-        float f = player.getXRot();
-        float g = player.getYRot();
-        float h = Mth.cos(-g * 0.017453292F - 3.1415927F);
-        float i = Mth.sin(-g * 0.017453292F - 3.1415927F);
-        float j = -Mth.cos(-f * 0.017453292F);
-        float k = Mth.sin(-f * 0.017453292F);
-        return new Vec3(i * j * distance, k * distance, h * j * distance);
+    public static boolean canElytraGlide(LivingEntity entity, boolean additionalCheck) {
+        return additionalCheck && !entity.onGround() && !entity.isPassenger() && !entity.hasEffect(MobEffects.LEVITATION)
+                && entity.getAttributeValue(ManasCoreAttributes.GLIDE_SPEED_MULTIPLIER) > 0;
     }
 }

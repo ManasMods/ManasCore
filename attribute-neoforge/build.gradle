@@ -7,6 +7,10 @@ loom {
     accessWidenerPath = project(":attribute-common").loom.accessWidenerPath
 }
 
+dependencies {
+    implementation project(path: ":network-common", configuration: 'transformProductionNeoForge')
+}
+
 remapJar {
     atAccessWideners.add("${project.mod_id}.accesswidener")
 }

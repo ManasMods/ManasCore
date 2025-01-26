@@ -6,3 +6,7 @@
 loom {
     accessWidenerPath = project(":attribute-common").loom.accessWidenerPath
 }
+
+dependencies {
+    implementation project(path: ":network-common", configuration: 'transformProductionFabric')
+}

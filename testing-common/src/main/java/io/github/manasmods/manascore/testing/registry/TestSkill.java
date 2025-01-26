@@ -12,7 +12,6 @@ import io.github.manasmods.manascore.skill.utils.Changeable;
 import io.github.manasmods.manascore.skill.utils.EntityEvents;
 import io.github.manasmods.manascore.testing.ManasCoreTesting;
 import io.github.manasmods.manascore.testing.configs.SkillConfig;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -25,7 +24,6 @@ import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.animal.Pig;
 import net.minecraft.world.entity.animal.axolotl.Axolotl;
 import net.minecraft.world.entity.monster.Creeper;
-import net.minecraft.world.entity.monster.Husk;
 import net.minecraft.world.entity.monster.Spider;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
@@ -40,11 +38,15 @@ public class TestSkill extends ManasSkill {
     public TestSkill() {
         super();
         ManasCoreTesting.LOG.info("Created skill!");
-        this.addHeldAttributeModifier(Attributes.MOVEMENT_SPEED, ResourceLocation.withDefaultNamespace("skill.speed"), 1, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
+        this.addHeldAttributeModifier(Attributes.MOVEMENT_SPEED, "test_speed", 1, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
     }
 
     public int getModes() {
         return 2;
+    }
+
+    public int getMaxHeldTime(ManasSkillInstance instance, LivingEntity entity) {
+        return 100;
     }
 
     public boolean canBeToggled(ManasSkillInstance instance, LivingEntity entity) {
