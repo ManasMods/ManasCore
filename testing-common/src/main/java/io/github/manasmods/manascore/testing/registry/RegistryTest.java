@@ -14,6 +14,10 @@ import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrySupplier;
 import io.github.manasmods.manascore.attribute.api.ManasCoreAttributes;
+import io.github.manasmods.manascore.race.api.ManasRace;
+import io.github.manasmods.manascore.race.api.RaceAPI;
+import io.github.manasmods.manascore.race.api.Races;
+import io.github.manasmods.manascore.race.impl.RaceRegistry;
 import io.github.manasmods.manascore.skill.api.ManasSkill;
 import io.github.manasmods.manascore.skill.api.SkillAPI;
 import io.github.manasmods.manascore.skill.api.Skills;
@@ -104,6 +108,10 @@ public class RegistryTest {
     public static final DeferredRegister<ManasSkill> SKILLS = DeferredRegister.create(ModuleConstants.MOD_ID, SkillRegistry.KEY);
     public static final RegistrySupplier<TestSkill> TEST_SKILL = SKILLS.register("test_skill", TestSkill::new);
 
+    public static final DeferredRegister<ManasRace> RACES = DeferredRegister.create(ModuleConstants.MOD_ID, RaceRegistry.KEY);
+    public static final RegistrySupplier<TestRace> TEST_RACE = RACES.register("test_race", TestRace::new);
+    public static final RegistrySupplier<TestRaceEvolved> TEST_RACE_EVOLVED = RACES.register("test_race_evolved", TestRaceEvolved::new);
+
     public static void init() {
         ManasCoreTesting.LOG.info("Registered test content!");
         TABS.register();
@@ -114,6 +122,7 @@ public class RegistryTest {
         MOB_EFFECTS.register();
         POTIONS.register();
         SKILLS.register();
+        RACES.register();
 
         EntityAttributeRegistry.register(TEST_ENTITY_TYPE, Villager::createAttributes);
 
@@ -130,6 +139,10 @@ public class RegistryTest {
                 Skills storage = SkillAPI.getSkillsFrom(player);
                 storage.forgetSkill(RegistryTest.TEST_SKILL.get());
                 ManasCoreTesting.LOG.info("Forgot Tested Skill!");
+            }  else if (entity.getItem().is(Items.GOLD_INGOT)) {
+                Races storage = RaceAPI.getRaceFrom(player);
+                storage.setRace(RegistryTest.TEST_RACE.getId());
+                ManasCoreTesting.LOG.info("Set to Test Race!");
             }
 
             return EventResult.pass();

@@ -173,7 +173,7 @@ public class SkillStorage  extends Storage implements Skills {
             return false;
         }
 
-        Changeable<Component> unlockMessage = Changeable.of(Component.translatable("manascore.skillsystem.learn_skill", instance.getChatDisplayName(true)));
+        Changeable<Component> unlockMessage = Changeable.of(Component.translatable("manascore.skill.learn_skill", instance.getChatDisplayName(true)));
         EventResult result = SkillEvents.UNLOCK_SKILL.invoker().unlockSkill(instance, getOwner(), unlockMessage);
         if (result.isFalse()) return false;
 

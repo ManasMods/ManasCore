@@ -228,7 +228,7 @@ public class ManasSkill {
 
             if (attributeInstance == null) continue;
             attributeInstance.removeModifier(entry.getValue().id());
-            attributeInstance.addPermanentModifier(entry.getValue().create(instance.getAttributeModifierAmplifier(entity, entry.getValue())));
+            attributeInstance.addTransientModifier(entry.getValue().create(instance.getAttributeModifierAmplifier(entity, entry.getValue())));
         }
     }
 
@@ -239,9 +239,9 @@ public class ManasSkill {
      */
     public void removeAttributeModifiers(ManasSkillInstance instance, LivingEntity entity, int mode) {
         AttributeMap attributeMap = entity.getAttributes();
-        for (Map.Entry<Holder<Attribute>, AttributeTemplate> holderAttributeTemplateEntry : this.attributeModifiers.entrySet()) {
-            AttributeInstance attributeInstance = attributeMap.getInstance(holderAttributeTemplateEntry.getKey());
-            if (attributeInstance != null) attributeInstance.removeModifier(holderAttributeTemplateEntry.getValue().id());
+        for (Map.Entry<Holder<Attribute>, AttributeTemplate> entry : this.attributeModifiers.entrySet()) {
+            AttributeInstance attributeInstance = attributeMap.getInstance(entry.getKey());
+            if (attributeInstance != null) attributeInstance.removeModifier(entry.getValue().id());
         }
     }
 

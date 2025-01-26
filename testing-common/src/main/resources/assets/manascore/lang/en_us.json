@@ -11,5 +11,6 @@
   "item.minecraft.tipped_arrow.effect.lmao_potion": "Test Tipped Arrow",
   "manascore.attribute.test_attribute_player": "Test Player Attribute",
   "manascore.attribute.test_attribute_all": "Test Generic Attribute",
-  "manascore.skill.test_skill": "Test Skill"
+  "manascore_testing.skill.test_skill": "Test Skill",
+  "manascore_testing.skill.test_skill.description": "A skill for Testing."
 }
