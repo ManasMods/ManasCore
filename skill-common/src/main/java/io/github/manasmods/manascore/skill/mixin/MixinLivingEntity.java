@@ -7,8 +7,8 @@ package io.github.manasmods.manascore.skill.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
-import io.github.manasmods.manascore.skill.utils.Changeable;
-import io.github.manasmods.manascore.skill.utils.EntityEvents;
+import io.github.manasmods.manascore.network.api.util.Changeable;
+import io.github.manasmods.manascore.skill.api.EntityEvents;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;

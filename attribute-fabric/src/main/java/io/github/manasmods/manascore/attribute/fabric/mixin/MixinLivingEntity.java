@@ -8,7 +8,7 @@ package io.github.manasmods.manascore.attribute.fabric.mixin;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalFloatRef;
 import io.github.manasmods.manascore.attribute.api.AttributeEvents;
-import io.github.manasmods.manascore.attribute.api.Changeable;
+import io.github.manasmods.manascore.network.api.util.Changeable;
 import io.github.manasmods.manascore.attribute.api.ManasCoreAttributeUtils;
 import io.github.manasmods.manascore.attribute.api.ManasCoreAttributes;
 import net.minecraft.world.damagesource.DamageSource;

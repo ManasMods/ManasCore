@@ -3,7 +3,7 @@
  * GNU General Public License 3
  */
 
-package io.github.manasmods.manascore.skill.utils;
+package io.github.manasmods.manascore.network.api.util;
 
 import lombok.Synchronized;
 import org.jetbrains.annotations.Nullable;

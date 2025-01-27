@@ -14,8 +14,9 @@ import io.github.manasmods.manascore.race.ModuleConstants;
 import io.github.manasmods.manascore.race.api.ManasRace;
 import io.github.manasmods.manascore.race.api.ManasRaceInstance;
 import io.github.manasmods.manascore.race.api.RaceAPI;
+import io.github.manasmods.manascore.race.api.SpawnPointHelper;
 import io.github.manasmods.manascore.skill.api.SkillEvents;
-import io.github.manasmods.manascore.skill.utils.EntityEvents;
+import io.github.manasmods.manascore.skill.api.EntityEvents;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -89,6 +90,8 @@ public class RaceRegistry {
             if (optional.isEmpty()) return;
 
             ManasRaceInstance instance = optional.get();
+            if (!conqueredEnd) SpawnPointHelper.teleportToNewSpawn(newPlayer);
+
             if (!instance.canActivateAbility(newPlayer)) return;
             instance.onRespawn(newPlayer, conqueredEnd);
         });

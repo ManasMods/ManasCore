@@ -141,7 +141,7 @@ public class RegistryTest {
                 ManasCoreTesting.LOG.info("Forgot Tested Skill!");
             }  else if (entity.getItem().is(Items.GOLD_INGOT)) {
                 Races storage = RaceAPI.getRaceFrom(player);
-                storage.setRace(RegistryTest.TEST_RACE.getId());
+                storage.setRace(RegistryTest.TEST_RACE.getId(), true);
                 ManasCoreTesting.LOG.info("Set to Test Race!");
             }
 

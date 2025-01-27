@@ -7,8 +7,8 @@ package io.github.manasmods.manascore.skill.fabric.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import io.github.manasmods.manascore.skill.utils.Changeable;
-import io.github.manasmods.manascore.skill.utils.EntityEvents;
+import io.github.manasmods.manascore.network.api.util.Changeable;
+import io.github.manasmods.manascore.skill.api.EntityEvents;
 import net.minecraft.world.entity.projectile.FishingHook;
 import net.minecraft.world.entity.projectile.ProjectileDeflection;
 import net.minecraft.world.phys.HitResult;

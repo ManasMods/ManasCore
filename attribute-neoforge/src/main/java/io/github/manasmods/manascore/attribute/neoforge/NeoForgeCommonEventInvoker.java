@@ -6,7 +6,7 @@
 package io.github.manasmods.manascore.attribute.neoforge;
 
 import io.github.manasmods.manascore.attribute.api.AttributeEvents;
-import io.github.manasmods.manascore.attribute.api.Changeable;
+import io.github.manasmods.manascore.network.api.util.Changeable;
 import io.github.manasmods.manascore.attribute.api.ManasCoreAttributeUtils;
 import io.github.manasmods.manascore.attribute.api.ManasCoreAttributes;
 import net.minecraft.world.entity.LivingEntity;

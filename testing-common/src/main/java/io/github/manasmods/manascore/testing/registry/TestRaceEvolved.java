@@ -5,11 +5,16 @@
 
 package io.github.manasmods.manascore.testing.registry;
 
+import com.mojang.datafixers.util.Pair;
+import io.github.manasmods.manascore.network.api.util.Changeable;
 import io.github.manasmods.manascore.race.api.ManasRace;
 import io.github.manasmods.manascore.race.api.ManasRaceInstance;
-import io.github.manasmods.manascore.skill.utils.Changeable;
+import io.github.manasmods.manascore.race.api.SpawnPointHelper;
 import io.github.manasmods.manascore.testing.ManasCoreTesting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.EntityTypeTags;
@@ -18,6 +23,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +52,15 @@ public class TestRaceEvolved extends ManasRace {
         return true;
     }
 
+    public boolean onAttackEntity(ManasRaceInstance instance, LivingEntity owner, LivingEntity target, DamageSource source, Changeable<Float> amount) {
+        if (owner.isShiftKeyDown()) {
+            BlockPos pos = ServerLevel.END_SPAWN_POINT;
+            SpawnPointHelper.teleportToAcrossDimensions(target,
+                    this.getRespawnDimension(instance, owner).getFirst(), pos.getX(), pos.getY(), pos.getZ(), 0, 0);
+        }
+        return true;
+    }
+
     public boolean onDeath(ManasRaceInstance instance, LivingEntity owner, DamageSource source) {
         ManasCoreTesting.LOG.info("AWWWWW MANNNNN x2");
         return true;
@@ -58,5 +74,9 @@ public class TestRaceEvolved extends ManasRace {
         List<ManasRace> list = new ArrayList<>();
         list.add(RegistryTest.TEST_RACE.get());
         return list;
+    }
+
+    public Pair<ResourceKey<Level>, BlockState> getRespawnDimension(ManasRaceInstance instance, LivingEntity owner) {
+        return Pair.of(Level.END, Blocks.END_STONE.defaultBlockState());
     }
 }

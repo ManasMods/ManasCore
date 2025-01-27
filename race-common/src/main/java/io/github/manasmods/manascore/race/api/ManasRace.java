@@ -5,12 +5,13 @@
 
 package io.github.manasmods.manascore.race.api;
 
+import com.mojang.datafixers.util.Pair;
 import dev.architectury.event.Event;
 import io.github.manasmods.manascore.race.impl.RaceStorage;
 import io.github.manasmods.manascore.skill.api.ManasSkill;
 import io.github.manasmods.manascore.skill.api.SkillAPI;
 import io.github.manasmods.manascore.skill.api.Skills;
-import io.github.manasmods.manascore.skill.utils.Changeable;
+import io.github.manasmods.manascore.network.api.util.Changeable;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
@@ -28,6 +30,9 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
@@ -262,6 +267,16 @@ public class ManasRace {
      */
     public void onRespawn(ManasRaceInstance instance, ServerPlayer owner, boolean conqueredEnd) {
         // Override this method to add your own logic
+    }
+
+    /**
+     * Returns the dimension that {@link LivingEntity} respawns at as this Race.
+     * Decides whether if the game should spawn a 3x3 platform of {@link BlockState} when no valid spawn is found.
+     *
+     * @see ManasRaceInstance#getRespawnDimension(LivingEntity)
+     */
+    public Pair<ResourceKey<Level>, BlockState> getRespawnDimension(ManasRaceInstance instance, LivingEntity owner) {
+        return Pair.of(Level.OVERWORLD, Blocks.AIR.defaultBlockState());
     }
 
     /**

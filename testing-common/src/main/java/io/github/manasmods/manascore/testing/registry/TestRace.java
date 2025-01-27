@@ -5,14 +5,19 @@
 
 package io.github.manasmods.manascore.testing.registry;
 
+import com.mojang.datafixers.util.Pair;
 import io.github.manasmods.manascore.race.api.ManasRace;
 import io.github.manasmods.manascore.race.api.ManasRaceInstance;
+import io.github.manasmods.manascore.race.api.SpawnPointHelper;
 import io.github.manasmods.manascore.skill.api.ManasSkill;
 import io.github.manasmods.manascore.skill.api.SkillAPI;
 import io.github.manasmods.manascore.skill.api.Skills;
-import io.github.manasmods.manascore.skill.utils.Changeable;
+import io.github.manasmods.manascore.network.api.util.Changeable;
 import io.github.manasmods.manascore.testing.ManasCoreTesting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.EntityTypeTags;
@@ -27,6 +32,8 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Pillager;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -35,8 +42,8 @@ import java.util.List;
 public class TestRace extends ManasRace {
     public TestRace() {
         super(Difficulty.INTERMEDIATE);
-        this.addAttributeModifier(Attributes.ATTACK_DAMAGE, ResourceLocation.withDefaultNamespace("race.attack"),
-                50, AttributeModifier.Operation.ADD_VALUE);
+        this.addAttributeModifier(Attributes.STEP_HEIGHT, ResourceLocation.withDefaultNamespace("race.step"),
+                1, AttributeModifier.Operation.ADD_VALUE);
         this.addAttributeModifier(Attributes.ARMOR, ResourceLocation.withDefaultNamespace("race.armor"),
                 10, AttributeModifier.Operation.ADD_VALUE);
     }
@@ -78,8 +85,9 @@ public class TestRace extends ManasRace {
 
     public boolean onAttackEntity(ManasRaceInstance instance, LivingEntity owner, LivingEntity target, DamageSource source, Changeable<Float> amount) {
         if (owner.isShiftKeyDown() && target instanceof Pillager) {
-            amount.set(amount.get() * 100F);
-            ManasCoreTesting.LOG.info("Dealt {} damage.", amount.get());
+            BlockPos pos = ServerLevel.END_SPAWN_POINT;
+            SpawnPointHelper.teleportToAcrossDimensions(target,
+                    this.getRespawnDimension(instance, owner).getFirst(), pos.getX(), pos.getY(), pos.getZ(), 0, 0);
         }
         return true;
     }
@@ -95,6 +103,10 @@ public class TestRace extends ManasRace {
 
     public void onRespawn(ManasRaceInstance instance, ServerPlayer owner, boolean conqueredEnd) {
         ManasCoreTesting.LOG.info("CREEPER");
+    }
+
+    public Pair<ResourceKey<Level>, BlockState> getRespawnDimension(ManasRaceInstance instance, LivingEntity owner) {
+        return Pair.of(Level.NETHER, Blocks.NETHERRACK.defaultBlockState());
     }
 
     public List<ManasSkill> getIntrinsicSkills(ManasRaceInstance instance, LivingEntity entity) {

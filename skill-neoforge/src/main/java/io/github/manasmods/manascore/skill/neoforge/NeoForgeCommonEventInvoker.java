@@ -5,8 +5,8 @@
 
 package io.github.manasmods.manascore.skill.neoforge;
 
-import io.github.manasmods.manascore.skill.utils.Changeable;
-import io.github.manasmods.manascore.skill.utils.EntityEvents;
+import io.github.manasmods.manascore.network.api.util.Changeable;
+import io.github.manasmods.manascore.skill.api.EntityEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ProjectileDeflection;
 import net.neoforged.bus.api.SubscribeEvent;

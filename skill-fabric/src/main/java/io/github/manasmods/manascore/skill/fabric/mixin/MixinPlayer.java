@@ -6,8 +6,8 @@
 package io.github.manasmods.manascore.skill.fabric.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import io.github.manasmods.manascore.skill.utils.Changeable;
-import io.github.manasmods.manascore.skill.utils.EntityEvents;
+import io.github.manasmods.manascore.network.api.util.Changeable;
+import io.github.manasmods.manascore.skill.api.EntityEvents;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;

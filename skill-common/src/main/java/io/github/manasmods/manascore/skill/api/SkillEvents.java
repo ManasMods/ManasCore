@@ -8,7 +8,7 @@ package io.github.manasmods.manascore.skill.api;
 import dev.architectury.event.Event;
 import dev.architectury.event.EventFactory;
 import dev.architectury.event.EventResult;
-import io.github.manasmods.manascore.skill.utils.Changeable;
+import io.github.manasmods.manascore.network.api.util.Changeable;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;

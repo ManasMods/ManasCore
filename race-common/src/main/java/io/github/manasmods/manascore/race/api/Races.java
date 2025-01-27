@@ -14,26 +14,26 @@ import java.util.Optional;
 public interface Races {
     Optional<ManasRaceInstance> getRace();
 
-    default boolean setRace(@NotNull ResourceLocation raceId) {
-        return setRace(RaceAPI.getRaceRegistry().get(raceId).createDefaultInstance(), false);
+    default boolean setRace(@NotNull ResourceLocation raceId, boolean teleportToSpawn) {
+        return setRace(RaceAPI.getRaceRegistry().get(raceId).createDefaultInstance(), false, teleportToSpawn);
     }
 
-    default boolean setRace(@NonNull ManasRace skill) {
-        return setRace(skill.createDefaultInstance(), false);
+    default boolean setRace(@NonNull ManasRace skill, boolean teleportToSpawn) {
+        return setRace(skill.createDefaultInstance(), false, teleportToSpawn);
     }
 
-    boolean setRace(ManasRaceInstance instance, boolean evolution);
+    boolean setRace(ManasRaceInstance instance, boolean evolution, boolean teleportToSpawn);
 
     default boolean evolveRace(@NotNull ResourceLocation raceId) {
-        return setRace(RaceAPI.getRaceRegistry().get(raceId).createDefaultInstance(), true);
+        return setRace(RaceAPI.getRaceRegistry().get(raceId).createDefaultInstance(), true, false);
     }
 
     default boolean evolveRace(@NonNull ManasRace skill) {
-        return setRace(skill.createDefaultInstance(), true);
+        return setRace(skill.createDefaultInstance(), true, false);
     }
 
     default boolean evolveRace(ManasRaceInstance evolution) {
-        return setRace(evolution, true);
+        return setRace(evolution, true, false);
     }
 
     void markDirty();

@@ -8,6 +8,7 @@ package io.github.manasmods.manascore.race.api;
 import dev.architectury.event.Event;
 import dev.architectury.event.EventFactory;
 import dev.architectury.event.EventResult;
+import io.github.manasmods.manascore.network.api.util.Changeable;
 import net.minecraft.world.entity.LivingEntity;
 
 public interface RaceEvents {
@@ -18,7 +19,7 @@ public interface RaceEvents {
 
     @FunctionalInterface
     interface SetRaceEvent {
-        EventResult set(ManasRaceInstance instance, LivingEntity owner, ManasRaceInstance newInstance, boolean evolution);
+        EventResult set(ManasRaceInstance instance, LivingEntity owner, ManasRaceInstance newInstance, boolean evolution, Changeable<Boolean> teleportToSpawn);
     }
 
     @FunctionalInterface

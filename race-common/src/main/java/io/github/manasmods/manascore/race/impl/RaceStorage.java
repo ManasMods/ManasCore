@@ -7,13 +7,10 @@ package io.github.manasmods.manascore.race.impl;
 
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.PlayerEvent;
-import io.github.manasmods.manascore.race.ManasCoreRace;
 import io.github.manasmods.manascore.race.ModuleConstants;
-import io.github.manasmods.manascore.race.api.ManasRaceInstance;
-import io.github.manasmods.manascore.race.api.RaceAPI;
-import io.github.manasmods.manascore.race.api.RaceEvents;
-import io.github.manasmods.manascore.race.api.Races;
-import io.github.manasmods.manascore.skill.utils.EntityEvents;
+import io.github.manasmods.manascore.race.api.*;
+import io.github.manasmods.manascore.network.api.util.Changeable;
+import io.github.manasmods.manascore.skill.api.EntityEvents;
 import io.github.manasmods.manascore.storage.api.Storage;
 import io.github.manasmods.manascore.storage.api.StorageEvents;
 import io.github.manasmods.manascore.storage.api.StorageKey;
@@ -23,6 +20,7 @@ import lombok.extern.log4j.Log4j2;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 
@@ -88,9 +86,10 @@ public class RaceStorage extends Storage implements Races {
         return Optional.ofNullable(this.raceInstance);
     }
 
-    public boolean setRace(@NonNull ManasRaceInstance race, boolean evolution) {
+    public boolean setRace(@NonNull ManasRaceInstance race, boolean evolution, boolean teleportToSpawn) {
         ManasRaceInstance instance = this.raceInstance;
-        EventResult result = RaceEvents.SET_RACE.invoker().set(instance, getOwner(), race, evolution);
+        Changeable<Boolean> teleport = Changeable.of(teleportToSpawn);
+        EventResult result = RaceEvents.SET_RACE.invoker().set(instance, getOwner(), race, evolution, teleport);
         if (result.isFalse()) return false;
 
         LivingEntity owner = this.getOwner();
@@ -105,6 +104,8 @@ public class RaceStorage extends Storage implements Races {
 
         race.learnIntrinsicSkills(owner);
         this.raceInstance = race;
+
+        if (teleport.get() && getOwner() instanceof ServerPlayer player) SpawnPointHelper.teleportToNewSpawn(player);
         markDirty();
         return true;
     }

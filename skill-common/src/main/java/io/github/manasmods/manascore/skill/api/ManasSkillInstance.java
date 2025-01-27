@@ -6,8 +6,7 @@
 package io.github.manasmods.manascore.skill.api;
 
 import dev.architectury.registry.registries.RegistrySupplier;
-import io.github.manasmods.manascore.skill.utils.Changeable;
-import io.github.manasmods.manascore.skill.utils.EntityEvents;
+import io.github.manasmods.manascore.network.api.util.Changeable;
 import lombok.Getter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.NonNullList;

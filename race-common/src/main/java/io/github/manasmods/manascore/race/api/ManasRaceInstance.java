@@ -5,9 +5,10 @@
 
 package io.github.manasmods.manascore.race.api;
 
+import com.mojang.datafixers.util.Pair;
 import dev.architectury.registry.registries.RegistrySupplier;
 import io.github.manasmods.manascore.skill.api.ManasSkill;
-import io.github.manasmods.manascore.skill.utils.Changeable;
+import io.github.manasmods.manascore.network.api.util.Changeable;
 import lombok.Getter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
@@ -15,6 +16,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
@@ -22,6 +24,8 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -307,6 +311,16 @@ public class ManasRaceInstance {
      */
     public void onRespawn(ServerPlayer owner, boolean conqueredEnd) {
         this.getRace().onRespawn(this, owner, conqueredEnd);
+    }
+
+    /**
+     * Returns the dimension that {@link LivingEntity} respawns at as this Race.
+     * Decides whether if the game should spawn a 3x3 platform of {@link BlockState} when no valid spawn is found.
+     * </p>
+     * @param player   Affected {@link LivingEntity} being this race.
+     */
+    public Pair<ResourceKey<Level>, BlockState> getRespawnDimension(LivingEntity player) {
+        return this.getRace().getRespawnDimension(this, player);
     }
 
     /**
