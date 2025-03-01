@@ -3,7 +3,7 @@ loaderVersion = "${forgeLoaderVersion}"
 license = "GPL-3"
 issueTrackerURL = "https://github.com/ManasMods/ManasCore/issues" #optional
 [[mods]] #mandatory
-modId = "${modId}" #mandatory
+modId = "manascore" #mandatory
 version = "${modVersion}"
 displayName = "ManasCore" #mandatory
 updateJSONURL="https://api.modrinth.com/updates/wRRSWpd1/forge_updates.json" #optional
@@ -15,24 +15,18 @@ description = '''
 Utility and Core Library for Manas Mods
 '''
 #@formatter:off
-[[dependencies.${modId}]] #optional
+[[dependencies.manascore]] #optional
    modId="forge" #mandatory
    mandatory=true #mandatory
    versionRange="${forgeLoaderVersion}" #mandatory
    ordering="NONE"
    side="BOTH"
 # Here's another dependency
-[[dependencies.${modId}]]
+[[dependencies.manascore]]
    modId="minecraft"
    mandatory=true
    # This version range declares a minimum of the current minecraft version up to but not including the next major version
    versionRange="${minecraftVersionCheck}"
-   ordering="NONE"
-   side="BOTH"
-[[dependencies.${modId}]]
-   modId="mixinextras"
-   mandatory=true
-   versionRange="[${mixinExtrasVersion},)"
    ordering="NONE"
    side="BOTH"
 ##@formatter:on

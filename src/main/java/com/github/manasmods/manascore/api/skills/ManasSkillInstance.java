@@ -394,6 +394,15 @@ public class ManasSkillInstance implements Cloneable {
     }
 
     /**
+     * Removes the attribute modifiers of this instance from the {@link LivingEntity} holding the skill activation button.
+     *
+     * @param entity   Affected {@link LivingEntity} owning this Skill.
+     */
+    public void removeHeldAttributeModifiers(LivingEntity entity) {
+        this.getSkill().removeHeldAttributeModifiers(this, entity);
+    }
+
+    /**
      * Called when the {@link LivingEntity} owning this Skill toggles this {@link ManasSkill} type of this instance on.
      *
      * @param entity   Affected {@link LivingEntity} owning this Skill.

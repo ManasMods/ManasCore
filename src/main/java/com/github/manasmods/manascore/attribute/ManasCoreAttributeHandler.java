@@ -87,14 +87,15 @@ public class ManasCoreAttributeHandler {
 
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void modifyCrit(final CriticalHitEvent e) {
+        float vanillaMultiplier = e.getDamageModifier() / e.getOldDamageModifier();
+        float critMultiplier = (float) e.getEntity().getAttributeValue(ManasCoreAttributes.CRIT_MULTIPLIER.get());
         if (e.isVanillaCritical()) {
-            e.setDamageModifier(e.getDamageModifier() * (float) e.getEntity().getAttributeValue(ManasCoreAttributes.CRIT_MULTIPLIER.get()));
+            e.setDamageModifier(vanillaMultiplier * critMultiplier);
             return;
         }
 
         double critChance = e.getEntity().getAttributeValue(ManasCoreAttributes.CRIT_CHANCE.get()) / 100; // convert to %
-        float critMultiplier = (float) e.getEntity().getAttributeValue(ManasCoreAttributes.CRIT_MULTIPLIER.get());
-        CriticalChanceEvent event = new CriticalChanceEvent(e.getEntity(), e.getTarget(), e.getDamageModifier() * critMultiplier, critChance);
+        CriticalChanceEvent event = new CriticalChanceEvent(e.getEntity(), e.getTarget(), vanillaMultiplier * critMultiplier, critChance);
         if (MinecraftForge.EVENT_BUS.post(event)) return;
 
         RandomSource random = e.getEntity().getRandom();

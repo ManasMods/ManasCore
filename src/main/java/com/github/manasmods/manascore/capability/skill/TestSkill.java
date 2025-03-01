@@ -13,7 +13,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Spider;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.ThrownTrident;
+import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.common.MinecraftForge;
@@ -33,6 +33,10 @@ public class TestSkill extends ManasSkill {
 
     public boolean canTick(ManasSkillInstance instance, LivingEntity entity) {
         return instance.isToggled();
+    }
+
+    public boolean canBeToggled(ManasSkillInstance instance, LivingEntity entity) {
+        return entity.isShiftKeyDown();
     }
 
     public void onToggleOn(ManasSkillInstance instance, LivingEntity entity) {
@@ -104,7 +108,7 @@ public class TestSkill extends ManasSkill {
     }
 
     public void onProjectileHit(ManasSkillInstance instance, LivingEntity living, ProjectileImpactEvent event) {
-        if (event.getProjectile() instanceof ThrownTrident) {
+        if (event.getProjectile() instanceof AbstractArrow) {
             log.debug("Dodged");
             event.setCanceled(true);
         }

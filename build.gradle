@@ -35,7 +35,7 @@ minecraft {
     copyIdeResources = true
     // generateRunFolders = true
 
-    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
     runs {
         client {

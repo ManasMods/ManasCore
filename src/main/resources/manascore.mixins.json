@@ -6,7 +6,6 @@
   "refmap": "manascore.refmap.json",
   "mixins": [
     "BlockLootAccessor",
-    "MixinAnvilMenu",
     "MixinLivingEntity",
     "MixinServerLevel",
     "RegistryBuilderAccessor",
@@ -14,7 +13,6 @@
   ],
   "client": [
     "AbstractContainerScreenAccessor",
-    "MixinAnvilScreen",
     "MixinMinecraft"
   ],
   "injectors": {

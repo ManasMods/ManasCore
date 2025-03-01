@@ -8,9 +8,11 @@ import com.github.manasmods.manascore.api.skills.capability.SkillStorage;
 import com.github.manasmods.manascore.api.skills.event.SkillDamageEvent;
 import com.github.manasmods.manascore.api.skills.event.UnlockSkillEvent;
 import com.google.common.collect.Multimap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
@@ -149,6 +151,10 @@ public class ServerEventListenerHandler {
             if (!skillInstance.canInteractSkill(living)) continue;
 
             skillInstance.onProjectileHit(living, e);
+            if (e.isCanceled() && e.getProjectile()  instanceof AbstractArrow arrow) {
+                if (arrow.piercingIgnoreEntityIds == null) arrow.piercingIgnoreEntityIds = new IntOpenHashSet(10);
+                arrow.piercingIgnoreEntityIds.add(living.getId());
+            }
         }
         skillStorage.syncChanges();
     }
@@ -216,8 +222,25 @@ public class ServerEventListenerHandler {
         Player player = e.getEntity();
         Multimap<UUID, TickingSkill> multimap = TickEventListenerHandler.tickingSkills;
         if (multimap.containsKey(player.getUUID())) {
-            for (TickingSkill tickingSkill : multimap.get(player.getUUID()))
-                tickingSkill.getSkill().removeHeldAttributeModifiers(player);
+            for (TickingSkill tickingSkill : multimap.get(player.getUUID())) {
+                ManasSkillInstance instance = tickingSkill.getSkillInstance(SkillAPI.getSkillsFrom(player), player);
+                if (instance == null) continue;
+                instance.removeHeldAttributeModifiers(player);
+            }
+            multimap.removeAll(player.getUUID());
+        }
+    }
+
+    @SubscribeEvent
+    public static void onChangingDimension(final PlayerEvent.PlayerChangedDimensionEvent e) {
+        Player player = e.getEntity();
+        Multimap<UUID, TickingSkill> multimap = TickEventListenerHandler.tickingSkills;
+        if (multimap.containsKey(player.getUUID())) {
+            for (TickingSkill tickingSkill : multimap.get(player.getUUID())) {
+                ManasSkillInstance instance = tickingSkill.getSkillInstance(SkillAPI.getSkillsFrom(player), player);
+                if (instance == null) continue;
+                instance.removeHeldAttributeModifiers(player);
+            }
             multimap.removeAll(player.getUUID());
         }
     }

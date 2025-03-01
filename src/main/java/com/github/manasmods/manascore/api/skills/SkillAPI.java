@@ -51,8 +51,8 @@ public final class SkillAPI {
      *
      * @see InternalSkillPacketActions#sendSkillActivationPacket
      */
-    public static void skillActivationPacket(int keyNumber) {
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> InternalSkillPacketActions.sendSkillActivationPacket(keyNumber));
+    public static void skillActivationPacket(ResourceLocation skill, int keyNumber) {
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> InternalSkillPacketActions.sendSkillActivationPacket(skill, keyNumber));
     }
 
     /**
@@ -61,8 +61,8 @@ public final class SkillAPI {
      *
      * @see InternalSkillPacketActions#sendSkillReleasePacket
      */
-    public static void skillReleasePacket(int keyNumber, int heldTicks) {
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> InternalSkillPacketActions.sendSkillReleasePacket(keyNumber, heldTicks));
+    public static void skillReleasePacket(ResourceLocation skill, int keyNumber, int heldTicks) {
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> InternalSkillPacketActions.sendSkillReleasePacket(skill, keyNumber, heldTicks));
     }
 
     /**
@@ -71,7 +71,7 @@ public final class SkillAPI {
      *
      * @see InternalSkillPacketActions#sendSkillTogglePacket
      */
-    public static void skillTogglePacket() {
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> InternalSkillPacketActions::sendSkillTogglePacket);
+    public static void skillTogglePacket(ResourceLocation skill) {
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> InternalSkillPacketActions.sendSkillTogglePacket(skill));
     }
 }
