@@ -35,6 +35,10 @@ public class TestSkill extends ManasSkill {
         return instance.isToggled();
     }
 
+    public boolean canBeToggled(ManasSkillInstance instance, LivingEntity entity) {
+        return entity.isShiftKeyDown();
+    }
+
     public void onToggleOn(ManasSkillInstance instance, LivingEntity entity) {
         log.debug("Toggled On");
     }

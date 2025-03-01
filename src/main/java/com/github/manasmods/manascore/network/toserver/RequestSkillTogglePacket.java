@@ -4,27 +4,28 @@ import com.github.manasmods.manascore.api.skills.ManasSkill;
 import com.github.manasmods.manascore.api.skills.ManasSkillInstance;
 import com.github.manasmods.manascore.api.skills.SkillAPI;
 import com.github.manasmods.manascore.api.skills.capability.SkillStorage;
+import com.github.manasmods.manascore.api.skills.event.SkillToggleEvent;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 public class RequestSkillTogglePacket {
-    private final List<ResourceLocation> skillList;
+    private final ResourceLocation skill;
     public RequestSkillTogglePacket(FriendlyByteBuf buf) {
-        this.skillList = buf.readList(FriendlyByteBuf::readResourceLocation);
+        this.skill = buf.readResourceLocation();
     }
 
-    public RequestSkillTogglePacket(List<ResourceLocation> skills) {
-        this.skillList = skills;
+    public RequestSkillTogglePacket(ResourceLocation skill) {
+        this.skill = skill;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
-        buf.writeCollection(this.skillList, FriendlyByteBuf::writeResourceLocation);
+        buf.writeResourceLocation(this.skill);
     }
 
     public void handle(Supplier<NetworkEvent.Context> ctx) {
@@ -32,25 +33,27 @@ public class RequestSkillTogglePacket {
             ServerPlayer player = ctx.get().getSender();
             if (player != null) {
                 SkillStorage storage = SkillAPI.getSkillsFrom(player);
-                for (ResourceLocation id : this.skillList) {
-                    ManasSkill manasSkill = SkillAPI.getSkillRegistry().getValue(id);
-                    if (manasSkill == null) continue;
+                ManasSkill manasSkill = SkillAPI.getSkillRegistry().getValue(this.skill);
+                if (manasSkill != null) {
 
                     Optional<ManasSkillInstance> optional = storage.getSkill(manasSkill);
-                    if (optional.isEmpty()) continue;
+                    if (optional.isPresent()) {
+                        ManasSkillInstance instance = optional.get();
+                        SkillToggleEvent event = new SkillToggleEvent(instance, player, !instance.isToggled());
+                        if (!MinecraftForge.EVENT_BUS.post(event)) {
 
-                    ManasSkillInstance skillInstance = optional.get();
-                    if (!skillInstance.canInteractSkill(player)) continue;
-
-                    if (skillInstance.isToggled()) {
-                        skillInstance.setToggled(false);
-                        skillInstance.onToggleOff(player);
-                    } else {
-                        skillInstance.setToggled(true);
-                        skillInstance.onToggleOn(player);
+                            if (instance.canInteractSkill(player) && instance.canBeToggled(player)) {
+                                instance.setToggled(!instance.isToggled());
+                                if (instance.isToggled()) {
+                                    instance.onToggleOn(player);
+                                } else {
+                                    instance.onToggleOff(player);
+                                }
+                            }
+                            storage.syncChanges();
+                        }
                     }
                 }
-                storage.syncChanges();
             }
         });
         ctx.get().setPacketHandled(true);

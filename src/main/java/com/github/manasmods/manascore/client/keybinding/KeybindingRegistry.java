@@ -5,6 +5,7 @@ import com.github.manasmods.manascore.api.client.keybinding.KeybindingCategory;
 import com.github.manasmods.manascore.api.client.keybinding.ManasKeybinding;
 import com.github.manasmods.manascore.api.skills.SkillAPI;
 import lombok.extern.log4j.Log4j2;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
@@ -32,10 +33,11 @@ public class KeybindingRegistry {
             keybindings.add(new ManasKeybinding("manascore.keybinding.test_press", category, () -> log.info("Pressed")));
 
             keybindings.add(new ManasKeybinding("manascore.keybinding.skill", category,
-                    () -> SkillAPI.skillActivationPacket(0),
-                    duration -> SkillAPI.skillReleasePacket(0, (int) (duration / 50))
+                    () -> SkillAPI.skillActivationPacket(new ResourceLocation(ManasCore.MOD_ID, "example_test_skill"), 0),
+                    duration -> SkillAPI.skillReleasePacket(new ResourceLocation(ManasCore.MOD_ID, "example_test_skill"),0, (int) (duration / 50))
             ));
-            keybindings.add(new ManasKeybinding("manascore.keybinding.skill_toggle", category, SkillAPI::skillTogglePacket));
+            keybindings.add(new ManasKeybinding("manascore.keybinding.skill_toggle", category,
+                    () -> SkillAPI.skillTogglePacket(new ResourceLocation(ManasCore.MOD_ID, "example_test_skill"))));
         }
     }
 
