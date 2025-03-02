@@ -6,10 +6,10 @@
 package io.github.manasmods.manascore.testing.registry;
 
 import io.github.manasmods.manascore.config.ConfigRegistry;
-import io.github.manasmods.manascore.skill.api.ManasSkill;
-import io.github.manasmods.manascore.skill.api.ManasSkillInstance;
 import io.github.manasmods.manascore.network.api.util.Changeable;
 import io.github.manasmods.manascore.skill.api.EntityEvents;
+import io.github.manasmods.manascore.skill.api.ManasSkill;
+import io.github.manasmods.manascore.skill.api.ManasSkillInstance;
 import io.github.manasmods.manascore.testing.ManasCoreTesting;
 import io.github.manasmods.manascore.testing.configs.SkillConfig;
 import net.minecraft.server.level.ServerPlayer;
@@ -126,12 +126,12 @@ public class TestSkill extends ManasSkill {
     }
 
     public boolean onDamageEntity(ManasSkillInstance instance, LivingEntity owner, LivingEntity target, DamageSource source, Changeable<Float> amount) {
-        SkillConfig config = ConfigRegistry.getConfig(SkillConfig.class);
-        if (target instanceof Creeper creeper && config.instaKillCreeper) {
+        SkillConfig skillConfig = ConfigRegistry.getConfig(SkillConfig.class);
+        if (target instanceof Creeper creeper && skillConfig.instaKillCreeper) {
             creeper.hurt(owner.level().damageSources().dragonBreath(), 100F);
             ManasCoreTesting.LOG.info("No creeper");
         } else if (target instanceof IronGolem) {
-            amount.set(amount.get() * config.ironGolemDamageMultiplier);
+            amount.set(amount.get() * skillConfig.ironGolemDamageMultiplier);
         } else if (target instanceof Axolotl) {
             amount.set(0F);
         } else if (target instanceof Player) amount.set(amount.get() * 10F);

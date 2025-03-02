@@ -14,6 +14,7 @@ import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrySupplier;
 import io.github.manasmods.manascore.attribute.api.ManasCoreAttributes;
+import io.github.manasmods.manascore.config.ConfigRegistry;
 import io.github.manasmods.manascore.race.api.ManasRace;
 import io.github.manasmods.manascore.race.api.RaceAPI;
 import io.github.manasmods.manascore.race.api.Races;
@@ -24,6 +25,7 @@ import io.github.manasmods.manascore.skill.api.Skills;
 import io.github.manasmods.manascore.skill.impl.SkillRegistry;
 import io.github.manasmods.manascore.testing.ManasCoreTesting;
 import io.github.manasmods.manascore.testing.ModuleConstants;
+import io.github.manasmods.manascore.testing.configs.TestConfig;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
@@ -63,7 +65,8 @@ public class RegistryTest {
 
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ModuleConstants.MOD_ID, Registries.ITEM);
     public static final RegistrySupplier<Item> TEST_ITEM = ITEMS.register("test_item",
-                    () -> new Item(new Item.Properties().arch$tab(TESTING_TAB).stacksTo(69)
+                    () -> new Item(new Item.Properties().arch$tab(TESTING_TAB)
+                            .stacksTo(ConfigRegistry.getConfig(TestConfig.class).random_lists.numberLists.intList.getFirst())
                             .attributes(ItemAttributeModifiers.builder()
                                     .add(ManasCoreAttributes.CRITICAL_DAMAGE_MULTIPLIER, new AttributeModifier(ResourceLocation.withDefaultNamespace("test_critical_multiplier"), 10,
                                             AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL), EquipmentSlotGroup.OFFHAND)

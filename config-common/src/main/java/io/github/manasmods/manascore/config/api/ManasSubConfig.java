@@ -1,59 +1,24 @@
 package io.github.manasmods.manascore.config.api;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
-import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import net.minecraft.resources.ResourceLocation;
 
-import java.io.File;
 import java.lang.reflect.Field;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public abstract class ManasConfig {
-    private CommentedFileConfig config;
-
-    public abstract String getFileName();
-
-    public Path getConfigPath() {
-        return Paths.get("config", getFileName() + ".toml");
-    }
-
-    public void load() {
-        Path path = getConfigPath();
-        File file = path.toFile();
-        if (!file.exists()) {
-            try {
-                file.getParentFile().mkdirs();
-                file.createNewFile();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        config = CommentedFileConfig.builder(path).autoreload().sync().build();
-        config.load();
-        applyToFields();
-        save();
-    }
-
-    public void save() {
-        saveFromFields();
-        config.save();
-    }
-
-    private void applyToFields() {
-        Field[] fields = this.getClass().getDeclaredFields();
+public abstract class ManasSubConfig {
+    public static void applyToFields(Object instance, CommentedConfig config) {
+        Field[] fields = instance.getClass().getDeclaredFields();
         Arrays.sort(fields, Comparator.comparingInt(field -> field.getDeclaredAnnotations().length));
         for (Field field : fields) {
             try {
                 field.setAccessible(true);
-                Object value = config.getOrElse(field.getName(), field.get(this));
+                Object value = config.get(field.getName());
                 if (value instanceof ManasSubConfig) {
-                    Object subValue = field.get(this);
+                    Object subValue = field.get(instance);
                     if (subValue != null) {
                         CommentedConfig subConfig = config.get(field.getName());
                         if (subConfig == null) {
@@ -65,7 +30,7 @@ public abstract class ManasConfig {
                     continue;
                 }
 
-                if (value != null) field.set(this, ManasConfig.getFieldValueConverted(field, value));
+                if (value != null) field.set(instance, ManasConfig.getFieldValueConverted(field, value));
                 Comment comment = field.getAnnotation(Comment.class);
                 if (comment != null) config.setComment(field.getName(), comment.value());
             } catch (IllegalAccessException e) {
@@ -74,15 +39,15 @@ public abstract class ManasConfig {
         }
     }
 
-    private void saveFromFields() {
+    public static void saveFromFields(Object instance, CommentedConfig config) {
         Map<String, Object> orderedValues = new LinkedHashMap<>();
-        Field[] fields = this.getClass().getDeclaredFields();
+        Field[] fields = instance.getClass().getDeclaredFields();
         Arrays.sort(fields, Comparator.comparingInt(field -> field.getDeclaredAnnotations().length));
 
         for (Field field : fields) {
             try {
                 field.setAccessible(true);
-                Object value = field.get(this);
+                Object value = field.get(instance);
                 if (value instanceof ManasSubConfig) {
                     CommentedConfig subConfig = config.get(field.getName());
                     if (subConfig == null) {
@@ -102,13 +67,5 @@ public abstract class ManasConfig {
         for (Map.Entry<String, Object> entry : orderedValues.entrySet())
             config.set(entry.getKey(), entry.getValue());
     }
-
-    public static Object getFieldValueConverted(Field field, Object value) {
-        if (field.getType() == float.class && value instanceof Double d) return d.floatValue();
-        if (field.getType() == ResourceLocation.class && value instanceof String s) return ResourceLocation.tryParse(s);
-        if (field.getType().isEnum() && value instanceof String s) return Enum.valueOf((Class<Enum>) field.getType(), s);
-        return value;
-    }
 }
-
 
