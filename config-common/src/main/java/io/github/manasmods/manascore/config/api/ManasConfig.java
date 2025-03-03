@@ -1,6 +1,7 @@
 package io.github.manasmods.manascore.config.api;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import net.minecraft.resources.ResourceLocation;
 
@@ -8,10 +9,6 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 public abstract class ManasConfig {
     private CommentedFileConfig config;
@@ -46,28 +43,14 @@ public abstract class ManasConfig {
     }
 
     private void applyToFields() {
-        Field[] fields = this.getClass().getDeclaredFields();
-        Arrays.sort(fields, Comparator.comparingInt(field -> field.getDeclaredAnnotations().length));
-        for (Field field : fields) {
+        for (Field field : this.getClass().getDeclaredFields()) {
             try {
                 field.setAccessible(true);
                 Object value = config.getOrElse(field.getName(), field.get(this));
-                if (value instanceof ManasSubConfig) {
-                    Object subValue = field.get(this);
-                    if (subValue != null) {
-                        CommentedConfig subConfig = config.get(field.getName());
-                        if (subConfig == null) {
-                            subConfig = config.createSubConfig();
-                            config.set(field.getName(), subConfig);
-                        }
-                        ManasSubConfig.applyToFields(subValue, subConfig);
-                    }
-                    continue;
-                }
-
-                if (value != null) field.set(this, ManasConfig.getFieldValueConverted(field, value));
-                Comment comment = field.getAnnotation(Comment.class);
-                if (comment != null) config.setComment(field.getName(), comment.value());
+                if (value instanceof Config configSub && field.get(this) instanceof ManasSubConfig sub) {
+                    sub.applySubConfigFields(configSub);
+                    field.set(this, sub);
+                } else if (value != null) field.set(this, ManasConfig.getFieldValueConverted(field, value));
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
@@ -75,32 +58,25 @@ public abstract class ManasConfig {
     }
 
     private void saveFromFields() {
-        Map<String, Object> orderedValues = new LinkedHashMap<>();
-        Field[] fields = this.getClass().getDeclaredFields();
-        Arrays.sort(fields, Comparator.comparingInt(field -> field.getDeclaredAnnotations().length));
-
-        for (Field field : fields) {
+        for (Field field : this.getClass().getDeclaredFields()) {
             try {
                 field.setAccessible(true);
                 Object value = field.get(this);
-                if (value instanceof ManasSubConfig) {
+                if (value instanceof ManasSubConfig sub) {
                     CommentedConfig subConfig = config.get(field.getName());
-                    if (subConfig == null) {
-                        subConfig = config.createSubConfig();
-                        config.set(field.getName(), subConfig);
-                    }
-                    ManasSubConfig.saveFromFields(value, subConfig);
-                    continue;
+                    if (subConfig == null) subConfig = config.createSubConfig();
+                    sub.saveSubConfigFields(sub, subConfig);
+                    config.set(field.getName(), subConfig);
+                } else {
+                    if (field.getType() == ResourceLocation.class && value instanceof ResourceLocation rl) value = rl.toString();
+                    if (value != null) config.set(field.getName(), value);
                 }
-
-                if (field.getType() == ResourceLocation.class && value instanceof ResourceLocation rl) value = rl.toString();
-                if (value != null) orderedValues.put(field.getName(), value);
+                Comment comment = field.getAnnotation(Comment.class);
+                if (comment != null) config.setComment(field.getName(), comment.value());
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
         }
-        for (Map.Entry<String, Object> entry : orderedValues.entrySet())
-            config.set(entry.getKey(), entry.getValue());
     }
 
     public static Object getFieldValueConverted(Field field, Object value) {

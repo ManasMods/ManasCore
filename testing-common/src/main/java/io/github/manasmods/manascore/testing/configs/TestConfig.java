@@ -14,27 +14,26 @@ public class TestConfig extends ManasConfig {
         return "test_config";
     }
 
-    @Comment("Random Lists of Values")
-    public final TestSubConfig test_subConfig = new TestSubConfig();
-    public static class TestSubConfig extends ManasSubConfig {
-        public String initialMessage = "Config working!";
-    }
-
     public ResourceLocation testResourceLocation = RegistryTest.TEST_SKILL.getId();
-
     @Comment("Enum test!")
     public Permission.PermissionLevel permissionLevel = Permission.PermissionLevel.GAMEMASTER;
 
     @Comment("Random Lists of Values")
-    public final RandomLists random_lists = new RandomLists();
+    public RandomLists random_lists = new RandomLists();
     public static class RandomLists extends ManasSubConfig {
-        @Comment("Who doesn't hate bugs?")
-        public List<String> stringList = List.of("I", "Hate", "Bugs", "soooooo much!");
-        public final NumberLists numberLists = new NumberLists();
+        public NumberLists numberLists = new NumberLists();
         public static class NumberLists extends ManasSubConfig {
-            public List<Integer> intList = List.of(69, 420);
             public List<Double> doubleList = List.of(1.0, 2D, 3d);
+            public List<Integer> intList = List.of(69, 420);
             public List<Long> longList = List.of(1L, 2L, 3L);
         }
+        @Comment("Who doesn't hate bugs?")
+        public List<String> stringList = List.of("I", "Hate", "Bugs", "soooooo much!");
+    }
+
+    @Comment("Random Lists of Values")
+    public TestSubConfig test_subConfig = new TestSubConfig();
+    public static class TestSubConfig extends ManasSubConfig {
+        public String initialMessage = "Config working!";
     }
 }

@@ -1,5 +1,6 @@
 package io.github.manasmods.manascore.config;
 
+import com.electronwill.nightconfig.core.Config;
 import io.github.manasmods.manascore.config.api.ManasConfig;
 
 import java.util.HashMap;
@@ -9,6 +10,7 @@ public class ConfigRegistry {
     private static final Map<Class<? extends ManasConfig>, ManasConfig> CONFIGS = new HashMap<>();
 
     public static void loadAllConfigs() {
+        Config.setInsertionOrderPreserved(true);
         for (ManasConfig config : CONFIGS.values()) {
             config.load();
         }
