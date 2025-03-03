@@ -6,7 +6,15 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.lang.reflect.Field;
 
+/**
+ * Base class for sub-config sections inside a {@link ManasConfig}.
+ * Supports nested configurations.
+ */
 public abstract class ManasSubConfig {
+
+    /**
+     * Reads config values and applies them to the subconfig fields.
+     */
     public void applySubConfigFields(Config sourceConfig) {
         for (Field field : this.getClass().getDeclaredFields()) {
             try {
@@ -22,6 +30,9 @@ public abstract class ManasSubConfig {
         }
     }
 
+    /**
+     * Saves field values into the subconfig.
+     */
     public void saveSubConfigFields(ManasSubConfig subConfigInstance, CommentedConfig config) {
         for (Field field : this.getClass().getDeclaredFields()) {
             try {

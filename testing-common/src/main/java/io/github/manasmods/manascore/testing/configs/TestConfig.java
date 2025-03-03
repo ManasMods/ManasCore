@@ -1,14 +1,21 @@
 package io.github.manasmods.manascore.testing.configs;
 
 import io.github.manasmods.manascore.command.api.Permission;
+import io.github.manasmods.manascore.config.ConfigRegistry;
 import io.github.manasmods.manascore.config.api.Comment;
 import io.github.manasmods.manascore.config.api.ManasConfig;
 import io.github.manasmods.manascore.config.api.ManasSubConfig;
+import io.github.manasmods.manascore.config.api.SyncToClient;
 import io.github.manasmods.manascore.testing.registry.RegistryTest;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 
 import java.util.List;
 
+import static io.github.manasmods.manascore.testing.ManasCoreTesting.LOG;
+
+@SyncToClient
 public class TestConfig extends ManasConfig {
     public String getFileName() {
         return "test_config";
@@ -35,5 +42,13 @@ public class TestConfig extends ManasConfig {
     public TestSubConfig test_subConfig = new TestSubConfig();
     public static class TestSubConfig extends ManasSubConfig {
         public String initialMessage = "Config working!";
+    }
+
+    public static void printTestConfig(Player player) {
+        Level level = player.level();
+        LOG.info("Test Config Sync for entity {} on {}:\n{}", player.getName(), level.isClientSide()
+                ? "client" : "server", ConfigRegistry.getConfig(TestConfig.class).testResourceLocation);
+        LOG.info("Test Config Non-Sync for entity {} on {}:\n{}", player.getName(), level.isClientSide()
+                ? "client" : "server", ConfigRegistry.getConfig(SkillConfig.class).permissionLevel);
     }
 }

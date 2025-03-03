@@ -14,6 +14,7 @@ import io.github.manasmods.manascore.storage.api.StorageEvents;
 import io.github.manasmods.manascore.storage.api.StorageHolder;
 import io.github.manasmods.manascore.storage.api.StorageKey;
 import io.github.manasmods.manascore.testing.ModuleConstants;
+import io.github.manasmods.manascore.testing.configs.TestConfig;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -63,7 +64,10 @@ public class StorageModuleTest {
         });
         // Register event listeners that print the storage on client side and server side
         ChatEvent.RECEIVED.register((player, component) -> {
-            if (player != null) printTestStorage(player);
+            if (player != null) {
+                printTestStorage(player);
+                TestConfig.printTestConfig(player);
+            }
             return EventResult.pass();
         });
     }

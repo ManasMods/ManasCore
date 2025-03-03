@@ -1,5 +1,6 @@
 package io.github.manasmods.manascore.testing.configs;
 
+import io.github.manasmods.manascore.command.api.Permission;
 import io.github.manasmods.manascore.config.api.Comment;
 import io.github.manasmods.manascore.config.api.ManasConfig;
 
@@ -9,6 +10,9 @@ public class SkillConfig extends ManasConfig {
 
     @Comment("Enables instant kill for creepers.\nSet to true to set the creeper's HP to 0.")
     public boolean instaKillCreeper = true;
+
+    @Comment("Test No Sync Config")
+    public Permission.PermissionLevel permissionLevel = Permission.PermissionLevel.PLAYER;
 
     public String getFileName() {
         return "manascore_test/skill_config";

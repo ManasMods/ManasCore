@@ -8,11 +8,8 @@ public class ConfigModuleTest {
 
     public static void init() {
         System.out.println("ConfigModuleTest initialized");
-
         ConfigRegistry.registerConfig(new SkillConfig());
         ConfigRegistry.registerConfig(new TestConfig());
-        ConfigRegistry.loadAllConfigs();
-
         TestConfig testConfig = ConfigRegistry.getConfig(TestConfig.class);
         System.out.println(testConfig.test_subConfig.initialMessage);
     }
