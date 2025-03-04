@@ -4,6 +4,7 @@ import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.toml.TomlParser;
+import io.github.manasmods.manascore.config.ManasCoreConfig;
 import lombok.Getter;
 import net.minecraft.resources.ResourceLocation;
 
@@ -47,22 +48,14 @@ public abstract class ManasConfig {
                 file.getParentFile().mkdirs();
                 file.createNewFile();
             } catch (Exception e) {
-                e.printStackTrace();
+                ManasCoreConfig.LOG.error("Error creating new config file at " + path + ": " + e.getMessage(), e);
             }
         }
 
-        config = CommentedFileConfig.builder(path).autoreload().sync().build();
+        config = CommentedFileConfig.builder(path).sync().build();
         config.load();
         applyToFields();
         save();
-    }
-
-    /**
-     * Saves the config values from the class fields into the file.
-     */
-    public void save() {
-        saveFromFields();
-        config.save();
     }
 
     /**
@@ -74,6 +67,14 @@ public abstract class ManasConfig {
         Config parsedConfig = parser.parse(new StringReader(tomlData));
         config.putAll(parsedConfig);
         applyToFields();
+    }
+
+    /**
+     * Saves the config values from the class fields into the file.
+     */
+    public void save() {
+        saveFromFields();
+        config.save();
     }
 
     /**
@@ -89,7 +90,7 @@ public abstract class ManasConfig {
                     field.set(this, sub);
                 } else if (value != null) field.set(this, ManasConfig.getFieldValueConverted(field, value));
             } catch (IllegalAccessException e) {
-                e.printStackTrace();
+                throw new RuntimeException("Failed to apply configuration for field: " + field.getName(), e);
             }
         }
     }
@@ -114,7 +115,7 @@ public abstract class ManasConfig {
                 Comment comment = field.getAnnotation(Comment.class);
                 if (comment != null) config.setComment(field.getName(), comment.value());
             } catch (IllegalAccessException e) {
-                e.printStackTrace();
+                throw new RuntimeException("Failed to save configuration for field: " + field.getName(), e);
             }
         }
     }

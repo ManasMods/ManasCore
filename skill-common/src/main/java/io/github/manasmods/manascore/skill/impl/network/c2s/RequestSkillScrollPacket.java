@@ -7,8 +7,11 @@ package io.github.manasmods.manascore.skill.impl.network.c2s;
 
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.utils.Env;
+import io.github.manasmods.manascore.network.api.util.Changeable;
 import io.github.manasmods.manascore.skill.ModuleConstants;
+import io.github.manasmods.manascore.skill.api.ManasSkillInstance;
 import io.github.manasmods.manascore.skill.api.SkillAPI;
+import io.github.manasmods.manascore.skill.api.SkillEvents;
 import io.github.manasmods.manascore.skill.api.Skills;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -27,7 +30,12 @@ public record RequestSkillScrollPacket(
     public static final StreamCodec<FriendlyByteBuf, RequestSkillScrollPacket> STREAM_CODEC = CustomPacketPayload.codec(RequestSkillScrollPacket::encode, RequestSkillScrollPacket::new);
 
     public RequestSkillScrollPacket(FriendlyByteBuf buf) {
-        this(buf.readDouble(), buf.readList(FriendlyByteBuf::readResourceLocation));
+        this(buf.readDouble(), validateList(buf.readList(FriendlyByteBuf::readResourceLocation)));
+    }
+
+    private static List<ResourceLocation> validateList(List<ResourceLocation> list) {
+        if (list.size() > 100)throw new IllegalArgumentException("Skill list exceeds maximum size of 100.");
+        return list;
     }
 
     public void encode(FriendlyByteBuf buf) {
@@ -40,11 +48,20 @@ public record RequestSkillScrollPacket(
         context.queue(() -> {
             Player player = context.getPlayer();
             if (player == null) return;
+
             Skills storage = SkillAPI.getSkillsFrom(player);
             for (ResourceLocation skillId : skillList) {
-                storage.getSkill(skillId).ifPresent(skill -> {
+                storage.getSkill(skillId).ifPresent(skillInstance -> {
+
+                    Changeable<ManasSkillInstance> skillChangeable = Changeable.of(skillInstance);
+                    Changeable<Double> deltaChangeable = Changeable.of(delta);
+                    if (SkillEvents.SKILL_SCROLL.invoker().scroll(skillChangeable, player, deltaChangeable).isFalse()) return;
+
+                    ManasSkillInstance skill = skillChangeable.get();
+                    if (skill == null || deltaChangeable.isEmpty()) return;
                     if (!skill.canInteractSkill(player)) return;
-                    skill.onScroll(player, delta, 0);
+
+                    skill.onScroll(player, deltaChangeable.get(), 0);
                     storage.markDirty();
                 });
             }

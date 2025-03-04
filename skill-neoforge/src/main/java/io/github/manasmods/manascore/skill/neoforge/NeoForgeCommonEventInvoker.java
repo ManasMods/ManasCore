@@ -15,8 +15,6 @@ import net.neoforged.neoforge.event.entity.ProjectileImpactEvent;
 import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 
-import java.util.Objects;
-
 @EventBusSubscriber
 public class NeoForgeCommonEventInvoker {
     private NeoForgeCommonEventInvoker() {
@@ -48,6 +46,6 @@ public class NeoForgeCommonEventInvoker {
         Changeable<EntityEvents.ProjectileHitResult> result = Changeable.of(EntityEvents.ProjectileHitResult.DEFAULT);
         Changeable<ProjectileDeflection> deflection = Changeable.of(ProjectileDeflection.NONE);
         EntityEvents.PROJECTILE_HIT.invoker().hit(e.getRayTraceResult(), e.getProjectile(), deflection, result);
-        if (!Objects.equals(result.get(), EntityEvents.ProjectileHitResult.DEFAULT)) e.setCanceled(true);
+        if (result.get() != EntityEvents.ProjectileHitResult.DEFAULT) e.setCanceled(true);
     }
 }

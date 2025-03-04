@@ -71,9 +71,9 @@ public class RaceStorage extends Storage implements Races {
         ManasRaceInstance raceInstance = optional.get();
         if (!raceInstance.canActivateAbility(entity)) return;
         if (!raceInstance.canTick(entity)) return;
-        if (RaceEvents.SKILL_PRE_TICK.invoker().tick(raceInstance, entity).isFalse()) return;
+        if (RaceEvents.RACE_PRE_TICK.invoker().tick(raceInstance, entity).isFalse()) return;
         raceInstance.onTick(entity);
-        RaceEvents.SKILL_POST_TICK.invoker().tick(raceInstance, entity);
+        RaceEvents.RACE_POST_TICK.invoker().tick(raceInstance, entity);
     }
 
     private ManasRaceInstance raceInstance = null;
@@ -93,7 +93,7 @@ public class RaceStorage extends Storage implements Races {
         if (result.isFalse()) return false;
 
         LivingEntity owner = this.getOwner();
-        if (instance != null) {
+        if (instance != null && instance != race) {
             instance.removeAttributeModifiers(owner);
             if (evolution) instance.onRaceEvolution(owner, race);
         }
@@ -120,6 +120,7 @@ public class RaceStorage extends Storage implements Races {
     public void load(CompoundTag data) {
         if (!data.contains(RACE_KEY)) return;
         this.raceInstance = ManasRaceInstance.fromNBT(data.getCompound(RACE_KEY));
+        this.raceInstance.addAttributeModifiers(this.getOwner());
     }
 
     protected LivingEntity getOwner() {

@@ -15,8 +15,6 @@ import net.minecraft.world.phys.HitResult;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
-import java.util.Objects;
-
 @Mixin(AbstractHurtingProjectile.class)
 public abstract class MixinAbstractHurtingProjectile {
     @WrapOperation(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/AbstractHurtingProjectile;hitTargetOrDeflectSelf(Lnet/minecraft/world/phys/HitResult;)Lnet/minecraft/world/entity/projectile/ProjectileDeflection;"))
@@ -24,7 +22,7 @@ public abstract class MixinAbstractHurtingProjectile {
         Changeable<EntityEvents.ProjectileHitResult> resultChangeable = Changeable.of(EntityEvents.ProjectileHitResult.DEFAULT);
         Changeable<ProjectileDeflection> deflectionChangeable = Changeable.of(ProjectileDeflection.NONE);
         EntityEvents.PROJECTILE_HIT.invoker().hit(result, instance, deflectionChangeable, resultChangeable);
-        if (!Objects.equals(resultChangeable.get(), EntityEvents.ProjectileHitResult.DEFAULT)) return deflectionChangeable.get();
+        if (resultChangeable.get() != EntityEvents.ProjectileHitResult.DEFAULT) return deflectionChangeable.get();
         original.call(instance, result);
         return deflectionChangeable.get();
     }

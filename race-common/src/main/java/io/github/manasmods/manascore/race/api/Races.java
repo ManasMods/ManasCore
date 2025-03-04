@@ -18,8 +18,8 @@ public interface Races {
         return setRace(RaceAPI.getRaceRegistry().get(raceId).createDefaultInstance(), false, teleportToSpawn);
     }
 
-    default boolean setRace(@NonNull ManasRace skill, boolean teleportToSpawn) {
-        return setRace(skill.createDefaultInstance(), false, teleportToSpawn);
+    default boolean setRace(@NonNull ManasRace race, boolean teleportToSpawn) {
+        return setRace(race.createDefaultInstance(), false, teleportToSpawn);
     }
 
     boolean setRace(ManasRaceInstance instance, boolean evolution, boolean teleportToSpawn);
@@ -28,8 +28,8 @@ public interface Races {
         return setRace(RaceAPI.getRaceRegistry().get(raceId).createDefaultInstance(), true, false);
     }
 
-    default boolean evolveRace(@NonNull ManasRace skill) {
-        return setRace(skill.createDefaultInstance(), true, false);
+    default boolean evolveRace(@NonNull ManasRace race) {
+        return setRace(race.createDefaultInstance(), true, false);
     }
 
     default boolean evolveRace(ManasRaceInstance evolution) {

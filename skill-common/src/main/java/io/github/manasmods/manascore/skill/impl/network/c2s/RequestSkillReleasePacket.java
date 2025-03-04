@@ -17,24 +17,24 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
 public record RequestSkillReleasePacket(
         int heldTick,
         int keyNumber,
-        List<ResourceLocation> skillList
+        int mode,
+        ResourceLocation skillId
 ) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<RequestSkillReleasePacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "request_skill_release"));
     public static final StreamCodec<FriendlyByteBuf, RequestSkillReleasePacket> STREAM_CODEC = CustomPacketPayload.codec(RequestSkillReleasePacket::encode, RequestSkillReleasePacket::new);
 
     public RequestSkillReleasePacket(FriendlyByteBuf buf) {
-        this(buf.readInt(), buf.readInt(), buf.readList(FriendlyByteBuf::readResourceLocation));
+        this(buf.readInt(), buf.readInt(), buf.readInt(), buf.readResourceLocation());
     }
 
     public void encode(FriendlyByteBuf buf) {
         buf.writeInt(this.heldTick);
         buf.writeInt(this.keyNumber);
-        buf.writeCollection(this.skillList, FriendlyByteBuf::writeResourceLocation);
+        buf.writeInt(this.mode);
+        buf.writeResourceLocation(this.skillId);
     }
 
     public void handle(NetworkManager.PacketContext context) {
@@ -42,7 +42,9 @@ public record RequestSkillReleasePacket(
         context.queue(() -> {
             Player player = context.getPlayer();
             if (player == null) return;
-            StorageManager.getStorage(player, SkillStorage.getKey()).handleSkillRelease(skillList, heldTick, keyNumber, keyNumber);
+            SkillStorage storage = StorageManager.getStorage(player, SkillStorage.getKey());
+            if (storage == null) return;
+            storage.handleSkillRelease(skillId, heldTick, keyNumber, mode);
         });
     }
 

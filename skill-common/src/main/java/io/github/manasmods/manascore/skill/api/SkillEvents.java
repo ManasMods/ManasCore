@@ -20,6 +20,7 @@ public interface SkillEvents {
     Event<SkillReleaseEvent> RELEASE_SKILL = EventFactory.createEventResult();
     Event<SkillToggleEvent> TOGGLE_SKILL = EventFactory.createEventResult();
     Event<SkillScrollEvent> SKILL_SCROLL = EventFactory.createEventResult();
+    Event<SkillScrollClientEvent> SKILL_SCROLL_CLIENT = EventFactory.createEventResult();
     Event<SkillTickEvent> SKILL_PRE_TICK = EventFactory.createEventResult();
     Event<SkillPostTickEvent> SKILL_POST_TICK = EventFactory.createLoop();
     Event<SkillUpdateCooldownEvent> SKILL_UPDATE_COOLDOWN = EventFactory.createEventResult();
@@ -40,21 +41,26 @@ public interface SkillEvents {
 
     @FunctionalInterface
     interface SkillActivationEvent {
-        EventResult activateSkill(ManasSkillInstance skillInstance, LivingEntity owner, int keyNumber);
+        EventResult activateSkill(Changeable<ManasSkillInstance> skillInstance, LivingEntity owner, int keyNumber, int mode);
     }
 
     @FunctionalInterface
     interface SkillReleaseEvent {
-        EventResult releaseSkill(ManasSkillInstance skillInstance, LivingEntity owner, int keyNumber, int heldTicks);
+        EventResult releaseSkill(Changeable<ManasSkillInstance> skillInstance, LivingEntity owner, int keyNumber, int mode, int heldTicks);
     }
 
     @FunctionalInterface
     interface SkillToggleEvent {
-        EventResult toggleSkill(ManasSkillInstance skillInstance, LivingEntity owner);
+        EventResult toggleSkill(Changeable<ManasSkillInstance> skillInstance, LivingEntity owner);
     }
 
     @FunctionalInterface
     interface SkillScrollEvent {
+        EventResult scroll(Changeable<ManasSkillInstance> skillInstance, LivingEntity owner, Changeable<Double> delta);
+    }
+
+    @FunctionalInterface
+    interface SkillScrollClientEvent {
         EventResult scroll(ManasSkillInstance skillInstance, LivingEntity owner, double delta);
     }
 

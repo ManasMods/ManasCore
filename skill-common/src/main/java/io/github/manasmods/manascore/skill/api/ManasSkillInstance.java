@@ -118,7 +118,9 @@ public class ManasSkillInstance {
      */
     public static ManasSkillInstance fromNBT(CompoundTag tag) throws NullPointerException {
         ResourceLocation skillLocation = ResourceLocation.tryParse(tag.getString("skill"));
-        ManasSkillInstance instance = Objects.requireNonNull(SkillAPI.getSkillRegistry().get(skillLocation)).createDefaultInstance();
+        ManasSkill skill = SkillAPI.getSkillRegistry().get(skillLocation);
+        if (skill == null) throw new IllegalArgumentException("Skill not found in registry: " + skillLocation);
+        ManasSkillInstance instance = skill.createDefaultInstance();
         instance.deserialize(tag);
         return instance;
     }

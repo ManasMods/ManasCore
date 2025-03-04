@@ -41,8 +41,9 @@ public class SkillRegistry {
 
         EntityEvents.LIVING_CHANGE_TARGET.register((entity, changeableTarget) -> {
             if (!changeableTarget.isPresent()) return EventResult.pass();
-
             LivingEntity owner = changeableTarget.get();
+            if (owner == null) return EventResult.pass();
+
             for (ManasSkillInstance instance : SkillAPI.getSkillsFrom(owner).getLearnedSkills()) {
                 if (!instance.canInteractSkill(owner)) continue;
                 if (!instance.onBeingTargeted(changeableTarget, entity)) return EventResult.interruptFalse();

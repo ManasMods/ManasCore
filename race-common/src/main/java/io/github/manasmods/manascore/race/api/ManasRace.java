@@ -141,7 +141,7 @@ public class ManasRace {
     }
 
     /**
-     * Adds an attribute modifier to this skill. This method can be called for more than one attribute.
+     * Adds an attribute modifier to this skillId. This method can be called for more than one attribute.
      * The attributes are applied to an entity when the race is set.
      * </p>
      */
@@ -167,7 +167,7 @@ public class ManasRace {
     }
 
     /**
-     * Removes the attribute modifiers of this skill from the {@link LivingEntity} when changing race.
+     * Removes the attribute modifiers of this skillId from the {@link LivingEntity} when changing race.
      *
      * @param entity   Affected {@link LivingEntity} being this Race.
      */

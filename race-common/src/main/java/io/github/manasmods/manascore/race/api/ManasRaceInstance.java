@@ -106,8 +106,10 @@ public class ManasRaceInstance {
      * The {@link CompoundTag} has to be created though {@link ManasRaceInstance#toNBT()}
      */
     public static ManasRaceInstance fromNBT(CompoundTag tag) throws NullPointerException {
-        ResourceLocation skillLocation = ResourceLocation.tryParse(tag.getString("race"));
-        ManasRaceInstance instance = Objects.requireNonNull(RaceAPI.getRaceRegistry().get(skillLocation)).createDefaultInstance();
+        ResourceLocation location = ResourceLocation.tryParse(tag.getString("race"));
+        ManasRace race = RaceAPI.getRaceRegistry().get(location);
+        if (race == null) throw new NullPointerException("No race found for location: " + location);
+        ManasRaceInstance instance = race.createDefaultInstance();
         instance.deserialize(tag);
         return instance;
     }

@@ -19,15 +19,14 @@ public final class ManasCoreTesting {
     public static final Logger LOG = LoggerFactory.getLogger("ManasCore - Testing");
 
     public static void init() {
+        ConfigModuleTest.init();
         StorageModuleTest.init();
         RegistryTest.init();
 
         if (Platform.getEnv() == EnvType.CLIENT) {
             ManasCoreTestingClient.init();
         }
-
         StorageModuleTest.init();
-        ConfigModuleTest.init();
         CommandModuleTest.init();
     }
 }

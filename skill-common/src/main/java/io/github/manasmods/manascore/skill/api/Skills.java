@@ -19,6 +19,12 @@ public interface Skills {
 
     Collection<ManasSkillInstance> getLearnedSkills();
 
+    /**
+     * Updates a skill instance and optionally synchronizes the change across the network.
+     * <p>
+     * @param updatedInstance The instance to update
+     * @param sync If true, synchronizes the change to all clients/server
+     */
     void updateSkill(ManasSkillInstance updatedInstance, boolean sync);
 
     default boolean learnSkill(@NotNull ResourceLocation skillId) {

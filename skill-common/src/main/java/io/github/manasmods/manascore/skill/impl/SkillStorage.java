@@ -207,23 +207,25 @@ public class SkillStorage  extends Storage implements Skills {
         markDirty();
     }
 
-    public void handleSkillRelease(List<ResourceLocation> skillList, int heldTick, int keyNumber, int mode) {
-        for (final ResourceLocation skillId : skillList) {
-            getSkill(skillId).ifPresent(skill -> {
+    public void handleSkillRelease(ResourceLocation skillId, int heldTick, int keyNumber, int mode) {
+        getSkill(skillId).ifPresent(skillInstance -> {
+            Changeable<ManasSkillInstance> changeable = Changeable.of(skillInstance);
+            if (SkillEvents.RELEASE_SKILL.invoker().releaseSkill(changeable, this.getOwner(), keyNumber, mode, heldTick).isFalse()) return;
+            ManasSkillInstance skill = changeable.get();
+            if (skill == null) return;
 
-                if (skill.canInteractSkill(getOwner()) && mode < skill.getModes()) {
-                    if (!skill.onCoolDown(mode) || skill.canIgnoreCoolDown(getOwner(), mode)) {
-                        skill.onRelease(getOwner(), heldTick, keyNumber, mode);
-                        if (skill.isDirty()) markDirty();
-                    }
+            if (skill.canInteractSkill(getOwner()) && mode < skill.getModes()) {
+                if (!skill.onCoolDown(mode) || skill.canIgnoreCoolDown(getOwner(), mode)) {
+                    skill.onRelease(getOwner(), heldTick, keyNumber, mode);
+                    if (skill.isDirty()) markDirty();
                 }
+            }
 
-                skill.removeAttributeModifiers(getOwner(), mode);
-                UUID ownerID = getOwner().getUUID();
-                if (tickingSkills.containsKey(ownerID))
-                    tickingSkills.get(ownerID).removeIf(tickingSkill -> tickingSkill.getSkill() == skill.getSkill());
-            });
-        }
+            skill.removeAttributeModifiers(getOwner(), mode);
+            UUID ownerID = getOwner().getUUID();
+            if (tickingSkills.containsKey(ownerID))
+                tickingSkills.get(ownerID).removeIf(tickingSkill -> tickingSkill.getSkill() == skill.getSkill());
+        });
     }
 
     @Override

@@ -25,7 +25,7 @@ public abstract class ManasSubConfig {
                     field.set(this, sub);
                 } else if (value != null) field.set(this, ManasConfig.getFieldValueConverted(field, value));
             } catch (IllegalAccessException e) {
-                e.printStackTrace();
+                throw new RuntimeException("Failed to apply configuration for field: " + field.getName(), e);
             }
         }
     }
@@ -50,7 +50,7 @@ public abstract class ManasSubConfig {
                 Comment comment = field.getAnnotation(Comment.class);
                 if (comment != null) config.setComment(field.getName(), comment.value());
             } catch (IllegalAccessException e) {
-                e.printStackTrace();
+                throw new RuntimeException("Failed to save configuration for field: " + field.getName(), e);
             }
         }
     }

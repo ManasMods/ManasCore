@@ -13,6 +13,10 @@ import net.minecraft.data.tags.IntrinsicHolderTagsProvider;
 
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Provider for skill tags that allows registration of tags for {@link ManasSkill} entities.
+ * This class handles both synchronous and parent-dependent tag generation.
+ */
 public abstract class SkillTagProvider extends IntrinsicHolderTagsProvider<ManasSkill> {
     public SkillTagProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider) {
         super(output, SkillRegistry.KEY, lookupProvider, manasSkill -> SkillRegistry.SKILLS.getKey(manasSkill).orElseThrow());

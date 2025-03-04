@@ -18,7 +18,7 @@ import static io.github.manasmods.manascore.testing.ManasCoreTesting.LOG;
 @SyncToClient
 public class TestConfig extends ManasConfig {
     public String getFileName() {
-        return "test_config";
+        return "manascore_test/test_folder/test_config";
     }
 
     public ResourceLocation testResourceLocation = RegistryTest.TEST_SKILL.getId();
@@ -38,7 +38,7 @@ public class TestConfig extends ManasConfig {
         public List<String> stringList = List.of("I", "Hate", "Bugs", "soooooo much!");
     }
 
-    @Comment("Random Lists of Values")
+    @Comment("Test Sub Config")
     public TestSubConfig test_subConfig = new TestSubConfig();
     public static class TestSubConfig extends ManasSubConfig {
         public String initialMessage = "Config working!";

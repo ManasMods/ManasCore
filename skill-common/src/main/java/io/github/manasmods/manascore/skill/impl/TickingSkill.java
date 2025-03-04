@@ -13,12 +13,15 @@ import net.minecraft.world.entity.LivingEntity;
 
 import java.util.Optional;
 
+/**
+ * This is the Registry Object for Ticking Skills when a {@link ManasSkill} is held down in specific mode.
+ */
 public class TickingSkill {
     private int duration = 0;
     @Getter
     private final ManasSkill skill;
     @Getter
-    private int mode;
+    private final int mode;
     public TickingSkill(ManasSkill skill, int mode) {
         this.skill = skill;
         this.mode = mode;

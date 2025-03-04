@@ -1,6 +1,5 @@
 package io.github.manasmods.manascore.config;
 
-import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.toml.TomlWriter;
 import io.github.manasmods.manascore.config.api.ManasConfig;
 import io.github.manasmods.manascore.config.api.SyncToClient;
@@ -16,7 +15,7 @@ public class ConfigRegistry {
 
     /**
      * Retrieves a registered config instance by class type.
-     *
+     * <p>
      * @param  configClass The config class.
      * @return The instance of the requested config, or null if not registered.
      */
@@ -26,11 +25,10 @@ public class ConfigRegistry {
 
     /**
      * Registers a new configuration and loads it.
-     *
+     * <p>
      * @param configInstance The config instance to register.
      */
     public static void registerConfig(ManasConfig configInstance) {
-        Config.setInsertionOrderPreserved(true);
         CONFIGS.put(configInstance.getClass(), configInstance);
         configInstance.load();
     }
@@ -56,7 +54,7 @@ public class ConfigRegistry {
     /**
      * Loads config data from a synced client-server map.
      * Only applies to configs annotated with {@link SyncToClient}.
-     *
+     * <p>
      * @param map The config data received from the server.
      */
     public static void loadConfigSyncData(Map<String, String> map) {
@@ -70,7 +68,7 @@ public class ConfigRegistry {
 
     /**
      * Serializes all syncable configs into a map for server-to-client transmission.
-     *
+     * <p>
      * @return A map containing serialized TOML configs.
      */
     public static Map<String, String> getConfigSyncData() {
@@ -85,11 +83,11 @@ public class ConfigRegistry {
 
     /**
      * Serializes a specific config for syncing.
-     *
-     * @param configClass The class of the config to sync.
+     * <p>
+     * @param  configClass The class of the config to sync.
      * @return A map containing the serialized TOML data for the requested config.
      */
-    public static <T extends ManasConfig> Map<String, String> getConfigSyncData(Class<T> configClass) {
+    public static Map<String, String> getConfigSyncData(Class<? extends ManasConfig> configClass) {
         Map<String, String> configData = new HashMap<>();
         if (!CONFIGS.containsKey(configClass)) return configData;
         if (!configClass.isAnnotationPresent(SyncToClient.class)) return configData;

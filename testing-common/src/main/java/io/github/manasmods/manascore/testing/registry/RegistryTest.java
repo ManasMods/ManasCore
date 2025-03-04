@@ -22,7 +22,6 @@ import io.github.manasmods.manascore.race.impl.RaceRegistry;
 import io.github.manasmods.manascore.skill.api.ManasSkill;
 import io.github.manasmods.manascore.skill.api.SkillAPI;
 import io.github.manasmods.manascore.skill.api.Skills;
-import io.github.manasmods.manascore.skill.impl.SkillRegistry;
 import io.github.manasmods.manascore.testing.ManasCoreTesting;
 import io.github.manasmods.manascore.testing.ModuleConstants;
 import io.github.manasmods.manascore.testing.configs.TestConfig;
@@ -108,7 +107,7 @@ public class RegistryTest {
             () -> new Potion("lmao_potion", new MobEffectInstance(TEST_MOB_EFFECT, 100, 10),
                     new MobEffectInstance(TEST_MOB_EFFECT_PARTICLE, 200, 5, false, false, false)));
 
-    public static final DeferredRegister<ManasSkill> SKILLS = DeferredRegister.create(ModuleConstants.MOD_ID, SkillRegistry.KEY);
+    public static final DeferredRegister<ManasSkill> SKILLS = DeferredRegister.create(ModuleConstants.MOD_ID, SkillAPI.getSkillRegistryKey());
     public static final RegistrySupplier<TestSkill> TEST_SKILL = SKILLS.register("test_skill", TestSkill::new);
 
     public static final DeferredRegister<ManasRace> RACES = DeferredRegister.create(ModuleConstants.MOD_ID, RaceRegistry.KEY);

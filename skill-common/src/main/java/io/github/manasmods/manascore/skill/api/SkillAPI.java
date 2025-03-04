@@ -14,6 +14,7 @@ import io.github.manasmods.manascore.skill.impl.SkillStorage;
 import lombok.NonNull;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 
 public class SkillAPI {
@@ -49,9 +50,9 @@ public class SkillAPI {
      *
      * @see InternalSkillPacketActions#sendSkillActivationPacket
      */
-    public static void skillActivationPacket(int keyNumber) {
+    public static void skillActivationPacket(ResourceLocation skill, int keyNumber, int mode) {
         if (Platform.getEnvironment() == Env.CLIENT) {
-            InternalSkillPacketActions.sendSkillActivationPacket(keyNumber);
+            InternalSkillPacketActions.sendSkillActivationPacket(skill, keyNumber, mode);
         }
     }
 
@@ -61,9 +62,9 @@ public class SkillAPI {
      *
      * @see InternalSkillPacketActions#sendSkillReleasePacket
      */
-    public static void skillReleasePacket(int keyNumber, int heldTicks) {
+    public static void skillReleasePacket(ResourceLocation skill, int keyNumber, int mode, int heldTicks) {
         if (Platform.getEnvironment() == Env.CLIENT) {
-            InternalSkillPacketActions.sendSkillReleasePacket(keyNumber, heldTicks);
+            InternalSkillPacketActions.sendSkillReleasePacket(skill, keyNumber, mode, heldTicks);
         }
     }
 
@@ -73,9 +74,9 @@ public class SkillAPI {
      *
      * @see InternalSkillPacketActions#sendSkillTogglePacket
      */
-    public static void skillTogglePacket() {
+    public static void skillTogglePacket(ResourceLocation skill) {
         if (Platform.getEnvironment() == Env.CLIENT) {
-            InternalSkillPacketActions.sendSkillTogglePacket();
+            InternalSkillPacketActions.sendSkillTogglePacket(skill);
         }
     }
 }

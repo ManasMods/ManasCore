@@ -28,13 +28,18 @@ public class KeybindingTest {
                     ManasCoreTesting.LOG.info("Pressed");
                     RaceAPI.raceEvolutionPacket(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "test_race_evolved"));
                 }),
-                new ManasKeybinding("manascore.keybinding.skill", category,
-                        () -> SkillAPI.skillActivationPacket(0),
-                        duration -> SkillAPI.skillReleasePacket(0, (int) (duration / 50))),
+                new ManasKeybinding("manascore.keybinding.skillId", category,
+                        () -> SkillAPI.skillActivationPacket(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID,
+                                "test_skill"), 0, 0),
+                        duration -> SkillAPI.skillReleasePacket(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID,
+                                "test_skill"), 0, 0, (int) (duration / 50))),
                 new ManasKeybinding("manascore.keybinding.skill_2", category,
-                        () -> SkillAPI.skillActivationPacket(1),
-                        duration -> SkillAPI.skillReleasePacket(1, (int) (duration / 50))),
-                new ManasKeybinding("manascore.keybinding.skill_toggle", category, SkillAPI::skillTogglePacket)
+                        () -> SkillAPI.skillActivationPacket(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID,
+                                "test_skill"), 1, 1),
+                        duration -> SkillAPI.skillReleasePacket(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID,
+                                "test_skill"), 1, 1, (int) (duration / 50))),
+                new ManasKeybinding("manascore.keybinding.skill_toggle", category,
+                        () -> SkillAPI.skillTogglePacket(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "test_skill")))
         );
     }
 }

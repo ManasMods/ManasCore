@@ -47,7 +47,7 @@ import java.util.Objects;
  * (for example to allow to disable a skill or make the skill gain exp on usage).
  */
 public class ManasSkill {
-    protected final Map<Holder<Attribute>, AttributeTemplate> attributeModifiers = new Object2ObjectOpenHashMap();
+    protected final Map<Holder<Attribute>, AttributeTemplate> attributeModifiers = new Object2ObjectOpenHashMap<>();
     public ManasSkill() {
 
     }
@@ -103,7 +103,7 @@ public class ManasSkill {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ManasSkill skill = (ManasSkill) o;
-        return Objects.equals(getRegistryName(), skill.getRegistryName());
+        return Objects.equals(this.getRegistryName(), skill.getRegistryName());
     }
 
     /**

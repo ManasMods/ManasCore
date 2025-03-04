@@ -13,8 +13,8 @@ import net.minecraft.world.entity.LivingEntity;
 
 public interface RaceEvents {
     Event<SetRaceEvent> SET_RACE = EventFactory.createEventResult();
-    Event<RaceTickEvent> SKILL_PRE_TICK = EventFactory.createEventResult();
-    Event<RacePostTickEvent> SKILL_POST_TICK = EventFactory.createLoop();
+    Event<RaceTickEvent> RACE_PRE_TICK = EventFactory.createEventResult();
+    Event<RacePostTickEvent> RACE_POST_TICK = EventFactory.createLoop();
     Event<RaceAbilityActivationEvent> ACTIVATE_ABILITY = EventFactory.createEventResult();
 
     @FunctionalInterface

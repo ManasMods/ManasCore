@@ -33,7 +33,7 @@ public class RaceAPI {
      * This Method returns the Registry Key of the {@link RaceRegistry}.
      * It can be used to create {@link dev.architectury.registry.registries.DeferredRegister} instances
      */
-    public static ResourceKey<Registry<ManasRace>> getSkillRegistryKey() {
+    public static ResourceKey<Registry<ManasRace>> getRaceRegistryKey() {
         return RaceRegistry.KEY;
     }
 
