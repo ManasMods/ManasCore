@@ -13,6 +13,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.game.ClientboundUpdateAttributesPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
@@ -28,6 +29,8 @@ import net.minecraft.world.entity.projectile.ProjectileDeflection;
 import net.minecraft.world.phys.EntityHitResult;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -226,13 +229,15 @@ public class ManasSkill {
      * @param instance Affected {@link ManasSkillInstance}
      */
     public void addHeldAttributeModifiers(ManasSkillInstance instance, LivingEntity entity, int mode) {
+        if (this.attributeModifiers.isEmpty()) return;
+
         AttributeMap attributeMap = entity.getAttributes();
         for (Map.Entry<Holder<Attribute>, AttributeTemplate> entry : this.attributeModifiers.entrySet()) {
             AttributeInstance attributeInstance = attributeMap.getInstance(entry.getKey());
 
             if (attributeInstance == null) continue;
             attributeInstance.removeModifier(entry.getValue().id());
-            attributeInstance.addTransientModifier(entry.getValue().create(instance.getAttributeModifierAmplifier(entity, entry.getValue())));
+            attributeInstance.addOrUpdateTransientModifier(entry.getValue().create(instance.getAttributeModifierAmplifier(entity, entry.getValue())));
         }
     }
 
@@ -242,11 +247,20 @@ public class ManasSkill {
      * @param entity   Affected {@link LivingEntity} owning this Skill.
      */
     public void removeAttributeModifiers(ManasSkillInstance instance, LivingEntity entity, int mode) {
+        if (this.attributeModifiers.isEmpty()) return;
         AttributeMap map = entity.getAttributes();
+        List<AttributeInstance> dirtyInstances = new ArrayList<>();
+
         for (Map.Entry<Holder<Attribute>, AttributeTemplate> entry : this.attributeModifiers.entrySet()) {
             AttributeInstance attributeInstance = map.getInstance(entry.getKey());
             if (attributeInstance == null) continue;
             attributeInstance.removeModifier(entry.getValue().id());
+            dirtyInstances.add(attributeInstance);
+        }
+
+        if (entity instanceof ServerPlayer player) {
+            ClientboundUpdateAttributesPacket packet = new ClientboundUpdateAttributesPacket(player.getId(), dirtyInstances);
+            player.connection.send(packet);
         }
     }
 

@@ -28,6 +28,7 @@ import net.minecraft.world.phys.EntityHitResult;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -66,7 +67,7 @@ public class ManasSkillInstance {
     public ManasSkillInstance copy() {
         ManasSkillInstance clone = new ManasSkillInstance(getSkill());
         clone.dirty = this.dirty;
-        clone.cooldownList = this.cooldownList;
+        clone.cooldownList = new ArrayList<>(this.cooldownList);
         clone.removeTime = this.removeTime;
         clone.masteryPoint = this.masteryPoint;
         clone.toggled = this.toggled;
@@ -153,7 +154,7 @@ public class ManasSkillInstance {
 
     @Override
     public int hashCode() {
-        return Objects.hash(skillRegistryObject);
+        return Objects.hash(this.getSkillId(), skillRegistryObject.getRegistryKey());
     }
 
     /**

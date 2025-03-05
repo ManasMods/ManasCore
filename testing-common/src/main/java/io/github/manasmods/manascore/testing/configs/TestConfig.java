@@ -46,9 +46,12 @@ public class TestConfig extends ManasConfig {
 
     public static void printTestConfig(Player player) {
         Level level = player.level();
-        LOG.info("Test Config Sync for entity {} on {}:\n{}", player.getName(), level.isClientSide()
-                ? "client" : "server", ConfigRegistry.getConfig(TestConfig.class).testResourceLocation);
-        LOG.info("Test Config Non-Sync for entity {} on {}:\n{}", player.getName(), level.isClientSide()
-                ? "client" : "server", ConfigRegistry.getConfig(SkillConfig.class).permissionLevel);
+        logConfigValue(player, level, "Test Config Sync", ConfigRegistry.getConfig(TestConfig.class).testResourceLocation);
+        logConfigValue(player, level, "Test Config Non-Sync", ConfigRegistry.getConfig(SkillConfig.class).permissionLevel);
+    }
+
+    private static void logConfigValue(Player player, Level level, String configType, Object value) {
+        LOG.info("{} for entity {} on {}:\n{}", configType, player.getName(),
+                level.isClientSide() ? "client" : "server", value);
     }
 }

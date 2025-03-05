@@ -34,7 +34,7 @@ public record RequestSkillScrollPacket(
     }
 
     private static List<ResourceLocation> validateList(List<ResourceLocation> list) {
-        if (list.size() > 100)throw new IllegalArgumentException("Skill list exceeds maximum size of 100.");
+        if (list.size() > 100) throw new IllegalArgumentException("Skill list exceeds maximum size of 100.");
         return list;
     }
 

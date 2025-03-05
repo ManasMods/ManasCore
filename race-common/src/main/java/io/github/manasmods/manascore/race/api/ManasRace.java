@@ -19,6 +19,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.game.ClientboundUpdateAttributesPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -156,6 +157,8 @@ public class ManasRace {
      * @param instance Affected {@link ManasRaceInstance}
      */
     public void addAttributeModifiers(ManasRaceInstance instance, LivingEntity entity) {
+        if (this.attributeModifiers.isEmpty()) return;
+
         AttributeMap attributeMap = entity.getAttributes();
         for (Map.Entry<Holder<Attribute>, AttributeTemplate> entry : this.attributeModifiers.entrySet()) {
             AttributeInstance attributeInstance = attributeMap.getInstance(entry.getKey());
@@ -172,10 +175,20 @@ public class ManasRace {
      * @param entity   Affected {@link LivingEntity} being this Race.
      */
     public void removeAttributeModifiers(ManasRaceInstance instance, LivingEntity entity) {
-        AttributeMap attributeMap = entity.getAttributes();
+        if (this.attributeModifiers.isEmpty()) return;
+        AttributeMap map = entity.getAttributes();
+        List<AttributeInstance> dirtyInstances = new ArrayList<>();
+
         for (Map.Entry<Holder<Attribute>, AttributeTemplate> entry : this.attributeModifiers.entrySet()) {
-            AttributeInstance attributeInstance = attributeMap.getInstance(entry.getKey());
-            if (attributeInstance != null) attributeInstance.removeModifier(entry.getValue().id());
+            AttributeInstance attributeInstance = map.getInstance(entry.getKey());
+            if (attributeInstance == null) continue;
+            attributeInstance.removeModifier(entry.getValue().id());
+            dirtyInstances.add(attributeInstance);
+        }
+
+        if (entity instanceof ServerPlayer player) {
+            ClientboundUpdateAttributesPacket packet = new ClientboundUpdateAttributesPacket(player.getId(), dirtyInstances);
+            player.connection.send(packet);
         }
     }
 

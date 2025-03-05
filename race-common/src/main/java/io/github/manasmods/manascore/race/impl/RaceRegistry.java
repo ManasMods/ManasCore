@@ -90,7 +90,10 @@ public class RaceRegistry {
             if (optional.isEmpty()) return;
 
             ManasRaceInstance instance = optional.get();
-            if (!conqueredEnd) SpawnPointHelper.teleportToNewSpawn(newPlayer);
+            if (!conqueredEnd) {
+                instance.addAttributeModifiers(newPlayer);
+                SpawnPointHelper.teleportToNewSpawn(newPlayer);
+            }
 
             if (!instance.canActivateAbility(newPlayer)) return;
             instance.onRespawn(newPlayer, conqueredEnd);

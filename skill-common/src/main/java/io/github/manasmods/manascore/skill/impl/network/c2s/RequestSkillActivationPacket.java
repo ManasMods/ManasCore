@@ -54,7 +54,7 @@ public record RequestSkillActivationPacket(
                 if (skill == null) return;
                 if(!skill.canInteractSkill(player)) return;
 
-                if (mode >= skill.getModes()) return;
+                if (mode < 0 || mode >= skill.getModes()) return;
                 if (skill.onCoolDown(mode) && !skill.canIgnoreCoolDown(player, mode)) return;
 
                 skill.onPressed(player, keyNumber, mode);

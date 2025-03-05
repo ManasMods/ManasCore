@@ -37,7 +37,7 @@ public class InternalSkillPacketActions {
     public static void sendSkillReleasePacket(ResourceLocation skillId, int keyNumber, int mode, int heldTicks) {
         var minecraft = Minecraft.getInstance();
         Player player = minecraft.player;
-        if (player == null) return;
+        if (player == null || heldTicks < 0) return;
         NetworkManager.sendToServer(new RequestSkillReleasePacket(heldTicks, keyNumber, mode, skillId));
     }
 

@@ -15,7 +15,9 @@ public interface Races {
     Optional<ManasRaceInstance> getRace();
 
     default boolean setRace(@NotNull ResourceLocation raceId, boolean teleportToSpawn) {
-        return setRace(RaceAPI.getRaceRegistry().get(raceId).createDefaultInstance(), false, teleportToSpawn);
+        ManasRace race = RaceAPI.getRaceRegistry().get(raceId);
+        if (race == null) return false;
+        return setRace(race.createDefaultInstance(), false, teleportToSpawn);
     }
 
     default boolean setRace(@NonNull ManasRace race, boolean teleportToSpawn) {
@@ -25,7 +27,9 @@ public interface Races {
     boolean setRace(ManasRaceInstance instance, boolean evolution, boolean teleportToSpawn);
 
     default boolean evolveRace(@NotNull ResourceLocation raceId) {
-        return setRace(RaceAPI.getRaceRegistry().get(raceId).createDefaultInstance(), true, false);
+        ManasRace race = RaceAPI.getRaceRegistry().get(raceId);
+        if (race == null) return false;
+        return setRace(race.createDefaultInstance(), true, false);
     }
 
     default boolean evolveRace(@NonNull ManasRace race) {

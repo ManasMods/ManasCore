@@ -64,9 +64,13 @@ public abstract class ManasConfig {
     public void loadFromString(String tomlData) {
         if (tomlData == null || tomlData.isEmpty()) return;
         TomlParser parser = new TomlParser();
-        Config parsedConfig = parser.parse(new StringReader(tomlData));
-        config.putAll(parsedConfig);
-        applyToFields();
+        try {
+            Config parsedConfig = parser.parse(new StringReader(tomlData));
+            config.putAll(parsedConfig);
+            applyToFields();
+        } catch (Exception e) {
+            ManasCoreConfig.LOG.error("Error parsing TOML data: " + e.getMessage(), e);
+        }
     }
 
     /**

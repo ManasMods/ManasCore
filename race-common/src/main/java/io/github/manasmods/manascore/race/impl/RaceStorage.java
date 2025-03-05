@@ -6,10 +6,9 @@
 package io.github.manasmods.manascore.race.impl;
 
 import dev.architectury.event.EventResult;
-import dev.architectury.event.events.common.PlayerEvent;
+import io.github.manasmods.manascore.network.api.util.Changeable;
 import io.github.manasmods.manascore.race.ModuleConstants;
 import io.github.manasmods.manascore.race.api.*;
-import io.github.manasmods.manascore.network.api.util.Changeable;
 import io.github.manasmods.manascore.skill.api.EntityEvents;
 import io.github.manasmods.manascore.storage.api.Storage;
 import io.github.manasmods.manascore.storage.api.StorageEvents;
@@ -42,21 +41,12 @@ public class RaceStorage extends Storage implements Races {
             Level level = entity.level();
             if (level.isClientSide()) return;
             Races storage = RaceAPI.getRaceFrom(entity);
-            handleSkillTick(entity, level, storage);
+            handleRaceTick(entity, level, storage);
             storage.markDirty();
-        });
-
-        PlayerEvent.PLAYER_RESPAWN.register((player, conqueredEnd, removalReason) -> {
-            Level level = player.level();
-            if (level.isClientSide() || conqueredEnd) return;
-            Races storage = RaceAPI.getRaceFrom(player);
-            Optional<ManasRaceInstance> optional = storage.getRace();
-            if (optional.isEmpty()) return;
-            optional.get().addAttributeModifiers(player);
         });
     }
 
-    private static void handleSkillTick(LivingEntity entity, Level level, Races storage) {
+    private static void handleRaceTick(LivingEntity entity, Level level, Races storage) {
         MinecraftServer server = level.getServer();
         if (server == null) return;
         boolean shouldTickRace = server.getTickCount() % INSTANCE_UPDATE == 0;

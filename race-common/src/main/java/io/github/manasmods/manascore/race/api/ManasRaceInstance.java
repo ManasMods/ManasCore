@@ -142,7 +142,7 @@ public class ManasRaceInstance {
 
     @Override
     public int hashCode() {
-        return Objects.hash(raceRegistryObject);
+        return Objects.hash(this.getRaceId(), raceRegistryObject.getRegistryKey());
     }
 
     public boolean is(TagKey<ManasRace> tag) {
