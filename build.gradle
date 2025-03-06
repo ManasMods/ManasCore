@@ -236,7 +236,12 @@ subprojects {
 
             repositories {
                 maven {
-                    url layout.buildDirectory.dir('staging-deploy')
+                    name = "ManasCore"
+                    credentials {
+                        username System.getenv().getOrDefault("MANAS_REPO_USER", nexusUsername)
+                        password System.getenv().getOrDefault("MANAS_REPO_USER_PASSWORD", nexusPassword)
+                    }
+                    url "https://nexus.nighti.dev/repository/manasmods-public/"
                 }
             }
         }

@@ -55,6 +55,19 @@ public class ManasCoreAttributes {
             "swim_speed_multiplier", "manascore.attribute.swim_speed_multiplier",
             1, 0, 1024, true, Attribute.Sentiment.POSITIVE);
 
+    /**
+     * Registers a player-specific attribute with the given parameters.
+     *
+     * @param modID      The mod ID associated with this attribute.
+     * @param id         The unique identifier for the attribute.
+     * @param name       The display name of the attribute.
+     * @param amount     The default base value of the attribute.
+     * @param min        The minimum allowed value for the attribute.
+     * @param max        The maximum allowed value for the attribute.
+     * @param syncable   Whether the attribute should be synchronized between client and server.
+     * @param sentiment  The sentiment classification of the attribute (e.g., beneficial or harmful).
+     * @return A {@link Holder} containing the registered player attribute.
+     */
     public static Holder<Attribute> registerPlayerAttribute(String modID, String id, String name, double amount,
                                                             double min, double max, boolean syncable, Attribute.Sentiment sentiment) {
         Holder<Attribute> attribute = Registry.registerForHolder(BuiltInRegistries.ATTRIBUTE, getResourceKey(modID, id),
@@ -63,6 +76,19 @@ public class ManasCoreAttributes {
         return attribute;
     }
 
+    /**
+     * Registers a generic attribute that applies to multiple entity types.
+     *
+     * @param modID      The mod ID associated with this attribute.
+     * @param id         The unique identifier for the attribute.
+     * @param name       The display name of the attribute.
+     * @param amount     The default base value of the attribute.
+     * @param min        The minimum allowed value for the attribute.
+     * @param max        The maximum allowed value for the attribute.
+     * @param syncable   Whether the attribute should be synchronized between client and server.
+     * @param sentiment  The sentiment classification of the attribute (e.g., beneficial or harmful).
+     * @return A {@link Holder} containing the registered generic attribute.
+     */
     public static Holder<Attribute> registerGenericAttribute(String modID, String id, String name, double amount,
                                                             double min, double max, boolean syncable, Attribute.Sentiment sentiment) {
         Holder<Attribute> attribute = Registry.registerForHolder(BuiltInRegistries.ATTRIBUTE, getResourceKey(modID, id),
