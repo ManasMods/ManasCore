@@ -113,7 +113,7 @@ public class RegistryTest {
     public static final DeferredRegister<ManasRace> RACES = DeferredRegister.create(ModuleConstants.MOD_ID, RaceRegistry.KEY);
     public static final RegistrySupplier<TestRace> TEST_RACE = RACES.register("test_race", TestRace::new);
     public static final RegistrySupplier<TestRaceEvolved> TEST_RACE_EVOLVED = RACES.register("test_race_evolved", TestRaceEvolved::new);
-
+    
     public static void init() {
         ManasCoreTesting.LOG.info("Registered test content!");
         TABS.register();

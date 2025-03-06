@@ -258,7 +258,7 @@ public class ManasSkill {
             dirtyInstances.add(attributeInstance);
         }
 
-        if (entity instanceof ServerPlayer player) {
+        if (!dirtyInstances.isEmpty() && entity instanceof ServerPlayer player) {
             ClientboundUpdateAttributesPacket packet = new ClientboundUpdateAttributesPacket(player.getId(), dirtyInstances);
             player.connection.send(packet);
         }

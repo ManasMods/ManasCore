@@ -169,7 +169,6 @@ public class ManasSkillInstance {
 
     /**
      * @return the maximum number of ticks that this skill can be held down with the skill activation button.
-     * </p>
      */
     public int getMaxHeldTime(LivingEntity entity) {
         return this.getSkill().getMaxHeldTime(this, entity);
@@ -207,7 +206,6 @@ public class ManasSkillInstance {
 
     /**
      * @return the number of modes that this skill instance has.
-     * </p>
      */
     public int getModes() {
         return this.getSkill().getModes();
@@ -215,7 +213,6 @@ public class ManasSkillInstance {
 
     /**
      * @return the maximum mastery points that this skill instance can have.
-     * </p>
      */
     public int getMaxMastery() {
         return this.getSkill().getMaxMastery();
@@ -284,7 +281,7 @@ public class ManasSkillInstance {
      */
     public void decreaseCoolDown(int coolDown, int mode) {
         if (mode < 0 || mode >= cooldownList.size()) return;
-        this.cooldownList.set(mode, this.cooldownList.get(mode) - coolDown);
+        this.cooldownList.set(mode, Math.max(0, this.cooldownList.get(mode) - coolDown));
         markDirty();
     }
 
@@ -322,8 +319,10 @@ public class ManasSkillInstance {
      * Decrease the remove time of this instance.
      */
     public void decreaseRemoveTime(int time) {
-        this.removeTime -= time;
-        markDirty();
+        if (this.removeTime > 0) {
+            this.removeTime = Math.max(0, this.removeTime - time);
+            markDirty();
+        }
     }
 
     /**
@@ -357,6 +356,7 @@ public class ManasSkillInstance {
     public CompoundTag getOrCreateTag() {
         if (this.tag == null) {
             this.setTag(new CompoundTag());
+            this.markDirty();
         }
         return this.tag;
     }
@@ -428,7 +428,9 @@ public class ManasSkillInstance {
     /**
      * Called when the {@link LivingEntity} owning this Skill presses the skill activation button.
      *
-     * @param entity Affected {@link LivingEntity} owning this instance.
+     * @param entity    Affected {@link LivingEntity} owning this instance.
+     * @param keyNumber The key number that was pressed.
+     * @param mode      The mode that was activated.
      */
     public void onPressed(LivingEntity entity, int keyNumber, int mode) {
         this.getSkill().onPressed(this, entity, keyNumber, mode);
@@ -437,7 +439,9 @@ public class ManasSkillInstance {
     /**
      * Called when the {@link LivingEntity} owning this Skill holds the skill activation button.
      *
-     * @param entity Affected {@link LivingEntity} owning this instance.
+     * @param entity    Affected {@link LivingEntity} owning this instance.
+     * @param heldTicks The number of ticks the skill activation button is being held down.
+     * @param mode      The mode that is being held down.
      * @return true to continue ticking this instance.
      */
     public boolean onHeld(LivingEntity entity, int heldTicks, int mode) {
@@ -448,7 +452,9 @@ public class ManasSkillInstance {
      * Called when the {@link LivingEntity} owning this Skill releases the skill activation button after {@param heldTicks}.
      *
      * @param entity    Affected {@link LivingEntity} owning this instance.
-     * @param heldTicks - the number of ticks the skill activation button is held down.
+     * @param heldTicks The number of ticks the skill activation button is held down.
+     * @param keyNumber The key number that was pressed.
+     * @param mode      The mode that was activated.
      */
     public void onRelease(LivingEntity entity, int heldTicks, int keyNumber, int mode) {
         this.getSkill().onRelease(this, entity, heldTicks, keyNumber, mode);
@@ -457,8 +463,9 @@ public class ManasSkillInstance {
     /**
      * Called when the {@link LivingEntity} owning this Skill scrolls the mouse when holding the skill activation buttons.
      *
-     * @param entity Affected {@link LivingEntity} owning this instance.
-     * @param delta  The scroll delta of the mouse scroll.
+     * @param entity    Affected {@link LivingEntity} owning this instance.
+     * @param delta     The scroll delta of the mouse scroll.
+     * @param mode      The mode that was activated.
      */
     public void onScroll(LivingEntity entity, double delta, int mode) {
         this.getSkill().onScroll(this, entity, delta, mode);

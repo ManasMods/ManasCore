@@ -3,7 +3,7 @@
  * GNU General Public License 3
  */
 
-package io.github.manasmods.manascore.command.api.parameter;
+package io.github.manasmods.manascore.command.api.parameter.primitive;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.PARAMETER})
-public @interface IntNumber {
+public @interface DoubleArg {
     /**
      * Argument Name in the Command
      */
@@ -21,10 +21,10 @@ public @interface IntNumber {
     /**
      * Minimum value of the number
      */
-    int min() default Integer.MIN_VALUE;
+    double min() default Double.MIN_VALUE;
 
     /**
      * Maximum value of the number
      */
-    int max() default Integer.MAX_VALUE;
+    double max() default Double.MAX_VALUE;
 }

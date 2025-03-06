@@ -12,9 +12,9 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.PARAMETER})
-public @interface Bool {
+public @interface ParticleArg {
     /**
      * Argument Name in the Command
      */
-    String value() default "";
+    String value() default "particle";
 }

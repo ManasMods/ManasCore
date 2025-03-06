@@ -10,7 +10,7 @@ import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import io.github.manasmods.manascore.command.CommandAnnotationHandler;
-import io.github.manasmods.manascore.command.api.parameter.Enum;
+import io.github.manasmods.manascore.command.api.parameter.primitive.EnumArg;
 import lombok.RequiredArgsConstructor;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -40,7 +40,7 @@ public class CommandArgumentRegistry {
      * @param enumClass The enum class to register.
      */
     public <T extends java.lang.Enum> void registerEnum(Class<T> enumClass) {
-        register(enumClass, Enum.class, (annotation, handler) -> {
+        register(enumClass, EnumArg.class, (annotation, handler) -> {
             for (var constant : enumClass.getEnumConstants()) {
                 handler.addNode(Commands.literal(constant.name()));
                 handler.addValueExtractorToLastNode(context -> constant);

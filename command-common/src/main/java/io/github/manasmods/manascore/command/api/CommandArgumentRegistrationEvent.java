@@ -5,12 +5,15 @@
 
 package io.github.manasmods.manascore.command.api;
 
+import com.mojang.brigadier.CommandDispatcher;
 import dev.architectury.event.Event;
 import dev.architectury.event.EventFactory;
 import io.github.manasmods.manascore.command.internal.CommandArgumentRegistry;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
 
 public interface CommandArgumentRegistrationEvent {
     Event<CommandArgumentRegistrationEvent> EVENT = EventFactory.createLoop();
 
-    void register(CommandArgumentRegistry registry);
+    void register(CommandArgumentRegistry registry, CommandDispatcher<CommandSourceStack> commandDispatcher, CommandBuildContext commandBuildContext);
 }

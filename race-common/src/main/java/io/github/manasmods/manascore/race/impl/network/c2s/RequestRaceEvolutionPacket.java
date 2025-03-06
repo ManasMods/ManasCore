@@ -46,6 +46,8 @@ public record RequestRaceEvolutionPacket(
             if (race == null) return;
 
             ManasRaceInstance instance = optional.get();
+            if (!instance.getNextEvolutions(player).contains(race)) return;
+
             double progress = instance.getEvolutionProgress(player, race);
             if (progress < 1.0F) return;
             storage.evolveRace(race);

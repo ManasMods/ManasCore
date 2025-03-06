@@ -46,7 +46,7 @@ public class ManasConfigNetwork {
      */
     public static void syncToClients() {
         MinecraftServer server = GameInstance.getServer();
-        if (server == null) throw new RuntimeException("Failed find the Server.");
+        if (server == null) throw new RuntimeException("Failed to find the Server.");
         NetworkManager.sendToPlayers(server.getPlayerList().getPlayers(), new SyncConfigToClientPayload(ConfigRegistry.getConfigSyncData()));
     }
 
@@ -57,7 +57,7 @@ public class ManasConfigNetwork {
      */
     public static void syncToClients(Class<? extends ManasConfig> config) {
         MinecraftServer server = GameInstance.getServer();
-        if (server == null) throw new RuntimeException("Failed find the Server.");
+        if (server == null) throw new RuntimeException("Failed to find the Server.");
         NetworkManager.sendToPlayers(server.getPlayerList().getPlayers(), new SyncConfigToClientPayload(ConfigRegistry.getConfigSyncData(config)));
     }
 }

@@ -34,7 +34,7 @@ public abstract class ManasConfig {
      * Returns the path where the config file is stored.
      */
     public Path getConfigPath() {
-        return Paths.get("config", getFileName() + ".toml");
+        return Paths.get("config", this.getFileName() + ".toml");
     }
 
     /**

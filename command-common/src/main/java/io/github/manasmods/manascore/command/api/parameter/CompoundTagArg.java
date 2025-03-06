@@ -12,19 +12,9 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.PARAMETER})
-public @interface DoubleNumber {
+public @interface CompoundTagArg {
     /**
      * Argument Name in the Command
      */
     String value() default "";
-
-    /**
-     * Minimum value of the number
-     */
-    double min() default Double.MIN_VALUE;
-
-    /**
-     * Maximum value of the number
-     */
-    double max() default Double.MAX_VALUE;
 }

@@ -7,11 +7,11 @@ package io.github.manasmods.manascore.race.api;
 
 import com.mojang.datafixers.util.Pair;
 import dev.architectury.event.Event;
+import io.github.manasmods.manascore.network.api.util.Changeable;
 import io.github.manasmods.manascore.race.impl.RaceStorage;
 import io.github.manasmods.manascore.skill.api.ManasSkill;
 import io.github.manasmods.manascore.skill.api.SkillAPI;
 import io.github.manasmods.manascore.skill.api.Skills;
-import io.github.manasmods.manascore.network.api.util.Changeable;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +36,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -186,7 +185,7 @@ public class ManasRace {
             dirtyInstances.add(attributeInstance);
         }
 
-        if (entity instanceof ServerPlayer player) {
+        if (!dirtyInstances.isEmpty() && entity instanceof ServerPlayer player) {
             ClientboundUpdateAttributesPacket packet = new ClientboundUpdateAttributesPacket(player.getId(), dirtyInstances);
             player.connection.send(packet);
         }
@@ -393,7 +392,7 @@ public class ManasRace {
     @RequiredArgsConstructor
     public enum Difficulty {
         EASY(Component.translatable("manascore.race.difficulty.easy").withStyle(ChatFormatting.GREEN)),
-        INTERMEDIATE(Component.translatable("manascore.race.difficulty.intermediate").withStyle(style -> style.withColor(Color.ORANGE.getRGB()))),
+        INTERMEDIATE(Component.translatable("manascore.race.difficulty.intermediate").withStyle(style -> style.withColor(0xFFA500))),
         HARD(Component.translatable("manascore.race.difficulty.hard").withStyle(ChatFormatting.RED)),
         EXTREME(Component.translatable("manascore.race.difficulty.extreme").withStyle(ChatFormatting.DARK_RED));
 

@@ -12,29 +12,9 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.PARAMETER})
-public @interface Text {
-    enum Type {
-        /**
-         * Single Word Argument
-         */
-        WORD,
-        /**
-         * Quoted String Argument
-         */
-        STRING,
-        /**
-         * Greedy String Argument
-         */
-        GREEDY_STRING;
-    }
-
-    /**
-     * Type of the Argument
-     */
-    Type value() default Type.WORD;
-
+public @interface BlockArg {
     /**
      * Argument Name in the Command
      */
-    String name() default "";
+    String value() default "block";
 }

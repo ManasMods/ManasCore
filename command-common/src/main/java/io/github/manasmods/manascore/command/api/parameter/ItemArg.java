@@ -12,19 +12,9 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.PARAMETER})
-public @interface FloatNumber {
+public @interface ItemArg {
     /**
      * Argument Name in the Command
      */
-    String value() default "";
-
-    /**
-     * Minimum value of the number
-     */
-    float min() default Float.MIN_VALUE;
-
-    /**
-     * Maximum value of the number
-     */
-    float max() default Float.MAX_VALUE;
+    String value() default "item";
 }

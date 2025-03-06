@@ -28,7 +28,7 @@ public class KeybindingTest {
                     ManasCoreTesting.LOG.info("Pressed");
                     RaceAPI.raceEvolutionPacket(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "test_race_evolved"));
                 }),
-                new ManasKeybinding("manascore.keybinding.skillId", category,
+                new ManasKeybinding("manascore.keybinding.skill", category,
                         () -> SkillAPI.skillActivationPacket(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID,
                                 "test_skill"), 0, 0),
                         duration -> SkillAPI.skillReleasePacket(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID,
