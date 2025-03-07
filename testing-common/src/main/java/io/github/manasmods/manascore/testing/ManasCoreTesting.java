@@ -11,6 +11,7 @@ import io.github.manasmods.manascore.testing.module.CommandModuleTest;
 import io.github.manasmods.manascore.testing.module.ConfigModuleTest;
 import io.github.manasmods.manascore.testing.module.StorageModuleTest;
 import io.github.manasmods.manascore.testing.registry.RegistryTest;
+import io.github.manasmods.manascore.testing.registry.TestAttributeRegistry;
 import net.fabricmc.api.EnvType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,7 @@ public final class ManasCoreTesting {
     public static void init() {
         ConfigModuleTest.init();
         StorageModuleTest.init();
+        TestAttributeRegistry.init();
         RegistryTest.init();
         CommandModuleTest.init();
 

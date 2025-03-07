@@ -12,7 +12,7 @@ import net.neoforged.fml.common.Mod;
 
 @Mod(ModuleConstants.MOD_ID)
 public final class ManasCoreTestingNeoForge {
-    public ManasCoreTestingNeoForge(IEventBus modEventBus) {
+    public ManasCoreTestingNeoForge(IEventBus bus) {
         ManasCoreTesting.init();
     }
 }
