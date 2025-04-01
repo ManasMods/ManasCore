@@ -32,7 +32,7 @@ public class ManasCoreSkillClient {
 
             if (!packetSkills.isEmpty()) {
                 NetworkManager.sendToServer(new RequestSkillScrollPacket(amountY, packetSkills));
-                return EventResult.interruptTrue();
+                return EventResult.interruptFalse();
             }
             return EventResult.pass();
         });

@@ -12,7 +12,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
@@ -21,14 +20,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
 
 public class ManasCoreAttributeRegisterImpl {
-    private static final List<Holder<Attribute>> GENERIC_REGISTRY = new CopyOnWriteArrayList<>();
-    private static final List<Holder<Attribute>> PLAYER_REGISTRY = new CopyOnWriteArrayList<>();
-    private static final List<EntityType<? extends LivingEntity>> entityTypes = BuiltInRegistries.ENTITY_TYPE.stream()
-            .filter(DefaultAttributes::hasSupplier).map(entityType -> (EntityType<? extends LivingEntity>) entityType)
-            .collect(Collectors.toList());
+    public static final List<Holder<Attribute>> GENERIC_REGISTRY = new CopyOnWriteArrayList<>();
+    public static final List<Holder<Attribute>> PLAYER_REGISTRY = new CopyOnWriteArrayList<>();
 
     public static Holder<Attribute> registerToPlayers(Holder<Attribute> holder) {
         PLAYER_REGISTRY.add(holder);
@@ -56,26 +51,14 @@ public class ManasCoreAttributeRegisterImpl {
 
     public static void init() {
         LifecycleEvent.SETUP.register(() -> {
-            entityTypes.forEach(entityType -> {
-                if (entityType == null) return;
-                AttributeSupplier.Builder builder = new AttributeSupplier.Builder();
-                // Apply existing attributes
-                if (DefaultAttributes.hasSupplier(entityType)) {
-                    DefaultAttributes.getSupplier(entityType).instances.forEach((attribute, attributeInstance) -> {
-                        builder.add(attribute, attributeInstance.getBaseValue());
-                    });
-                }
-
-                if (entityType.equals(EntityType.PLAYER)) PLAYER_REGISTRY.forEach(builder::add);
-                // Apply global custom attributes
-                GENERIC_REGISTRY.forEach(builder::add);
-                // Register the attributes
-                FabricDefaultAttributeRegistry.register(entityType, builder);
+            AttributeSupplier.Builder builder = new AttributeSupplier.Builder();
+            DefaultAttributes.getSupplier(EntityType.PLAYER).instances.forEach((attribute, attributeInstance) -> {
+                builder.add(attribute, attributeInstance.getBaseValue());
             });
 
-            // Clear the registry
-            PLAYER_REGISTRY.clear();
-            GENERIC_REGISTRY.clear();
+            PLAYER_REGISTRY.forEach(builder::add);
+            GENERIC_REGISTRY.forEach(builder::add);
+            FabricDefaultAttributeRegistry.register(EntityType.PLAYER, builder);
         });
     }
 }

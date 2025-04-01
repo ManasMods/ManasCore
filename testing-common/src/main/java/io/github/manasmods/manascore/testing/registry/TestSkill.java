@@ -38,7 +38,7 @@ public class TestSkill extends ManasSkill {
     public TestSkill() {
         super();
         ManasCoreTesting.LOG.info("Created skill!");
-        this.addHeldAttributeModifier(Attributes.MOVEMENT_SPEED, "test_speed", 1, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
+        this.addHeldAttributeModifier(Attributes.MOVEMENT_SPEED, "test_speed", -0.95, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
     }
 
     public int getModes() {
@@ -86,6 +86,11 @@ public class TestSkill extends ManasSkill {
             ManasCoreTesting.LOG.info("In second mode");
             instance.setCoolDown(5, mode);
         }
+    }
+
+    public void addHeldAttributeModifiers(ManasSkillInstance instance, LivingEntity entity, int mode) {
+        if (mode == 1) return;
+        super.addHeldAttributeModifiers(instance, entity, mode);
     }
 
     public void onTick(ManasSkillInstance instance, LivingEntity living) {

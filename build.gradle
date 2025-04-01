@@ -45,7 +45,7 @@ subprojects {
     }
 
     ext {
-        var nameSeparatorIndex = project.path.lastIndexOf('-');
+        var nameSeparatorIndex = project.path.lastIndexOf('-')
         var nameOffset = project.path.startsWith(':') && nameSeparatorIndex > 0 ? 1 : 0
 
         module_name = project.path.substring(nameOffset, nameSeparatorIndex == -1 ? project.path.length() : nameSeparatorIndex)
@@ -254,25 +254,38 @@ subprojects {
 
     if (!project.name.endsWith("common")) {
         processResources {
-            def placeholders = [
-                    version              : project.version,
-                    mod_id               : project.mod_id,
-                    mod_name             : "$mod_display_name - ${project.module_name.capitalize()}",
-                    architectury_version : architectury_api_version,
-                    minecraft_version    : minecraft_version,
-                    fabric_loader_version: fabric_loader_version,
-                    license              : "GPLv3"
-            ]
-
-            placeholders.forEach { key, value ->
-                inputs.property key, value
-            }
-
             if (project.name.endsWith("neoforge")) {
+                def placeholders = [
+                        version              : project.version,
+                        mod_id               : project.mod_id,
+                        mod_name             : "$mod_display_name - ${project.module_name.capitalize()}",
+                        architectury_version : architectury_api_version,
+                        minecraft_version    : minecraft_version,
+                        license              : "GPLv3"
+                ]
+
+                placeholders.forEach { key, value ->
+                    inputs.property key, value
+                }
+
                 filesMatching('META-INF/neoforge.mods.toml') {
                     expand placeholders
                 }
             } else if (project.name.endsWith("fabric")) {
+                def placeholders = [
+                        version              : project.version,
+                        mod_id               : project.mod_id,
+                        mod_name             : "$mod_display_name - ${project.module_name.capitalize()}",
+                        architectury_version : architectury_api_version,
+                        minecraft_version    : minecraft_version,
+                        fabric_loader_version: fabric_loader_version,
+                        license              : "GPLv3"
+                ]
+
+                placeholders.forEach { key, value ->
+                    inputs.property key, value
+                }
+
                 filesMatching('fabric.mod.json') {
                     expand placeholders
 

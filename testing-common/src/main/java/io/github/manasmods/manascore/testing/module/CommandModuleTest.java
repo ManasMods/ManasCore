@@ -59,7 +59,7 @@ public class CommandModuleTest {
 
     @Command(value = "bar")
     public static class TestSubCommand {
-        @Permission("manascore.command.test")
+        @Permission(value = "manascore.command.test", permissionLevel = Permission.PermissionLevel.GAMEMASTER)
         @Execute
         public boolean withPerms(@SenderArg CommandSourceStack sender, @LiteralArg("perms") String l) {
             sender.sendSystemMessage(RESPONSE);
