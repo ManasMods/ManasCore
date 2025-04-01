@@ -8,14 +8,12 @@ package io.github.manasmods.manascore.attribute.fabric.mixin;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalFloatRef;
 import io.github.manasmods.manascore.attribute.api.AttributeEvents;
-import io.github.manasmods.manascore.attribute.fabric.ManasCoreAttributeRegisterImpl;
-import io.github.manasmods.manascore.network.api.util.Changeable;
 import io.github.manasmods.manascore.attribute.api.ManasCoreAttributeUtils;
 import io.github.manasmods.manascore.attribute.api.ManasCoreAttributes;
-import net.minecraft.core.Holder;
+import io.github.manasmods.manascore.attribute.fabric.ManasCoreAttributeRegisterImpl;
+import io.github.manasmods.manascore.network.api.util.Changeable;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
@@ -23,14 +21,12 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(LivingEntity.class)
+@Mixin(value = LivingEntity.class, priority = 200)
 public class MixinLivingEntity {
 
-    @Inject(method = "createLivingAttributes", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "createLivingAttributes", at = @At("RETURN"))
     private static void createLivingAttributes(CallbackInfoReturnable<AttributeSupplier.Builder> cir) {
-        AttributeSupplier.Builder builder = cir.getReturnValue();
-        for (Holder<Attribute> holder : ManasCoreAttributeRegisterImpl.GENERIC_REGISTRY) builder.add(holder);
-        cir.setReturnValue(builder);
+        ManasCoreAttributeRegisterImpl.addLivingEntityAttributes(cir.getReturnValue());
     }
 
     @Inject(method = "hurt(Lnet/minecraft/world/damagesource/DamageSource;F)Z", at = @At(value = "HEAD"))

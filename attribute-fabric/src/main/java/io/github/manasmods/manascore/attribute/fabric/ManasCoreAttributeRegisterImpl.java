@@ -49,6 +49,11 @@ public class ManasCoreAttributeRegisterImpl {
         return registerToGeneric(holder);
     }
 
+    public static AttributeSupplier.Builder addLivingEntityAttributes(AttributeSupplier.Builder builder) {
+        for (Holder<Attribute> holder : GENERIC_REGISTRY) builder.add(holder);
+        return builder;
+    }
+
     public static void init() {
         LifecycleEvent.SETUP.register(() -> {
             AttributeSupplier.Builder builder = new AttributeSupplier.Builder();
