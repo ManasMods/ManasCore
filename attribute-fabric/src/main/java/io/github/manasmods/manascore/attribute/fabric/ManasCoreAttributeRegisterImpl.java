@@ -12,6 +12,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
@@ -56,14 +57,20 @@ public class ManasCoreAttributeRegisterImpl {
 
     public static void init() {
         LifecycleEvent.SETUP.register(() -> {
-            AttributeSupplier.Builder builder = new AttributeSupplier.Builder();
-            DefaultAttributes.getSupplier(EntityType.PLAYER).instances.forEach((attribute, attributeInstance) -> {
-                builder.add(attribute, attributeInstance.getBaseValue());
-            });
+            BuiltInRegistries.ENTITY_TYPE.stream().filter(DefaultAttributes::hasSupplier)
+                    .map(entityType -> (EntityType<? extends LivingEntity>) entityType)
+                    .forEach(entityType -> {
+                        if (entityType == null) return;
 
-            PLAYER_REGISTRY.forEach(builder::add);
-            GENERIC_REGISTRY.forEach(builder::add);
-            FabricDefaultAttributeRegistry.register(EntityType.PLAYER, builder);
+                        AttributeSupplier.Builder builder = new AttributeSupplier.Builder();
+                        DefaultAttributes.getSupplier(entityType).instances.forEach((attribute, attributeInstance) -> {
+                            builder.add(attribute, attributeInstance.getBaseValue());
+                        });
+
+                        GENERIC_REGISTRY.forEach(builder::add);
+                        if (entityType.equals(EntityType.PLAYER)) PLAYER_REGISTRY.forEach(builder::add);
+                        FabricDefaultAttributeRegistry.register(entityType, builder);
+                    });
         });
     }
 }
