@@ -9,6 +9,7 @@ import dev.architectury.registry.registries.RegistrySupplier;
 import io.github.manasmods.manascore.network.api.util.Changeable;
 import lombok.Getter;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.Holder;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -22,6 +23,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileDeflection;
 import net.minecraft.world.phys.EntityHitResult;
@@ -374,10 +376,11 @@ public class ManasSkillInstance {
      * @return the amplifier for each attribute modifier that this instance applies.
      * </p>
      * @param entity   Affected {@link LivingEntity} owning this Skill.
-     * @param template Affected {@link ManasSkill.AttributeTemplate} that this skill provides.
+     * @param holder   Affected {@link Holder<Attribute>} that this skill provides.
+     * @param template Affected {@link ManasSkill.AttributeTemplate} that this skill provides for an attribute.
      */
-    public double getAttributeModifierAmplifier(LivingEntity entity, ManasSkill.AttributeTemplate template) {
-        return this.getSkill().getAttributeModifierAmplifier(this, entity, template);
+    public double getAttributeModifierAmplifier(LivingEntity entity, Holder<Attribute> holder, ManasSkill.AttributeTemplate template) {
+        return this.getSkill().getAttributeModifierAmplifier(this, entity, holder, template);
     }
 
     /**
@@ -474,19 +477,28 @@ public class ManasSkillInstance {
     /**
      * Called when the {@link LivingEntity} learns this instance.
      *
-     * @param living Affected {@link LivingEntity} learning this instance.
+     * @param entity Affected {@link LivingEntity} learning this instance.
      */
-    public void onLearnSkill(LivingEntity living) {
-        this.getSkill().onLearnSkill(this, living);
+    public void onLearnSkill(LivingEntity entity) {
+        this.getSkill().onLearnSkill(this, entity);
+    }
+
+    /**
+     * Called when the {@link LivingEntity} forgets this instance.
+     *
+     * @param entity Affected {@link LivingEntity} learning this instance.
+     */
+    public void onForgetSkill(LivingEntity entity) {
+        this.getSkill().onForgetSkill(this, entity);
     }
 
     /**
      * Called when the {@link LivingEntity} masters this instance.
      *
-     * @param living Affected {@link LivingEntity} owning this Skill.
+     * @param entity Affected {@link LivingEntity} owning this Skill.
      */
-    public void onSkillMastered(LivingEntity living) {
-        this.getSkill().onSkillMastered(this, living);
+    public void onSkillMastered(LivingEntity entity) {
+        this.getSkill().onSkillMastered(this, entity);
     }
 
     /**

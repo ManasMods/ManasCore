@@ -17,11 +17,13 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
@@ -76,10 +78,11 @@ public class RaceStorage extends Storage implements Races {
         return Optional.ofNullable(this.raceInstance);
     }
 
-    public boolean setRace(@NonNull ManasRaceInstance race, boolean evolution, boolean teleportToSpawn) {
+    public boolean setRace(@NonNull ManasRaceInstance race, boolean evolution, boolean teleportToSpawn, @Nullable MutableComponent component) {
         ManasRaceInstance instance = this.raceInstance;
         Changeable<Boolean> teleport = Changeable.of(teleportToSpawn);
-        EventResult result = RaceEvents.SET_RACE.invoker().set(instance, getOwner(), race, evolution, teleport);
+        Changeable<MutableComponent> raceMessage = Changeable.of(component);
+        EventResult result = RaceEvents.SET_RACE.invoker().set(instance, getOwner(), race, evolution, teleport, raceMessage);
         if (result.isFalse()) return false;
 
         LivingEntity owner = this.getOwner();
@@ -88,6 +91,7 @@ public class RaceStorage extends Storage implements Races {
             if (evolution) instance.onRaceEvolution(owner, race);
         }
 
+        if (raceMessage.isPresent()) getOwner().sendSystemMessage(raceMessage.get());
         race.markDirty();
         race.addAttributeModifiers(owner);
         race.onRaceSet(owner);

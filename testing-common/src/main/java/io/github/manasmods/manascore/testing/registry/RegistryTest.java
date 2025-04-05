@@ -137,14 +137,13 @@ public class RegistryTest {
                 if (storage.learnSkill(RegistryTest.TEST_SKILL.get())) {
                     ManasCoreTesting.LOG.info("Added Tested Skill!");
                 }
+
             } else if (entity.getItem().is(Items.EMERALD)) {
                 Skills storage = SkillAPI.getSkillsFrom(player);
-                storage.forgetSkill(RegistryTest.TEST_SKILL.get());
-                ManasCoreTesting.LOG.info("Forgot Tested Skill!");
+                storage.forgetSkill(RegistryTest.TEST_SKILL.get(), Component.literal("Forgot Tested Skill!"));
             }  else if (entity.getItem().is(Items.GOLD_INGOT)) {
                 Races storage = RaceAPI.getRaceFrom(player);
-                storage.setRace(RegistryTest.TEST_RACE.getId(), true);
-                ManasCoreTesting.LOG.info("Set to Test Race!");
+                storage.setRace(RegistryTest.TEST_RACE.getId(), true, Component.literal("Set to Test Race!"));
             }
 
             return EventResult.pass();

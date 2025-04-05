@@ -216,9 +216,10 @@ public class ManasSkill {
      * </p>
      * @param entity   Affected {@link LivingEntity} owning this Skill.
      * @param instance Affected {@link ManasSkillInstance}
-     * @param template Affected {@link AttributeTemplate} that this skill provides.
+     * @param holder   Affected {@link Holder<Attribute>} that this skill provides.
+     * @param template Affected {@link AttributeTemplate} that this skill provides for an attribute.
      */
-    public double getAttributeModifierAmplifier(ManasSkillInstance instance, LivingEntity entity, AttributeTemplate template) {
+    public double getAttributeModifierAmplifier(ManasSkillInstance instance, LivingEntity entity, Holder<Attribute> holder, AttributeTemplate template) {
         return 1;
     }
 
@@ -237,7 +238,7 @@ public class ManasSkill {
 
             if (attributeInstance == null) continue;
             attributeInstance.removeModifier(entry.getValue().id());
-            attributeInstance.addOrUpdateTransientModifier(entry.getValue().create(instance.getAttributeModifierAmplifier(entity, entry.getValue())));
+            attributeInstance.addOrUpdateTransientModifier(entry.getValue().create(instance.getAttributeModifierAmplifier(entity, entry.getKey(), entry.getValue())));
         }
     }
 
@@ -341,9 +342,19 @@ public class ManasSkill {
      * Called when the {@link LivingEntity} learns this Skill.
      *
      * @param instance Affected {@link ManasSkillInstance}
-     * @param living   Affected {@link LivingEntity} learning this Skill.
+     * @param entity   Affected {@link LivingEntity} learning this Skill.
      */
-    public void onLearnSkill(ManasSkillInstance instance, LivingEntity living) {
+    public void onLearnSkill(ManasSkillInstance instance, LivingEntity entity) {
+        // Override this method to add your own logic
+    }
+
+    /**
+     * Called when the {@link LivingEntity} forgets this Skill.
+     *
+     * @param instance Affected {@link ManasSkillInstance}
+     * @param entity   Affected {@link LivingEntity} learning this Skill.
+     */
+    public void onForgetSkill(ManasSkillInstance instance, LivingEntity entity) {
         // Override this method to add your own logic
     }
 
@@ -351,9 +362,9 @@ public class ManasSkill {
      * Called when the {@link LivingEntity} masters this skill.
      *
      * @param instance Affected {@link ManasSkillInstance}
-     * @param living   Affected {@link LivingEntity} owning this Skill.
+     * @param entity   Affected {@link LivingEntity} owning this Skill.
      */
-    public void onSkillMastered(ManasSkillInstance instance, LivingEntity living) {
+    public void onSkillMastered(ManasSkillInstance instance, LivingEntity entity) {
         // Override this method to add your own logic
     }
 

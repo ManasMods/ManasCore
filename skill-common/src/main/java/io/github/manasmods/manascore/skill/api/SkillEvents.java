@@ -9,7 +9,7 @@ import dev.architectury.event.Event;
 import dev.architectury.event.EventFactory;
 import dev.architectury.event.EventResult;
 import io.github.manasmods.manascore.network.api.util.Changeable;
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -31,12 +31,12 @@ public interface SkillEvents {
 
     @FunctionalInterface
     interface UnlockSkillEvent {
-        EventResult unlockSkill(ManasSkillInstance skillInstance, LivingEntity owner, Changeable<Component> unlockMessage);
+        EventResult unlockSkill(ManasSkillInstance skillInstance, LivingEntity owner, Changeable<MutableComponent> unlockMessage);
     }
 
     @FunctionalInterface
     interface RemoveSkillEvent {
-        EventResult removeSkill(ManasSkillInstance skillInstance, LivingEntity owner);
+        EventResult removeSkill(ManasSkillInstance skillInstance, LivingEntity owner, Changeable<MutableComponent> forgetMessage);
     }
 
     @FunctionalInterface

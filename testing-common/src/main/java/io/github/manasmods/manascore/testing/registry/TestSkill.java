@@ -101,8 +101,12 @@ public class TestSkill extends ManasSkill {
         ManasCoreTesting.LOG.info("Scroll delta: {}", delta);
     }
 
-    public void onLearnSkill(ManasSkillInstance instance, LivingEntity living) {
+    public void onLearnSkill(ManasSkillInstance instance, LivingEntity entity) {
         ManasCoreTesting.LOG.info("Learnt test skill");
+    }
+
+    public void onForgetSkill(ManasSkillInstance instance, LivingEntity entity) {
+        ManasCoreTesting.LOG.info("Forgot test skill");
     }
 
     public boolean onEffectAdded(ManasSkillInstance instance, LivingEntity entity, @Nullable Entity source, Changeable<MobEffectInstance> effect) {

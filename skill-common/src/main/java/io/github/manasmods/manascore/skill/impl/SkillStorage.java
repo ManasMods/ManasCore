@@ -9,14 +9,10 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.PlayerEvent;
+import io.github.manasmods.manascore.network.api.util.Changeable;
 import io.github.manasmods.manascore.skill.ManasCoreSkill;
 import io.github.manasmods.manascore.skill.ModuleConstants;
-import io.github.manasmods.manascore.skill.api.ManasSkillInstance;
-import io.github.manasmods.manascore.skill.api.SkillAPI;
-import io.github.manasmods.manascore.skill.api.SkillEvents;
-import io.github.manasmods.manascore.skill.api.Skills;
-import io.github.manasmods.manascore.network.api.util.Changeable;
-import io.github.manasmods.manascore.skill.api.EntityEvents;
+import io.github.manasmods.manascore.skill.api.*;
 import io.github.manasmods.manascore.storage.api.Storage;
 import io.github.manasmods.manascore.storage.api.StorageEvents;
 import io.github.manasmods.manascore.storage.api.StorageKey;
@@ -26,13 +22,14 @@ import lombok.extern.log4j.Log4j2;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -167,20 +164,20 @@ public class SkillStorage  extends Storage implements Skills {
         if (sync) markDirty();
     }
 
-    public boolean learnSkill(@NonNull ManasSkillInstance instance) {
+    public boolean learnSkill(@NonNull ManasSkillInstance instance, MutableComponent component) {
         if (this.skillInstances.containsKey(instance.getSkillId())) {
             log.debug("Tried to register a deduplicate of {}.", instance.getSkillId());
             return false;
         }
 
-        Changeable<Component> unlockMessage = Changeable.of(Component.translatable("manascore.skill.learn_skill", instance.getChatDisplayName(true)));
+        Changeable<MutableComponent> unlockMessage = Changeable.of(component);
         EventResult result = SkillEvents.UNLOCK_SKILL.invoker().unlockSkill(instance, getOwner(), unlockMessage);
         if (result.isFalse()) return false;
 
         instance.markDirty();
         this.skillInstances.put(instance.getSkillId(), instance);
         if (unlockMessage.isPresent()) getOwner().sendSystemMessage(unlockMessage.get());
-        instance.onLearnSkill(getOwner());
+        instance.onLearnSkill(this.getOwner());
         markDirty();
         return true;
     }
@@ -189,15 +186,19 @@ public class SkillStorage  extends Storage implements Skills {
         return Optional.ofNullable(this.skillInstances.get(skillId));
     }
 
-    public void forgetSkill(@NotNull ResourceLocation skillId) {
+    public void forgetSkill(@NotNull ResourceLocation skillId, @Nullable MutableComponent component) {
         if (!this.skillInstances.containsKey(skillId)) return;
         ManasSkillInstance instance = this.skillInstances.get(skillId);
 
-        EventResult result = SkillEvents.REMOVE_SKILL.invoker().removeSkill(instance, getOwner());
+        Changeable<MutableComponent> forgetMessage = Changeable.of(component);
+        EventResult result = SkillEvents.REMOVE_SKILL.invoker().removeSkill(instance, getOwner(), forgetMessage);
         if (result.isFalse()) return;
 
+        if (forgetMessage.isPresent()) getOwner().sendSystemMessage(forgetMessage.get());
+        instance.onForgetSkill(this.getOwner());
         instance.markDirty();
-        getLearnedSkills().remove(instance);
+
+        this.getLearnedSkills().remove(instance);
         this.hasRemovedSkills = true;
         markDirty();
     }
