@@ -53,7 +53,11 @@ public final class StorageManager {
         });
 
         // Copy storage from old player to new player
-        PlayerEvent.PLAYER_CLONE.register((oldPlayer, newPlayer, wonGame) -> newPlayer.manasCore$setCombinedStorage(oldPlayer.manasCore$getCombinedStorage()));
+        PlayerEvent.PLAYER_CLONE.register((oldPlayer, newPlayer, wonGame) -> {
+            CombinedStorage newStorage = new CombinedStorage(newPlayer);
+            newStorage.load(oldPlayer.manasCore$getCombinedStorage().toNBT());
+            newPlayer.manasCore$setCombinedStorage(newStorage);
+        });
     }
 
     public static void initialStorageFilling(StorageHolder holder) {

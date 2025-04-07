@@ -8,14 +8,10 @@ package io.github.manasmods.manascore.skill.api;
 import dev.architectury.registry.registries.RegistrySupplier;
 import io.github.manasmods.manascore.network.api.util.Changeable;
 import lombok.Getter;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
@@ -30,10 +26,7 @@ import net.minecraft.world.phys.EntityHitResult;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ManasSkillInstance {
@@ -279,12 +272,27 @@ public class ManasSkillInstance {
     }
 
     /**
+     * Set the cooldown of every mode of this instance.
+     */
+    public void setCoolDowns(int coolDown) {
+        Collections.fill(this.cooldownList, coolDown);
+        markDirty();
+    }
+
+    /**
      * Decrease the cooldown of a specific mode of this instance.
      */
     public void decreaseCoolDown(int coolDown, int mode) {
         if (mode < 0 || mode >= cooldownList.size()) return;
         this.cooldownList.set(mode, Math.max(0, this.cooldownList.get(mode) - coolDown));
         markDirty();
+    }
+
+    /**
+     * Edit the entire cooldown list of this instance.
+     */
+    public void setCoolDownList(List<Integer> list) {
+        this.cooldownList = list;
     }
 
     /**
@@ -379,8 +387,8 @@ public class ManasSkillInstance {
      * @param holder   Affected {@link Holder<Attribute>} that this skill provides.
      * @param template Affected {@link ManasSkill.AttributeTemplate} that this skill provides for an attribute.
      */
-    public double getAttributeModifierAmplifier(LivingEntity entity, Holder<Attribute> holder, ManasSkill.AttributeTemplate template) {
-        return this.getSkill().getAttributeModifierAmplifier(this, entity, holder, template);
+    public double getAttributeModifierAmplifier(LivingEntity entity, Holder<Attribute> holder, ManasSkill.AttributeTemplate template, int mode) {
+        return this.getSkill().getAttributeModifierAmplifier(this, entity, holder, template, mode);
     }
 
     /**
@@ -593,15 +601,7 @@ public class ManasSkillInstance {
     }
 
     public MutableComponent getChatDisplayName(boolean withDescription) {
-        Style style = Style.EMPTY.withColor(ChatFormatting.GRAY);
-        if (withDescription) {
-            MutableComponent hoverMessage = getDisplayName().append("\n");
-            hoverMessage.append(this.getSkill().getSkillDescription().withStyle(ChatFormatting.GRAY));
-            style = style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverMessage));
-        }
-
-        MutableComponent component = Component.literal("[").append(getDisplayName()).append("]");
-        return component.withStyle(style);
+        return this.getSkill().getChatDisplayName(withDescription);
     }
 
     public boolean is(TagKey<ManasSkill> tag) {

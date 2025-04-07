@@ -10,9 +10,12 @@ import io.github.manasmods.manascore.skill.ModuleConstants;
 import io.github.manasmods.manascore.skill.impl.SkillStorage;
 import io.github.manasmods.manascore.network.api.util.Changeable;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.network.protocol.game.ClientboundUpdateAttributesPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -80,6 +83,18 @@ public class ManasSkill {
         final ResourceLocation id = getRegistryName();
         if (id == null) return null;
         return Component.translatable(String.format("%s.skill.%s", id.getNamespace(), id.getPath().replace('/', '.')));
+    }
+
+    public MutableComponent getChatDisplayName(boolean withDescription) {
+        Style style = Style.EMPTY.withColor(ChatFormatting.GRAY);
+        if (withDescription) {
+            MutableComponent hoverMessage = this.getName().append("\n");
+            hoverMessage.append(this.getSkillDescription().withStyle(ChatFormatting.GRAY));
+            style = style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverMessage));
+        }
+
+        MutableComponent component = Component.literal("[").append(this.getName()).append("]");
+        return component.withStyle(style);
     }
 
     /**
@@ -219,7 +234,7 @@ public class ManasSkill {
      * @param holder   Affected {@link Holder<Attribute>} that this skill provides.
      * @param template Affected {@link AttributeTemplate} that this skill provides for an attribute.
      */
-    public double getAttributeModifierAmplifier(ManasSkillInstance instance, LivingEntity entity, Holder<Attribute> holder, AttributeTemplate template) {
+    public double getAttributeModifierAmplifier(ManasSkillInstance instance, LivingEntity entity, Holder<Attribute> holder, AttributeTemplate template, int mode) {
         return 1;
     }
 
@@ -238,7 +253,7 @@ public class ManasSkill {
 
             if (attributeInstance == null) continue;
             attributeInstance.removeModifier(entry.getValue().id());
-            attributeInstance.addOrUpdateTransientModifier(entry.getValue().create(instance.getAttributeModifierAmplifier(entity, entry.getKey(), entry.getValue())));
+            attributeInstance.addOrUpdateTransientModifier(entry.getValue().create(instance.getAttributeModifierAmplifier(entity, entry.getKey(), entry.getValue(), mode)));
         }
     }
 
