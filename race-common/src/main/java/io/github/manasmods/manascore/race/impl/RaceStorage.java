@@ -5,7 +5,10 @@
 
 package io.github.manasmods.manascore.race.impl;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import dev.architectury.event.EventResult;
+import dev.architectury.event.events.common.PlayerEvent;
 import io.github.manasmods.manascore.network.api.util.Changeable;
 import io.github.manasmods.manascore.race.ModuleConstants;
 import io.github.manasmods.manascore.race.api.*;
@@ -22,16 +25,19 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Log4j2
 public class RaceStorage extends Storage implements Races {
     @Getter
     private static StorageKey<RaceStorage> key = null;
     public static final int INSTANCE_UPDATE = 20;
+    public static final Multimap<UUID, TickingRace> tickingRaces = ArrayListMultimap.create();
     private static final String RACE_KEY = "race_key";
 
     public static void init() {
@@ -44,28 +50,42 @@ public class RaceStorage extends Storage implements Races {
             if (level.isClientSide()) return;
             Races storage = RaceAPI.getRaceFrom(entity);
             handleRaceTick(entity, level, storage);
+            if (entity instanceof Player player) handleRaceHeldTick(player, storage);
             storage.markDirty();
         });
+
+        PlayerEvent.PLAYER_QUIT.register(player -> tickingRaces.removeAll(player.getUUID()));
     }
 
     private static void handleRaceTick(LivingEntity entity, Level level, Races storage) {
         MinecraftServer server = level.getServer();
         if (server == null) return;
+
         boolean shouldTickRace = server.getTickCount() % INSTANCE_UPDATE == 0;
         if (!shouldTickRace) return;
         tickRace(entity, storage);
+    }
+
+    private static void handleRaceHeldTick(Player player, Races storage) {
+        if (!tickingRaces.containsKey(player.getUUID())) return;
+        tickingRaces.get(player.getUUID()).removeIf(skill -> !skill.tick(storage, player));
     }
 
     private static void tickRace(LivingEntity entity, Races storage) {
         Optional<ManasRaceInstance> optional = storage.getRace();
         if (optional.isEmpty()) return;
 
-        ManasRaceInstance raceInstance = optional.get();
-        if (!raceInstance.canActivateAbility(entity)) return;
-        if (!raceInstance.canTick(entity)) return;
-        if (RaceEvents.RACE_PRE_TICK.invoker().tick(raceInstance, entity).isFalse()) return;
-        raceInstance.onTick(entity);
-        RaceEvents.RACE_POST_TICK.invoker().tick(raceInstance, entity);
+        ManasRaceInstance instance = optional.get();
+        if (instance.isOnCooldown()) {
+            if (!RaceEvents.RACE_UPDATE_COOLDOWN.invoker().cooldown(instance, entity, instance.getCooldown()).isFalse())
+                instance.setCooldown(instance.getCooldown() - 1);
+        }
+
+        if (!instance.canActivateAbility(entity)) return;
+        if (!instance.canTick(entity)) return;
+        if (RaceEvents.RACE_PRE_TICK.invoker().tick(instance, entity).isFalse()) return;
+        instance.onTick(entity);
+        RaceEvents.RACE_POST_TICK.invoker().tick(instance, entity);
     }
 
     private ManasRaceInstance raceInstance = null;
@@ -94,6 +114,7 @@ public class RaceStorage extends Storage implements Races {
         if (raceMessage.isPresent()) getOwner().sendSystemMessage(raceMessage.get());
         race.markDirty();
         race.addAttributeModifiers(owner);
+        owner.setHealth(owner.getMaxHealth());
         race.onRaceSet(owner);
 
         race.learnIntrinsicSkills(owner);

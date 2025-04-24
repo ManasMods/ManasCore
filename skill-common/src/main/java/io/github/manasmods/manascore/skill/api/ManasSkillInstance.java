@@ -200,6 +200,16 @@ public class ManasSkillInstance {
     }
 
     /**
+     * Determine if this instance's {@link ManasSkillInstance#onScroll} can be executed.
+     *
+     * @param entity Affected {@link LivingEntity} owning this Skill.
+     * @return false if this skill cannot be scrolled.
+     */
+    public boolean canScroll(LivingEntity entity) {
+        return this.getSkill().canScroll(this, entity);
+    }
+
+    /**
      * @return the number of modes that this skill instance has.
      */
     public int getModes() {
@@ -303,7 +313,6 @@ public class ManasSkillInstance {
     }
 
     /**
-     * Set the remove time of this instance.
      * @return the removal time of this instance.
      */
     public int getRemoveTime() {

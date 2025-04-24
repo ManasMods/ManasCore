@@ -27,6 +27,7 @@ public class ManasCoreSkillClient {
             List<ResourceLocation> packetSkills = new ArrayList<>();
             for (ManasSkillInstance skillInstance : SkillAPI.getSkillsFrom(player).getLearnedSkills()) {
                 if (SkillEvents.SKILL_SCROLL_CLIENT.invoker().scroll(skillInstance, player, amountY).isFalse()) continue;
+                if (!skillInstance.canScroll(player)) continue;
                 packetSkills.add(skillInstance.getSkillId());
             }
 

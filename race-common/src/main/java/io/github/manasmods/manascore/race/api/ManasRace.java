@@ -130,6 +130,14 @@ public class ManasRace {
     }
 
     /**
+     * @return the maximum number of ticks that this race's ability can be held down with the activation button.
+     * </p>
+     */
+    public int getMaxHeldTime(ManasRaceInstance instance, LivingEntity entity) {
+        return 72000;
+    }
+
+    /**
      * Determine if this race's {@link ManasRace#onTick} can be executed.
      *
      * @param instance Affected {@link ManasRaceInstance}
@@ -211,6 +219,27 @@ public class ManasRace {
         // Override this method to add your own logic
     }
 
+    /**
+     * Called when the {@link LivingEntity} holds this Race's ability activation button.
+     *
+     * @param instance Affected {@link ManasRaceInstance}
+     * @param entity   Affected {@link LivingEntity} using this Race's ability.
+     * @return true to continue ticking this Skill.
+     */
+    public boolean onHeldAbility(ManasRaceInstance instance, LivingEntity entity, int heldTicks) {
+        // Override this method to add your own logic
+        return false;
+    }
+
+    /**
+     * Called when the {@link LivingEntity} releases this Race's ability activation button after {@param heldTicks}.
+     *
+     * @param instance Affected {@link ManasRaceInstance}
+     * @param entity   Affected {@link LivingEntity} using this Race's ability.
+     */
+    public void onReleaseAbility(ManasRaceInstance instance, LivingEntity entity, int heldTicks) {
+        // Override this method to add your own logic
+    }
 
     /**
      * Called when the {@link LivingEntity} sets to this Race.

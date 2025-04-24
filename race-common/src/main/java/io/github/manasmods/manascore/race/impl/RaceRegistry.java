@@ -92,6 +92,7 @@ public class RaceRegistry {
             ManasRaceInstance instance = optional.get();
             if (!conqueredEnd) {
                 instance.addAttributeModifiers(newPlayer);
+                newPlayer.setHealth(newPlayer.getMaxHealth());
                 SpawnPointHelper.teleportToNewSpawn(newPlayer);
             }
 

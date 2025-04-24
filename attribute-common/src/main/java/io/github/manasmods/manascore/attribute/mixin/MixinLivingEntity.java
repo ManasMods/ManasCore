@@ -5,8 +5,10 @@
 
 package io.github.manasmods.manascore.attribute.mixin;
 
+import io.github.manasmods.manascore.attribute.api.AttributeEvents;
 import io.github.manasmods.manascore.attribute.api.ManasCoreAttributeUtils;
 import io.github.manasmods.manascore.attribute.api.ManasCoreAttributes;
+import io.github.manasmods.manascore.network.api.util.Changeable;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -26,7 +28,10 @@ public abstract class MixinLivingEntity extends Entity {
     @ModifyArg(method = "updateFallFlying", at = @At(value = "INVOKE",
             target = "net/minecraft/world/entity/LivingEntity.setSharedFlag(IZ)V"))
     private boolean updateFallFlying(boolean value) {
-        return ManasCoreAttributeUtils.canElytraGlide((LivingEntity) (Object) this, this.getSharedFlag(7));
+        LivingEntity glider = (LivingEntity) (Object) this;
+        Changeable<Boolean> glide = Changeable.of(ManasCoreAttributeUtils.canElytraGlide(glider, this.getSharedFlag(7)));
+        if (AttributeEvents.CONTINUE_GLIDE_EVENT.invoker().glide(glider, glide).isFalse()) return false;
+        return glide.get();
     }
 
     @ModifyArg(method = "travel", at = @At(value = "INVOKE",

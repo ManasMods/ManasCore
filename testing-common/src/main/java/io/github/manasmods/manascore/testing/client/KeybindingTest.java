@@ -18,12 +18,13 @@ public class KeybindingTest {
     public static void init() {
         KeybindingCategory category = KeybindingCategory.of("test.category");
         KeybindingManager.register(
-                new ManasKeybinding("manascore.keybinding.test",
-                        category, () -> {
+                new ManasKeybinding("manascore.keybinding.test", category, () -> {
                     ManasCoreTesting.LOG.info("Pressing");
                     RaceAPI.raceAbilityActivationPacket();
-                }, duration -> ManasCoreTesting.LOG.info("Released in {} Seconds", duration / 1000.0)
-                ),
+                }, duration -> {
+                    ManasCoreTesting.LOG.info("Released in {} Seconds", duration / 1000.0);
+                    RaceAPI.raceAbilityReleasePacket((int) (duration / 50));
+                }),
                 new ManasKeybinding("manascore.keybinding.test_press", category, () -> {
                     ManasCoreTesting.LOG.info("Pressed");
                     RaceAPI.raceEvolutionPacket(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "test_race_evolved"));

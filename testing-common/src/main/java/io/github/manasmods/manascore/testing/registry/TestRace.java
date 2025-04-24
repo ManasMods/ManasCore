@@ -6,13 +6,13 @@
 package io.github.manasmods.manascore.testing.registry;
 
 import com.mojang.datafixers.util.Pair;
+import io.github.manasmods.manascore.network.api.util.Changeable;
 import io.github.manasmods.manascore.race.api.ManasRace;
 import io.github.manasmods.manascore.race.api.ManasRaceInstance;
 import io.github.manasmods.manascore.race.api.SpawnPointHelper;
 import io.github.manasmods.manascore.skill.api.ManasSkill;
 import io.github.manasmods.manascore.skill.api.SkillAPI;
 import io.github.manasmods.manascore.skill.api.Skills;
-import io.github.manasmods.manascore.network.api.util.Changeable;
 import io.github.manasmods.manascore.testing.ManasCoreTesting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
@@ -53,7 +53,20 @@ public class TestRace extends ManasRace {
     }
 
     public void onActivateAbility(ManasRaceInstance instance, LivingEntity entity) {
-        entity.level().explode(entity, entity.getX(), entity.getY(), entity.getZ(), 4F, Level.ExplosionInteraction.BLOCK);
+        entity.level().explode(entity, entity.getX(), entity.getY(), entity.getZ(), 1F, Level.ExplosionInteraction.BLOCK);
+    }
+
+    public boolean onHeldAbility(ManasRaceInstance instance, LivingEntity entity, int heldTicks) {
+        entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 10, 10));
+        if (entity.isShiftKeyDown()) {
+            instance.setCooldown(5);
+            return false;
+        }
+        return true;
+    }
+
+    public void onReleaseAbility(ManasRaceInstance instance, LivingEntity entity, int heldTicks) {
+        entity.level().explode(entity, entity.getX(), entity.getY(), entity.getZ(), 6F, Level.ExplosionInteraction.BLOCK);
     }
 
     public void onTick(ManasRaceInstance instance, LivingEntity living) {

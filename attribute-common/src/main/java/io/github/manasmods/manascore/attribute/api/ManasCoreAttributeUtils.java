@@ -5,6 +5,7 @@
 
 package io.github.manasmods.manascore.attribute.api;
 
+import io.github.manasmods.manascore.network.api.util.Changeable;
 import net.minecraft.network.protocol.game.ClientboundAnimatePacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -49,7 +50,9 @@ public class ManasCoreAttributeUtils {
     }
 
     public static boolean canElytraGlide(LivingEntity entity, boolean additionalCheck) {
-        return additionalCheck && !entity.onGround() && !entity.isPassenger() && !entity.hasEffect(MobEffects.LEVITATION)
-                && entity.getAttributeValue(ManasCoreAttributes.GLIDE_SPEED_MULTIPLIER) > 0;
+        Changeable<Boolean> glide = Changeable.of(additionalCheck && !entity.onGround() && !entity.isPassenger()
+                && !entity.hasEffect(MobEffects.LEVITATION) && entity.getAttributeValue(ManasCoreAttributes.GLIDE_SPEED_MULTIPLIER) > 0);
+        if (AttributeEvents.START_GLIDE_EVENT.invoker().glide(entity, glide).isFalse()) return false;
+        return glide.get();
     }
 }

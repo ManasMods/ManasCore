@@ -13,7 +13,6 @@ import io.github.manasmods.manascore.race.api.RaceAPI;
 import io.github.manasmods.manascore.race.api.RaceEvents;
 import io.github.manasmods.manascore.race.api.Races;
 import io.github.manasmods.manascore.race.impl.RaceStorage;
-import io.github.manasmods.manascore.race.impl.TickingRace;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -23,15 +22,18 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public record RequestRaceAbilityActivationPacket() implements CustomPacketPayload {
-    public static final CustomPacketPayload.Type<RequestRaceAbilityActivationPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "request_race_ability_activation"));
-    public static final StreamCodec<FriendlyByteBuf, RequestRaceAbilityActivationPacket> STREAM_CODEC = CustomPacketPayload.codec(RequestRaceAbilityActivationPacket::encode, RequestRaceAbilityActivationPacket::new);
+public record RequestRaceAbilityReleasePacket(
+        int heldTick
+) implements CustomPacketPayload {
+    public static final Type<RequestRaceAbilityReleasePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "request_race_ability_release"));
+    public static final StreamCodec<FriendlyByteBuf, RequestRaceAbilityReleasePacket> STREAM_CODEC = CustomPacketPayload.codec(RequestRaceAbilityReleasePacket::encode, RequestRaceAbilityReleasePacket::new);
 
-    public RequestRaceAbilityActivationPacket(FriendlyByteBuf buf) {
-        this();
+    public RequestRaceAbilityReleasePacket(FriendlyByteBuf buf) {
+        this(buf.readInt());
     }
 
     public void encode(FriendlyByteBuf buf) {
+        buf.writeInt(this.heldTick);
     }
 
     public void handle(NetworkManager.PacketContext context) {
@@ -45,17 +47,16 @@ public record RequestRaceAbilityActivationPacket() implements CustomPacketPayloa
             if (optional.isEmpty()) return;
 
             ManasRaceInstance instance = optional.get();
-            if (RaceEvents.ACTIVATE_ABILITY.invoker().activateAbility(instance, player).isFalse()) return;
-            if (!instance.canActivateAbility(player)) return;
-            if (instance.isOnCooldown()) return;
-
-            instance.onActivateAbility(player);
-            RaceStorage.tickingRaces.put(player.getUUID(), new TickingRace());
-            storage.markDirty();
+            if (RaceEvents.RELEASE_ABILITY.invoker().releaseAbility(instance, player, heldTick).isFalse()) return;
+            if (instance.canActivateAbility(player) && !instance.isOnCooldown()) {
+                instance.onReleaseAbility(player, heldTick);
+                storage.markDirty();
+            }
+            RaceStorage.tickingRaces.removeAll(player.getUUID());
         });
     }
 
-    public @NotNull Type<RequestRaceAbilityActivationPacket> type() {
+    public @NotNull Type<RequestRaceAbilityReleasePacket> type() {
         return TYPE;
     }
 }

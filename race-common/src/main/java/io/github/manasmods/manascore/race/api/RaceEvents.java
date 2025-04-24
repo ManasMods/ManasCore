@@ -15,8 +15,10 @@ import net.minecraft.world.entity.LivingEntity;
 public interface RaceEvents {
     Event<SetRaceEvent> SET_RACE = EventFactory.createEventResult();
     Event<RaceTickEvent> RACE_PRE_TICK = EventFactory.createEventResult();
+    Event<RaceUpdateCooldownEvent> RACE_UPDATE_COOLDOWN = EventFactory.createEventResult();
     Event<RacePostTickEvent> RACE_POST_TICK = EventFactory.createLoop();
     Event<RaceAbilityActivationEvent> ACTIVATE_ABILITY = EventFactory.createEventResult();
+    Event<RaceAbilityReleaseEvent> RELEASE_ABILITY = EventFactory.createEventResult();
 
     @FunctionalInterface
     interface SetRaceEvent {
@@ -34,7 +36,17 @@ public interface RaceEvents {
     }
 
     @FunctionalInterface
+    interface RaceUpdateCooldownEvent {
+        EventResult cooldown(ManasRaceInstance instance, LivingEntity owner, int currentCooldown);
+    }
+
+    @FunctionalInterface
     interface RaceAbilityActivationEvent {
         EventResult activateAbility(ManasRaceInstance instance, LivingEntity owner);
+    }
+
+    @FunctionalInterface
+    interface RaceAbilityReleaseEvent {
+        EventResult releaseAbility(ManasRaceInstance instance, LivingEntity owner, int heldTicks);
     }
 }

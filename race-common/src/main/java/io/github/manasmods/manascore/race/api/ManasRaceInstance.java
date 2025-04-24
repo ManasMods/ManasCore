@@ -35,6 +35,7 @@ import java.util.Objects;
 public class ManasRaceInstance {
     @Nullable
     private CompoundTag tag = null;
+    private int cooldown = 0;
     @Getter
     private boolean dirty = false;
     protected final RegistrySupplier<ManasRace> raceRegistryObject;
@@ -90,6 +91,7 @@ public class ManasRaceInstance {
      */
     public CompoundTag serialize(CompoundTag nbt) {
         if (this.tag != null) nbt.put("tag", this.tag.copy());
+        nbt.putInt("cooldown", this.cooldown);
         return nbt;
     }
 
@@ -98,6 +100,7 @@ public class ManasRaceInstance {
      */
     public void deserialize(CompoundTag tag) {
         if (tag.contains("tag", 10)) this.tag = tag.getCompound("tag");
+        this.cooldown = tag.getInt("cooldown");
     }
 
     /**
@@ -176,6 +179,14 @@ public class ManasRaceInstance {
     }
 
     /**
+     * @return the maximum number of ticks that this race's ability can be held down with the activation button.
+     * </p>
+     */
+    public int getMaxHeldTime(LivingEntity entity) {
+        return this.getRace().getMaxHeldTime(this, entity);
+    }
+
+    /**
      * Determine if this instance's {@link ManasRaceInstance#onTick} can be executed.
      *
      * @param entity Affected {@link LivingEntity} being this Race.
@@ -215,6 +226,28 @@ public class ManasRaceInstance {
     }
 
     /**
+     * @return if this race's ability is on cooldown.
+     */
+    public boolean isOnCooldown() {
+        return this.cooldown > 0;
+    }
+
+    /**
+     * @return the cooldown of this race's ability.
+     */
+    public int getCooldown() {
+        return this.cooldown;
+    }
+
+    /**
+     * Set the cooldown of this race's ability.
+     */
+    public void setCooldown(int cooldown) {
+        this.cooldown = cooldown;
+        markDirty();
+    }
+
+    /**
      * Applies the attribute modifiers of this instance on the {@link LivingEntity} when set.
      *
      * @param entity   Affected {@link LivingEntity} being thisRace.
@@ -248,6 +281,25 @@ public class ManasRaceInstance {
      */
     public void onActivateAbility(LivingEntity entity) {
         this.getRace().onActivateAbility(this, entity);
+    }
+
+    /**
+     * Called when the {@link LivingEntity} holds this Race's ability activation button.
+     *
+     * @param entity Affected {@link LivingEntity} being this Race.
+     * @return true to continue ticking this Skill.
+     */
+    public boolean onHeldAbility(LivingEntity entity, int heldTicks) {
+        return this.getRace().onHeldAbility(this, entity, heldTicks);
+    }
+
+    /**
+     * Called when the {@link LivingEntity} releases this Race's ability activation button after {@param heldTicks}.
+     *
+     * @param entity Affected {@link LivingEntity} being this Race.
+     */
+    public void onReleaseAbility(LivingEntity entity, int heldTicks) {
+        this.getRace().onReleaseAbility(this, entity, heldTicks);
     }
 
     /**

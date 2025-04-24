@@ -9,6 +9,7 @@ import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.ChatEvent;
 import dev.architectury.event.events.common.EntityEvent;
 import dev.architectury.event.events.common.PlayerEvent;
+import io.github.manasmods.manascore.attribute.api.AttributeEvents;
 import io.github.manasmods.manascore.skill.ManasCoreSkill;
 import io.github.manasmods.manascore.skill.api.SkillEvents;
 import io.github.manasmods.manascore.storage.api.Storage;
@@ -20,7 +21,9 @@ import io.github.manasmods.manascore.testing.configs.TestConfig;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
 
@@ -79,6 +82,16 @@ public class StorageModuleTest {
         });
         SkillEvents.RELEASE_SKILL.register((skillInstance, owner, keyNumber, mode, heldTicks) -> {
             ManasCoreSkill.LOG.info(String.valueOf(owner.position()));
+            return EventResult.pass();
+        });
+
+        AttributeEvents.START_GLIDE_EVENT.register((entity, glide) -> {
+            if (entity.getItemBySlot(EquipmentSlot.HEAD).is(Items.PIGLIN_HEAD)) glide.set(true);
+            if (entity.getItemBySlot(EquipmentSlot.CHEST).is(Items.NETHERITE_CHESTPLATE)) glide.set(false);
+            return EventResult.pass();
+        });
+        AttributeEvents.CONTINUE_GLIDE_EVENT.register((entity, glide) -> {
+            if (entity.isShiftKeyDown()) glide.set(false);
             return EventResult.pass();
         });
     }

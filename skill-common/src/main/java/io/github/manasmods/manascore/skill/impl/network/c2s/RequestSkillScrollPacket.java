@@ -60,6 +60,7 @@ public record RequestSkillScrollPacket(
 
                     ManasSkillInstance skill = skillChangeable.get();
                     if (skill == null || deltaChangeable.isEmpty()) return;
+                    if (!skill.canScroll(player)) return;
                     if (!skill.canInteractSkill(player)) return;
 
                     skill.onScroll(player, deltaChangeable.get(), 0);

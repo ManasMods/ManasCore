@@ -57,6 +57,18 @@ public class RaceAPI {
     }
 
     /**
+     * Send {@link InternalRacePacketActions#sendRaceAbilityReleasePacket} with a DistExecutor on client side.
+     * Used when player releases the Race Ability.
+     *
+     * @see InternalRacePacketActions#sendRaceAbilityReleasePacket
+     */
+    public static void raceAbilityReleasePacket(int heldTick) {
+        if (Platform.getEnvironment() == Env.CLIENT) {
+            InternalRacePacketActions.sendRaceAbilityReleasePacket(heldTick);
+        }
+    }
+
+    /**
      * Send {@link InternalRacePacketActions#sendRaceEvolutionPacket} with a DistExecutor on client side.
      * Used when player evolves into a race.
      *

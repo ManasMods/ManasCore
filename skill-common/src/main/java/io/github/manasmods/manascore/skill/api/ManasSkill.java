@@ -177,6 +177,17 @@ public class ManasSkill {
     }
 
     /**
+     * Determine if this skill's {@link ManasSkill#onScroll} can be executed.
+     *
+     * @param instance Affected {@link ManasSkillInstance}
+     * @param entity   Affected {@link LivingEntity} owning this Skill.
+     * @return false if this skill cannot be scrolled.
+     */
+    public boolean canScroll(ManasSkillInstance instance, LivingEntity entity) {
+        return false;
+    }
+
+    /**
      * @return the number of modes that this skill can have.
      */
     public int getModes() {
@@ -483,6 +494,10 @@ public class ManasSkill {
 
         public AttributeModifier create(double i) {
             return new AttributeModifier(this.id, this.amount * i, this.operation);
+        }
+
+        public AttributeModifier create(ResourceLocation location, double i) {
+            return new AttributeModifier(location, this.amount * i, this.operation);
         }
 
         public ResourceLocation id() {

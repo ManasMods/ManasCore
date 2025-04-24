@@ -8,6 +8,7 @@ package io.github.manasmods.manascore.race.impl.network;
 import dev.architectury.networking.NetworkManager;
 import io.github.manasmods.manascore.race.api.ManasRace;
 import io.github.manasmods.manascore.race.impl.network.c2s.RequestRaceAbilityActivationPacket;
+import io.github.manasmods.manascore.race.impl.network.c2s.RequestRaceAbilityReleasePacket;
 import io.github.manasmods.manascore.race.impl.network.c2s.RequestRaceEvolutionPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
@@ -26,6 +27,17 @@ public class InternalRacePacketActions {
         Player player = minecraft.player;
         if (player == null) return;
         NetworkManager.sendToServer(new RequestRaceAbilityActivationPacket());
+    }
+
+    /**
+     * This Method sends packet for the {@link ManasRace} Ability Release.
+     * Only executes on client using the dist executor.
+     */
+    public static void sendRaceAbilityReleasePacket(int heldTick) {
+        var minecraft = Minecraft.getInstance();
+        Player player = minecraft.player;
+        if (player == null) return;
+        NetworkManager.sendToServer(new RequestRaceAbilityReleasePacket(heldTick));
     }
 
     /**

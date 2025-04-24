@@ -57,6 +57,10 @@ public class TestSkill extends ManasSkill {
         return instance.isToggled();
     }
 
+    public boolean canScroll(ManasSkillInstance instance, LivingEntity entity) {
+        return entity.isShiftKeyDown();
+    }
+
     public boolean canIgnoreCoolDown(ManasSkillInstance instance, LivingEntity entity, int mode) {
         return mode == 1 && entity.isShiftKeyDown();
     }
