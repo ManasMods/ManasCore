@@ -6,9 +6,9 @@
 package io.github.manasmods.manascore.skill.api;
 
 import dev.architectury.event.Event;
+import io.github.manasmods.manascore.network.api.util.Changeable;
 import io.github.manasmods.manascore.skill.ModuleConstants;
 import io.github.manasmods.manascore.skill.impl.SkillStorage;
-import io.github.manasmods.manascore.network.api.util.Changeable;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
@@ -90,6 +90,7 @@ public class ManasSkill {
         if (withDescription) {
             MutableComponent hoverMessage = this.getName().append("\n");
             hoverMessage.append(this.getSkillDescription().withStyle(ChatFormatting.GRAY));
+            hoverMessage.append("\n").append(Component.literal(SkillAPI.getSkillRegistry().getId(this).toString()).withStyle(ChatFormatting.DARK_GRAY));
             style = style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverMessage));
         }
 

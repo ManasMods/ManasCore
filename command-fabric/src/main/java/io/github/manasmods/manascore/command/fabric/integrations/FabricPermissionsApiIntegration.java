@@ -12,5 +12,5 @@ import net.minecraft.commands.CommandSourceStack;
 import java.util.function.BiFunction;
 
 public class FabricPermissionsApiIntegration {
-    public static BiFunction<CommandSourceStack, Permission, Boolean> PERMISSION_CHECK = (commandSourceStack, permission) -> Permissions.check(commandSourceStack, permission.value());
+    public static BiFunction<CommandSourceStack, Permission, Boolean> PERMISSION_CHECK = (commandSourceStack, permission) -> Permissions.check(commandSourceStack, permission.value(), permission.permissionLevel().getLevel());
 }

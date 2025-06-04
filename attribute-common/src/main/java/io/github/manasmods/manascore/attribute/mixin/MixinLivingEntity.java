@@ -29,7 +29,7 @@ public abstract class MixinLivingEntity extends Entity {
             target = "net/minecraft/world/entity/LivingEntity.setSharedFlag(IZ)V"))
     private boolean updateFallFlying(boolean value) {
         LivingEntity glider = (LivingEntity) (Object) this;
-        Changeable<Boolean> glide = Changeable.of(ManasCoreAttributeUtils.canElytraGlide(glider, this.getSharedFlag(7)));
+        Changeable<Boolean> glide = Changeable.of(value || ManasCoreAttributeUtils.canElytraGlide(glider, this.getSharedFlag(7)));
         if (AttributeEvents.CONTINUE_GLIDE_EVENT.invoker().glide(glider, glide).isFalse()) return false;
         return glide.get();
     }
