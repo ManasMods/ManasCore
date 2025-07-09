@@ -108,7 +108,10 @@ public class RaceStorage extends Storage implements Races {
         LivingEntity owner = this.getOwner();
         if (instance != null && instance != race) {
             instance.removeAttributeModifiers(owner);
-            if (evolution) instance.onRaceEvolution(owner, race);
+            if (evolution) {
+                race.deserialize(instance.serialize(new CompoundTag()));
+                instance.onRaceEvolution(owner, race);
+            }
         }
 
         if (raceMessage.isPresent()) getOwner().sendSystemMessage(raceMessage.get());

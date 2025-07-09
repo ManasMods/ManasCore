@@ -9,9 +9,14 @@ import com.mojang.datafixers.util.Pair;
 import dev.architectury.registry.registries.RegistrySupplier;
 import io.github.manasmods.manascore.skill.api.ManasSkill;
 import io.github.manasmods.manascore.network.api.util.Changeable;
+import io.github.manasmods.manascore.skill.api.SkillAPI;
+import io.github.manasmods.manascore.storage.api.Storage;
+import io.github.manasmods.manascore.storage.impl.StorageManager;
 import lombok.Getter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
@@ -29,13 +34,18 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import static io.github.manasmods.manascore.storage.ManasCoreStorage.LOG;
 
 public class ManasRaceInstance {
     @Nullable
     private CompoundTag tag = null;
     private int cooldown = 0;
+    @Getter
+    private final List<ManasSkill> obtainedIntrinsicSkills = new ArrayList<>();
     @Getter
     private boolean dirty = false;
     protected final RegistrySupplier<ManasRace> raceRegistryObject;
@@ -80,7 +90,7 @@ public class ManasRaceInstance {
     public final CompoundTag toNBT() {
         CompoundTag nbt = new CompoundTag();
         nbt.putString("race", this.getRaceId().toString());
-        serialize(nbt);
+        this.serialize(nbt);
         return nbt;
     }
 
@@ -92,6 +102,14 @@ public class ManasRaceInstance {
     public CompoundTag serialize(CompoundTag nbt) {
         if (this.tag != null) nbt.put("tag", this.tag.copy());
         nbt.putInt("cooldown", this.cooldown);
+        ListTag listTag = new ListTag();
+        for (ManasSkill skill : this.obtainedIntrinsicSkills) {
+            if (skill.getRegistryName() == null) continue;
+            CompoundTag tag = new CompoundTag();
+            tag.putString("skill", skill.getRegistryName().toString());
+            listTag.add(tag);
+        }
+        nbt.put("intrinsicSkills", listTag);
         return nbt;
     }
 
@@ -101,6 +119,15 @@ public class ManasRaceInstance {
     public void deserialize(CompoundTag tag) {
         if (tag.contains("tag", 10)) this.tag = tag.getCompound("tag");
         this.cooldown = tag.getInt("cooldown");
+
+        this.obtainedIntrinsicSkills.clear();
+        ListTag listTag = tag.getList("intrinsicSkills", Tag.TAG_COMPOUND);
+        listTag.forEach(t -> {
+            CompoundTag entryTag = (CompoundTag) t;
+            ManasSkill skill = SkillAPI.getSkillRegistry().get(ResourceLocation.tryParse(entryTag.getString("skill")));
+            if (skill == null) return;
+            this.obtainedIntrinsicSkills.add(skill);
+        });
     }
 
     /**
@@ -245,6 +272,27 @@ public class ManasRaceInstance {
     public void setCooldown(int cooldown) {
         this.cooldown = cooldown;
         markDirty();
+    }
+
+    /**
+     * Set an intrinsic skill as obtained.
+     */
+    public boolean addIntrinsicSkill(ManasSkill skill) {
+        return this.obtainedIntrinsicSkills.add(skill);
+    }
+
+    /**
+     * Set an intrinsic skill as unobtained.
+     */
+    public boolean removeIntrinsicSkill(ManasSkill skill) {
+        return this.obtainedIntrinsicSkills.remove(skill);
+    }
+
+    /**
+     * Set all intrinsic skills as unobtained.
+     */
+    public void clearsIntrinsicSkills() {
+        this.obtainedIntrinsicSkills.clear();
     }
 
     /**

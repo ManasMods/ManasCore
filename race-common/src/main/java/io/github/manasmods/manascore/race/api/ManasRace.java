@@ -59,6 +59,7 @@ import java.util.Objects;
 public class ManasRace {
     @Getter
     private final Difficulty difficulty;
+    @Getter
     protected final Map<Holder<Attribute>, AttributeTemplate> attributeModifiers = new Object2ObjectOpenHashMap<>();
     public ManasRace(Difficulty difficulty) {
         this.difficulty = difficulty;
@@ -341,7 +342,7 @@ public class ManasRace {
     public void learnIntrinsicSkills(ManasRaceInstance instance, LivingEntity entity) {
         Skills storage = SkillAPI.getSkillsFrom(entity);
         for (ManasSkill skill : instance.getIntrinsicSkills(entity)) {
-            storage.learnSkill(skill);
+            if (storage.learnSkill(skill)) instance.addIntrinsicSkill(skill);
         }
     }
 
