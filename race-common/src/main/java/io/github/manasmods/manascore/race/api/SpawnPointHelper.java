@@ -63,7 +63,7 @@ public class SpawnPointHelper {
      * Can be used to teleport {@link Entity} to a new valid spawn location among dimensions.
      */
     public static void teleportToNewSpawn(Entity entity, ResourceKey<Level> dimension, BlockState platformMaterial) {
-        Tuple<ServerLevel, Vec3> spawn = getSpawn(entity, dimension, platformMaterial);
+        Tuple<ServerLevel, Vec3> spawn = getSpawn(entity.level(), dimension, platformMaterial);
         if (spawn == null) return;
         Vec3 pos = spawn.getB();
         teleportToAcrossDimensions(entity, spawn.getA(), pos.x, pos.y, pos.z, entity.getXRot(), entity.getYRot());
@@ -79,39 +79,43 @@ public class SpawnPointHelper {
     }
 
     @Nullable
-    public static Tuple<ServerLevel, Vec3> getSpawn(Entity entity, ResourceKey<Level> dimension, BlockState platformMaterial) {
-        MinecraftServer server = entity.getServer();
+    public static Tuple<ServerLevel, Vec3> getSpawn(Level level, ResourceKey<Level> dimension, BlockState platformMaterial) {
+        MinecraftServer server = level.getServer();
         if (server == null) return null;
 
-        ServerLevel level = server.getLevel(dimension);
-        if (level == null) {
+        ServerLevel destination = server.getLevel(dimension);
+        if (destination == null) {
             ManasCoreRace.LOG.warn("Could not find dimension \"{}\".", dimension.toString());
             return null;
         }
 
         BlockPos defaultSpawn = dimension == Level.END ? ServerLevel.END_SPAWN_POINT : Objects.requireNonNull(server.getLevel(Level.OVERWORLD)).getSharedSpawnPos();
-        Vec3 validSpawn = getValidSpawn(defaultSpawn, 200, level);
+        return getSpawn(destination, defaultSpawn, platformMaterial, 200, 100);
+    }
 
+    @Nullable
+    public static Tuple<ServerLevel, Vec3> getSpawn(ServerLevel destination, BlockPos basePos, BlockState platformMaterial, int searchRange, int secondRange) {
+        Vec3 validSpawn = getValidSpawn(basePos, searchRange, destination);
         if (validSpawn != null) {
             ChunkPos chunkPos = new ChunkPos(SectionPos.blockToSectionCoord(validSpawn.x), SectionPos.blockToSectionCoord(validSpawn.z));
-            level.getChunkSource().addRegionTicket(TicketType.START, chunkPos, 11, Unit.INSTANCE);
-            return new Tuple<>(level, validSpawn);
+            destination.getChunkSource().addRegionTicket(TicketType.START, chunkPos, 11, Unit.INSTANCE);
+            return new Tuple<>(destination, validSpawn);
         }
 
         if (platformMaterial.isAir()) return null;
-        createSafePlatform(level, BlockPos.containing(defaultSpawn.getBottomCenter()).below(), platformMaterial, true);
-        Vec3 secondSpawn = getValidSpawn(defaultSpawn, 100, level);
+        createSafePlatform(destination, BlockPos.containing(basePos.getBottomCenter()).below(), platformMaterial, true);
+        Vec3 secondSpawn = getValidSpawn(basePos, searchRange, destination);
 
         if (secondSpawn != null) {
             ChunkPos chunkPos = new ChunkPos(SectionPos.blockToSectionCoord(secondSpawn.x), SectionPos.blockToSectionCoord(secondSpawn.z));
-            level.getChunkSource().addRegionTicket(TicketType.START, chunkPos, 11, Unit.INSTANCE);
-            return new Tuple<>(level, secondSpawn);
+            destination.getChunkSource().addRegionTicket(TicketType.START, chunkPos, 11, Unit.INSTANCE);
+            return new Tuple<>(destination, secondSpawn);
         }
         return null;
     }
 
     @Nullable
-    private static Vec3 getValidSpawn(BlockPos startPos, int range, ServerLevel world) {
+    public static Vec3 getValidSpawn(BlockPos startPos, int range, ServerLevel world) {
         //Force load the chunk in which we are working.
         //This method will generate the chunk if it needs to.
         world.getChunk(startPos.getX() >> 4, startPos.getZ() >> 4, ChunkStatus.FULL, true);
