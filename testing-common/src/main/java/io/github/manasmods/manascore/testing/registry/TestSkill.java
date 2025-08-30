@@ -41,7 +41,7 @@ public class TestSkill extends ManasSkill {
         this.addHeldAttributeModifier(Attributes.MOVEMENT_SPEED, "test_speed", -0.95, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
     }
 
-    public int getModes() {
+    public int getModes(ManasSkillInstance instance) {
         return 2;
     }
 

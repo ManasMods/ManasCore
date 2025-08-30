@@ -184,14 +184,14 @@ public class ManasSkill {
      * @param entity   Affected {@link LivingEntity} owning this Skill.
      * @return false if this skill cannot be scrolled.
      */
-    public boolean canScroll(ManasSkillInstance instance, LivingEntity entity) {
+    public boolean canScroll(ManasSkillInstance instance, LivingEntity entity, int mode) {
         return false;
     }
 
     /**
      * @return the number of modes that this skill can have.
      */
-    public int getModes() {
+    public int getModes(ManasSkillInstance instance) {
         return 1;
     }
 

@@ -42,7 +42,7 @@ public class ManasSkillInstance {
 
     protected ManasSkillInstance(ManasSkill skill) {
         this.skillRegistryObject = SkillAPI.getSkillRegistry().delegate(SkillAPI.getSkillRegistry().getId(skill));
-        cooldownList = NonNullList.withSize(skill.getModes(), 0);
+        this.cooldownList = NonNullList.withSize(this.getModes(), 0);
     }
 
     /**
@@ -205,15 +205,15 @@ public class ManasSkillInstance {
      * @param entity Affected {@link LivingEntity} owning this Skill.
      * @return false if this skill cannot be scrolled.
      */
-    public boolean canScroll(LivingEntity entity) {
-        return this.getSkill().canScroll(this, entity);
+    public boolean canScroll(LivingEntity entity, int mode) {
+        return this.getSkill().canScroll(this, entity, mode);
     }
 
     /**
      * @return the number of modes that this skill instance has.
      */
     public int getModes() {
-        return this.getSkill().getModes();
+        return this.getSkill().getModes(this);
     }
 
     /**

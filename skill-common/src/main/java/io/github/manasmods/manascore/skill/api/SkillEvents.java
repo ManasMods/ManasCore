@@ -56,12 +56,12 @@ public interface SkillEvents {
 
     @FunctionalInterface
     interface SkillScrollEvent {
-        EventResult scroll(Changeable<ManasSkillInstance> skillInstance, LivingEntity owner, Changeable<Double> delta);
+        EventResult scroll(Changeable<ManasSkillInstance> skillInstance, LivingEntity owner, Changeable<Integer> mode, Changeable<Double> delta);
     }
 
     @FunctionalInterface
     interface SkillScrollClientEvent {
-        EventResult scroll(ManasSkillInstance skillInstance, LivingEntity owner, double delta);
+        EventResult scroll(ManasSkillInstance skillInstance, LivingEntity owner, Changeable<Integer> mode, double delta);
     }
 
     @FunctionalInterface

@@ -8,6 +8,7 @@ package io.github.manasmods.manascore.skill;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.ClientRawInputEvent;
 import dev.architectury.networking.NetworkManager;
+import io.github.manasmods.manascore.network.api.util.Changeable;
 import io.github.manasmods.manascore.skill.api.ManasSkillInstance;
 import io.github.manasmods.manascore.skill.api.SkillAPI;
 import io.github.manasmods.manascore.skill.api.SkillEvents;
@@ -15,8 +16,8 @@ import io.github.manasmods.manascore.skill.impl.network.c2s.RequestSkillScrollPa
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ManasCoreSkillClient {
     public static void init() {
@@ -24,11 +25,12 @@ public class ManasCoreSkillClient {
             Player player = client.player;
             if (player == null) return EventResult.pass();
 
-            List<ResourceLocation> packetSkills = new ArrayList<>();
+            Map<ResourceLocation, Integer> packetSkills = new HashMap<>();
             for (ManasSkillInstance skillInstance : SkillAPI.getSkillsFrom(player).getLearnedSkills()) {
-                if (SkillEvents.SKILL_SCROLL_CLIENT.invoker().scroll(skillInstance, player, amountY).isFalse()) continue;
-                if (!skillInstance.canScroll(player)) continue;
-                packetSkills.add(skillInstance.getSkillId());
+                Changeable<Integer> mode = Changeable.of(0);
+                if (SkillEvents.SKILL_SCROLL_CLIENT.invoker().scroll(skillInstance, player, mode, amountY).isFalse()) continue;
+                if (!skillInstance.canScroll(player, mode.get())) continue;
+                packetSkills.put(skillInstance.getSkillId(), mode.get());
             }
 
             if (!packetSkills.isEmpty()) {
