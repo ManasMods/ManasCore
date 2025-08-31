@@ -138,7 +138,6 @@ public class RaceStorage extends Storage implements Races {
     public void load(CompoundTag data) {
         if (!data.contains(RACE_KEY)) return;
         this.raceInstance = ManasRaceInstance.fromNBT(data.getCompound(RACE_KEY));
-        this.raceInstance.addAttributeModifiers(this.getOwner());
     }
 
     protected LivingEntity getOwner() {
