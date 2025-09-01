@@ -126,7 +126,9 @@ public class RegistryTest {
         SKILLS.register();
         RACES.register();
 
-        EntityAttributeRegistry.register(TEST_ENTITY_TYPE, Villager::createAttributes);
+        EntityAttributeRegistry.register(TEST_ENTITY_TYPE, () -> Mob.createMobAttributes()
+                .add(Attributes.MOVEMENT_SPEED, 0.5).add(Attributes.FOLLOW_RANGE, 48.0)
+                .add(TestAttributeRegistry.TEST_ATTRIBUTE_ALL, 100F));
 
         PlayerEvent.DROP_ITEM.register((player, entity) -> {
             //Test giving Skills

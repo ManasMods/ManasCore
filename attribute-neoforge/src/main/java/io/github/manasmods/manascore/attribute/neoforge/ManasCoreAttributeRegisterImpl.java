@@ -47,8 +47,12 @@ public class ManasCoreAttributeRegisterImpl {
 
     static void registerAttributes(final EntityAttributeModificationEvent e) {
         e.getTypes().forEach(type -> {
-            if (type.equals(EntityType.PLAYER)) PLAYER_REGISTRY.forEach(holder -> e.add(type, holder));
-            GENERIC_REGISTRY.forEach(holder -> e.add(type, holder));
+            if (type.equals(EntityType.PLAYER)) PLAYER_REGISTRY.forEach(holder -> {
+                if (!e.has(type, holder)) e.add(type, holder);
+            });
+            GENERIC_REGISTRY.forEach(holder -> {
+                if (!e.has(type, holder)) e.add(type, holder);
+            });
         });
 
         // Clear the registry

@@ -13,13 +13,11 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
-import net.minecraft.world.entity.ai.attributes.RangedAttribute;
+import net.minecraft.world.entity.ai.attributes.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ManasCoreAttributeRegisterImpl {
@@ -62,13 +60,16 @@ public class ManasCoreAttributeRegisterImpl {
                     .forEach(entityType -> {
                         if (entityType == null) return;
 
+                        Map<Holder<Attribute>, AttributeInstance> map = DefaultAttributes.getSupplier(entityType).instances;
                         AttributeSupplier.Builder builder = new AttributeSupplier.Builder();
-                        DefaultAttributes.getSupplier(entityType).instances.forEach((attribute, attributeInstance) -> {
-                            builder.add(attribute, attributeInstance.getBaseValue());
-                        });
+                        map.forEach((attribute, attributeInstance) -> builder.add(attribute, attributeInstance.getBaseValue()));
 
-                        GENERIC_REGISTRY.forEach(builder::add);
-                        if (entityType.equals(EntityType.PLAYER)) PLAYER_REGISTRY.forEach(builder::add);
+                        GENERIC_REGISTRY.forEach(holder -> {
+                            if (!map.containsKey(holder)) builder.add(holder);
+                        });
+                        if (entityType.equals(EntityType.PLAYER)) PLAYER_REGISTRY.forEach(holder -> {
+                            if (!map.containsKey(holder)) builder.add(holder);
+                        });
                         FabricDefaultAttributeRegistry.register(entityType, builder);
                     });
         });
