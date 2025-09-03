@@ -10,6 +10,7 @@ import io.github.manasmods.manascore.network.api.util.Changeable;
 import io.github.manasmods.manascore.skill.api.EntityEvents;
 import io.github.manasmods.manascore.skill.api.ManasSkill;
 import io.github.manasmods.manascore.skill.api.ManasSkillInstance;
+import io.github.manasmods.manascore.skill.api.SkillAPI;
 import io.github.manasmods.manascore.testing.ManasCoreTesting;
 import io.github.manasmods.manascore.testing.configs.SkillConfig;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,6 +25,7 @@ import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.animal.Pig;
 import net.minecraft.world.entity.animal.axolotl.Axolotl;
 import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.entity.monster.Slime;
 import net.minecraft.world.entity.monster.Spider;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
@@ -167,6 +169,10 @@ public class TestSkill extends ManasSkill {
         if (owner.isShiftKeyDown()) {
             owner.heal(amount.get());
             ManasCoreTesting.LOG.info("Healed {} by {} health", owner.getName().getString(), amount.get());
+        }
+
+        if (source.getEntity() instanceof Slime) {
+            SkillAPI.getSkillsFrom(owner).learnSkill(RegistryTest.TEST_SKILL_2.get());
         }
         return true;
     }

@@ -241,6 +241,10 @@ public class ManasSkillInstance {
         this.getSkill().addMasteryPoint(this, entity);
     }
 
+    public void addMasteryPoint(LivingEntity entity, double point) {
+        this.getSkill().addMasteryPoint(this, entity, point);
+    }
+
     /**
      * @return the mastery point of the {@link ManasSkill} type of this instance.
      */

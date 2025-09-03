@@ -6,6 +6,7 @@
 package io.github.manasmods.manascore.skill.api;
 
 import dev.architectury.event.Event;
+import dev.architectury.event.EventResult;
 import io.github.manasmods.manascore.network.api.util.Changeable;
 import io.github.manasmods.manascore.skill.ModuleConstants;
 import io.github.manasmods.manascore.skill.impl.SkillStorage;
@@ -220,9 +221,16 @@ public class ManasSkill {
      * @param entity   Affected {@link LivingEntity} owning this Skill.
      */
     public void addMasteryPoint(ManasSkillInstance instance, LivingEntity entity) {
-        if (isMastered(instance, entity)) return;
-        instance.setMastery(instance.getMastery() + 1);
-        if (isMastered(instance, entity)) instance.onSkillMastered(entity);
+        this.addMasteryPoint(instance, entity, 1);
+    }
+
+    public void addMasteryPoint(ManasSkillInstance instance, LivingEntity entity, double point) {
+        if (this.isMastered(instance, entity)) return;
+        Changeable<Double> newMastery = Changeable.of(Math.min(instance.getMastery() + point, this.getMaxMastery()));
+        EventResult result = SkillEvents.SKILL_MASTERY.invoker().master(instance, entity, newMastery);
+        if (result.isFalse()) return;
+        instance.setMastery(newMastery.get());
+        if (this.isMastered(instance, entity)) instance.onSkillMastered(entity);
     }
 
     /**

@@ -5,7 +5,9 @@
   "minVersion": "0.8",
   "client": [
   ],
-  "mixins": [],
+  "mixins": [
+    "MixinServerPlayer"
+  ],
   "injectors": {
     "defaultRequire": 1
   }

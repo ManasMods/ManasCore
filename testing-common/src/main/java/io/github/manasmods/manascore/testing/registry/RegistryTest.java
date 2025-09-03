@@ -109,6 +109,7 @@ public class RegistryTest {
 
     public static final DeferredRegister<ManasSkill> SKILLS = DeferredRegister.create(ModuleConstants.MOD_ID, SkillAPI.getSkillRegistryKey());
     public static final RegistrySupplier<TestSkill> TEST_SKILL = SKILLS.register("test_skill", TestSkill::new);
+    public static final RegistrySupplier<TestSkill> TEST_SKILL_2 = SKILLS.register("test_skill_2", TestSkill::new);
 
     public static final DeferredRegister<ManasRace> RACES = DeferredRegister.create(ModuleConstants.MOD_ID, RaceRegistry.KEY);
     public static final RegistrySupplier<TestRace> TEST_RACE = RACES.register("test_race", TestRace::new);

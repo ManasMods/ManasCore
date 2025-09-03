@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 
 @Log4j2
@@ -147,7 +148,7 @@ public class SkillStorage  extends Storage implements Skills {
         });
     }
 
-    private final Map<ResourceLocation, ManasSkillInstance> skillInstances = new HashMap<>();
+    private final Map<ResourceLocation, ManasSkillInstance> skillInstances = new ConcurrentHashMap<>();
     private boolean hasRemovedSkills = false;
 
     protected SkillStorage(LivingEntity holder) {

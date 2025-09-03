@@ -24,6 +24,7 @@ public interface SkillEvents {
     Event<SkillTickEvent> SKILL_PRE_TICK = EventFactory.createEventResult();
     Event<SkillPostTickEvent> SKILL_POST_TICK = EventFactory.createLoop();
     Event<SkillUpdateCooldownEvent> SKILL_UPDATE_COOLDOWN = EventFactory.createEventResult();
+    Event<SkillMasteryEvent> SKILL_MASTERY = EventFactory.createEventResult();
     Event<SkillDamageCalculationEvent> SKILL_DAMAGE_PRE_CALCULATION = EventFactory.createEventResult();
     Event<SkillDamageCalculationEvent> SKILL_DAMAGE_CALCULATION = EventFactory.createEventResult();
     Event<SkillDamageCalculationEvent> SKILL_DAMAGE_POST_CALCULATION = EventFactory.createEventResult();
@@ -77,6 +78,11 @@ public interface SkillEvents {
     @FunctionalInterface
     interface SkillUpdateCooldownEvent {
         EventResult cooldown(ManasSkillInstance skillInstance, LivingEntity owner, int currentCooldown, int mode);
+    }
+
+    @FunctionalInterface
+    interface SkillMasteryEvent {
+        EventResult master(ManasSkillInstance instance, LivingEntity owner, Changeable<Double> newMastery);
     }
 
     @FunctionalInterface
