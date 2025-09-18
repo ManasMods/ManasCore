@@ -24,12 +24,13 @@ import net.minecraft.world.phys.EntityHitResult;
 
 public class SkillRegistry {
     private static final ResourceLocation registryId = ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "skills");
-    public static final Registrar<ManasSkill> SKILLS = RegistrarManager.get(ModuleConstants.MOD_ID).<ManasSkill>builder(registryId)
-            .syncToClients()
-            .build();
-    public static final ResourceKey<Registry<ManasSkill>> KEY = (ResourceKey<Registry<ManasSkill>>) SKILLS.key();
+    public static Registrar<ManasSkill> SKILLS;
+    public static ResourceKey<Registry<ManasSkill>> KEY;
 
     public static void init() {
+        SKILLS = RegistrarManager.get(ModuleConstants.MOD_ID).<ManasSkill>builder(registryId).syncToClients().build();
+        KEY = (ResourceKey<Registry<ManasSkill>>) SKILLS.key();
+
         EntityEvents.LIVING_EFFECT_ADDED.register((entity, source, changeableTarget) -> {
             for (ManasSkillInstance instance : SkillAPI.getSkillsFrom(entity).getLearnedSkills()) {
                 if (!instance.canInteractSkill(entity)) continue;

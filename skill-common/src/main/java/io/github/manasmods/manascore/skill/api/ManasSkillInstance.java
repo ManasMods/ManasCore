@@ -34,6 +34,9 @@ public class ManasSkillInstance {
     private double masteryPoint = 0;
     private boolean toggled = false;
     private List<Integer> cooldownList;
+    private Map<ManasSkill, ManasSkillInstance> subInstances;
+    @Nullable
+    private ManasSkill parentSkill = null;
     @Nullable
     private CompoundTag tag = null;
     @Getter
@@ -42,6 +45,7 @@ public class ManasSkillInstance {
 
     protected ManasSkillInstance(ManasSkill skill) {
         this.skillRegistryObject = SkillAPI.getSkillRegistry().delegate(SkillAPI.getSkillRegistry().getId(skill));
+        this.subInstances = new HashMap<>();
         this.cooldownList = NonNullList.withSize(this.getModes(), 0);
     }
 
@@ -67,6 +71,8 @@ public class ManasSkillInstance {
         clone.masteryPoint = this.masteryPoint;
         clone.toggled = this.toggled;
         if (this.tag != null) clone.tag = this.tag.copy();
+        clone.subInstances = this.subInstances;
+        clone.parentSkill = this.parentSkill;
         return clone;
     }
 
@@ -92,7 +98,18 @@ public class ManasSkillInstance {
         nbt.putDouble("Mastery", this.masteryPoint);
         nbt.putBoolean("Toggled", this.toggled);
         nbt.putIntArray("CooldownList", this.cooldownList);
+
         if (this.tag != null) nbt.put("tag", this.tag.copy());
+        if (this.parentSkill != null && this.parentSkill.getRegistryName() != null)
+            nbt.putString("parentSkill", this.parentSkill.getRegistryName().toString());
+        else if (nbt.contains("parentSkill")) nbt.remove("parentSkill");
+
+        if (!this.subInstances.isEmpty()) {
+            CompoundTag subInstances = new CompoundTag();
+            for (Map.Entry<ManasSkill, ManasSkillInstance> instance : this.subInstances.entrySet())
+                subInstances.put(instance.getValue().getSkillId().toString(), instance.getValue().toNBT());
+            nbt.put("subInstances", subInstances);
+        }
         return nbt;
     }
 
@@ -104,7 +121,19 @@ public class ManasSkillInstance {
         this.masteryPoint = tag.getDouble("Mastery");
         this.toggled = tag.getBoolean("Toggled");
         this.cooldownList = Arrays.stream(tag.getIntArray("CooldownList")).boxed().collect(Collectors.toList());
+
         if (tag.contains("tag", 10)) this.tag = tag.getCompound("tag");
+        if (tag.contains("parentSkill"))
+            this.parentSkill = SkillAPI.getSkillRegistry().get(ResourceLocation.tryParse(tag.getString("parentSkill")));
+
+        if (tag.contains("subInstances")) {
+            this.subInstances.clear();
+            CompoundTag subInstances = tag.getCompound("subInstances");
+            subInstances.getAllKeys().forEach(s -> {
+                ManasSkillInstance skill = ManasSkillInstance.fromNBT(subInstances.getCompound(s));
+                this.subInstances.put(skill.getSkill(), skill);
+            });
+        }
     }
 
     /**
@@ -391,6 +420,41 @@ public class ManasSkillInstance {
     public void setTag(@Nullable CompoundTag tag) {
         this.tag = tag;
         markDirty();
+    }
+
+    /**
+     * @return the map of sub-instances of this instance.
+     */
+    public Map<ManasSkill, ManasSkillInstance> getSubInstances() {
+        return this.subInstances;
+    }
+
+    /**
+     * Add sub-instance to this instance.
+     */
+    public void addSubInstance(ManasSkillInstance instance) {
+        this.subInstances.put(instance.getSkill(), instance);
+    }
+
+    /**
+     * Remove sub-instance from this instance.
+     */
+    public void removeSubInstance(ManasSkill instance) {
+        this.subInstances.remove(instance);
+    }
+
+    /**
+     * @return the parent skill of this instance.
+     */
+    public ManasSkill getParentSkill() {
+        return this.parentSkill;
+    }
+
+    /**
+     * Set the parent skill of this instance.
+     */
+    public void setParentSkill(ManasSkill skill) {
+        this.parentSkill = skill;
     }
 
     /**

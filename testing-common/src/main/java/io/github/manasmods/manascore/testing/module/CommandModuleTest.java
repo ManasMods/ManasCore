@@ -81,11 +81,11 @@ public class CommandModuleTest {
 
         @Execute
         public boolean blockPosArg(@SenderArg CommandSourceStack sender, @LiteralArg("pos") String l,
-                                   @BlockPosArg BlockPos pos, @RotationArg Coordinates coordinates) {
+                                   @BlockPosArg BlockPos pos, @RotationArg("x") Coordinates xRot, @RotationArg("y") Coordinates yRot) {
             sender.sendSystemMessage(RESPONSE);
             if (sender.getPlayer() != null)
                 SpawnPointHelper.teleportToAcrossDimensions(sender.getPlayer(), Level.OVERWORLD,
-                        pos.getX(), pos.getY(), pos.getZ(), coordinates.getRotation(sender).x, coordinates.getRotation(sender).y);
+                        pos.getX(), pos.getY(), pos.getZ(), xRot.getRotation(sender).x, yRot.getRotation(sender).y);
             return true;
         }
 
@@ -112,13 +112,15 @@ public class CommandModuleTest {
 
         @Execute
         public boolean itemArg(@SenderArg CommandSourceStack sender, @LiteralArg("item") String l,
-                                      @ItemArg ItemInput itemInput,
-                                      @EnchantmentArg Holder.Reference<Enchantment> location) throws CommandSyntaxException {
+                               @ItemArg ItemInput itemInput, @ItemArg("item2") ItemInput itemInput2, @ItemArg("item3") ItemInput itemInput3,
+                               @EnchantmentArg Holder.Reference<Enchantment> location) throws CommandSyntaxException {
             sender.sendSystemMessage(RESPONSE);
             if (sender.getPlayer() != null) {
                 ItemStack stack = itemInput.createItemStack(5, false);
                 stack.enchant(location, 100);
                 sender.getPlayer().addItem(stack);
+                sender.getPlayer().addItem(itemInput2.createItemStack(4, false));
+                sender.getPlayer().addItem(itemInput3.createItemStack(3, false));
             }
             return true;
         }
@@ -130,8 +132,17 @@ public class CommandModuleTest {
         }
 
         @Execute
-        public boolean enumArg(@SenderArg CommandSourceStack sender, @LiteralArg("enum") String l, @EnumArg(TestEnum.class) TestEnum _enum) {
-            sender.sendSystemMessage(RESPONSE);
+        public boolean enumArg(@SenderArg CommandSourceStack sender, @LiteralArg("enum") String l,
+                               @EnumArg(TestEnum.class) TestEnum _enum, @EnumArg(TestEnum.class) TestEnum _enum2) {
+            sender.sendSystemMessage(RESPONSE.copy()
+                    .append("\nLiteral: '")
+                    .append(Component.literal(l))
+                    .append("'\nEnum: '")
+                    .append(String.valueOf(_enum))
+                    .append("'\nEnum 2: '")
+                    .append(String.valueOf(_enum2))
+                    .append("'")
+            );
             return true;
         }
 
@@ -196,12 +207,14 @@ public class CommandModuleTest {
         }
 
         @Execute
-        public boolean doubleArg(@SenderArg CommandSourceStack sender, @LiteralArg("double") String l, @DoubleArg Double d) {
+        public boolean doubleArg(@SenderArg CommandSourceStack sender, @LiteralArg("double") String l, @DoubleArg Double d, @DoubleArg Double d2) {
             sender.sendSystemMessage(RESPONSE.copy()
                     .append("\nLiteral: '")
                     .append(Component.literal(l))
                     .append("'\nDouble: '")
                     .append(String.valueOf(d))
+                    .append("'\nDouble 2: '")
+                    .append(String.valueOf(d2))
                     .append("'")
             );
             return true;
@@ -306,6 +319,7 @@ public class CommandModuleTest {
 
     public enum TestEnum {
         TEST,
-        TEST2
+        TEST2,
+        TEST3
     }
 }
