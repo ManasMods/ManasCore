@@ -26,13 +26,10 @@ import java.util.Optional;
 
 public class RaceRegistry {
     private static final ResourceLocation registryId = ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "races");
-    public static Registrar<ManasRace> RACES;
-    public static ResourceKey<Registry<ManasRace>> KEY;
+    public static final Registrar<ManasRace> RACES = RegistrarManager.get(ModuleConstants.MOD_ID).<ManasRace>builder(registryId).syncToClients().build();
+    public static final ResourceKey<Registry<ManasRace>> KEY = (ResourceKey<Registry<ManasRace>>) RACES.key();
 
     public static void init() {
-        RACES = RegistrarManager.get(ModuleConstants.MOD_ID).<ManasRace>builder(registryId).syncToClients().build();
-        KEY = (ResourceKey<Registry<ManasRace>>) RACES.key();
-
         EntityEvents.LIVING_EFFECT_ADDED.register((entity, source, changeableTarget) -> {
             Optional<ManasRaceInstance> optional = RaceAPI.getRaceFrom(entity).getRace();
             if (optional.isEmpty()) return EventResult.pass();

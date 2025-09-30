@@ -8,6 +8,7 @@ package io.github.manasmods.manascore.skill.impl;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import dev.architectury.event.EventResult;
+import dev.architectury.event.events.common.EntityEvent;
 import dev.architectury.event.events.common.PlayerEvent;
 import io.github.manasmods.manascore.network.api.util.Changeable;
 import io.github.manasmods.manascore.skill.ManasCoreSkill;
@@ -47,11 +48,26 @@ public class SkillStorage  extends Storage implements Skills {
     public static void init() {
         StorageEvents.REGISTER_ENTITY_STORAGE.register(registry -> key = registry.register(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "skill_storage"), SkillStorage.class, LivingEntity.class::isInstance, target -> new SkillStorage((LivingEntity) target)));
 
+        EntityEvent.LIVING_HURT.register((entity, source, amount) -> {
+            if (EntityEvents.LIVING_PRE_DAMAGED.invoker().hurt(entity, source, amount).isFalse()) return EventResult.interruptFalse();
+            if (EntityEvents.LIVING_ON_BEING_DAMAGED.invoker().hurt(entity, source, amount).isFalse()) return EventResult.interruptFalse();
+            return EventResult.pass();
+        });
+
         EntityEvents.LIVING_HURT.register((entity, source, changeable) -> {
             Skills skills = SkillAPI.getSkillsFrom(entity);
             if (SkillEvents.SKILL_DAMAGE_PRE_CALCULATION.invoker().calculate(skills, entity, source, changeable).isFalse()) return EventResult.interruptFalse();
             if (SkillEvents.SKILL_DAMAGE_CALCULATION.invoker().calculate(skills, entity, source, changeable).isFalse()) return EventResult.interruptFalse();
             if (SkillEvents.SKILL_DAMAGE_POST_CALCULATION.invoker().calculate(skills, entity, source, changeable).isFalse()) return EventResult.interruptFalse();
+            return EventResult.pass();
+        });
+
+        EntityEvent.LIVING_DEATH.register((entity, source) -> {
+            if (EntityEvents.DEATH_EVENT_FIRST.invoker().die(entity, source).isFalse()) return EventResult.interruptFalse();
+            if (EntityEvents.DEATH_EVENT_HIGH.invoker().die(entity, source).isFalse()) return EventResult.interruptFalse();
+            if (EntityEvents.DEATH_EVENT_NORMAL.invoker().die(entity, source).isFalse()) return EventResult.interruptFalse();
+            if (EntityEvents.DEATH_EVENT_LOW.invoker().die(entity, source).isFalse()) return EventResult.interruptFalse();
+            if (EntityEvents.DEATH_EVENT_LAST.invoker().die(entity, source).isFalse()) return EventResult.interruptFalse();
             return EventResult.pass();
         });
 
@@ -118,8 +134,10 @@ public class SkillStorage  extends Storage implements Skills {
             // Update cooldown
             for (int i = 0; i < instance.getModes(); i++) {
                 if (!instance.onCoolDown(i)) continue;
-                if (!SkillEvents.SKILL_UPDATE_COOLDOWN.invoker().cooldown(instance, entity, instance.getCoolDown(i), i).isFalse())
-                    instance.decreaseCoolDown(1, i);
+                int currentCooldown = instance.getCoolDown(i);
+                Changeable<Integer> newCooldown = Changeable.of(Math.max(0, currentCooldown - 1));
+                if (!SkillEvents.SKILL_UPDATE_COOLDOWN.invoker().cooldown(instance, entity, i, currentCooldown, newCooldown).isFalse())
+                    instance.setCoolDown(newCooldown.get(), i);
             }
 
             // Update temporary skill timer

@@ -6,16 +6,11 @@
 package io.github.manasmods.manascore.skill.impl;
 
 import dev.architectury.event.EventResult;
-import dev.architectury.event.events.common.EntityEvent;
 import dev.architectury.event.events.common.PlayerEvent;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrarManager;
 import io.github.manasmods.manascore.skill.ModuleConstants;
-import io.github.manasmods.manascore.skill.api.ManasSkill;
-import io.github.manasmods.manascore.skill.api.ManasSkillInstance;
-import io.github.manasmods.manascore.skill.api.SkillAPI;
-import io.github.manasmods.manascore.skill.api.SkillEvents;
-import io.github.manasmods.manascore.skill.api.EntityEvents;
+import io.github.manasmods.manascore.skill.api.*;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -24,13 +19,10 @@ import net.minecraft.world.phys.EntityHitResult;
 
 public class SkillRegistry {
     private static final ResourceLocation registryId = ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "skills");
-    public static Registrar<ManasSkill> SKILLS;
-    public static ResourceKey<Registry<ManasSkill>> KEY;
+    public static final Registrar<ManasSkill> SKILLS = RegistrarManager.get(ModuleConstants.MOD_ID).<ManasSkill>builder(registryId).syncToClients().build();
+    public static final ResourceKey<Registry<ManasSkill>> KEY = (ResourceKey<Registry<ManasSkill>>) SKILLS.key();
 
     public static void init() {
-        SKILLS = RegistrarManager.get(ModuleConstants.MOD_ID).<ManasSkill>builder(registryId).syncToClients().build();
-        KEY = (ResourceKey<Registry<ManasSkill>>) SKILLS.key();
-
         EntityEvents.LIVING_EFFECT_ADDED.register((entity, source, changeableTarget) -> {
             for (ManasSkillInstance instance : SkillAPI.getSkillsFrom(entity).getLearnedSkills()) {
                 if (!instance.canInteractSkill(entity)) continue;
@@ -53,7 +45,7 @@ public class SkillRegistry {
             return EventResult.pass();
         });
 
-        EntityEvent.LIVING_HURT.register((entity, source, amount) -> {
+        EntityEvents.LIVING_ON_BEING_DAMAGED.register((entity, source, amount) -> {
             for (ManasSkillInstance instance : SkillAPI.getSkillsFrom(entity).getLearnedSkills()) {
                 if (!instance.canInteractSkill(entity)) continue;
                 if (!instance.onBeingDamaged(entity, source, amount)) return EventResult.interruptFalse();
@@ -93,7 +85,7 @@ public class SkillRegistry {
             return EventResult.pass();
         });
 
-        EntityEvent.LIVING_DEATH.register((entity, source) -> {
+        EntityEvents.DEATH_EVENT_HIGH.register((entity, source) -> {
             for (ManasSkillInstance instance : SkillAPI.getSkillsFrom(entity).getLearnedSkills()) {
                 if (!instance.canInteractSkill(entity)) continue;
                 if (!instance.onDeath(entity, source)) return EventResult.interruptFalse();

@@ -33,6 +33,7 @@ public class ManasSkillInstance {
     private int removeTime = -1;
     private double masteryPoint = 0;
     private boolean toggled = false;
+    @Getter
     private List<Integer> cooldownList;
     private Map<ManasSkill, ManasSkillInstance> subInstances;
     @Nullable
@@ -433,7 +434,9 @@ public class ManasSkillInstance {
      * Add sub-instance to this instance.
      */
     public void addSubInstance(ManasSkillInstance instance) {
+        instance.setParentSkill(this.getSkill());
         this.subInstances.put(instance.getSkill(), instance);
+        markDirty();
     }
 
     /**
@@ -441,6 +444,7 @@ public class ManasSkillInstance {
      */
     public void removeSubInstance(ManasSkill instance) {
         this.subInstances.remove(instance);
+        markDirty();
     }
 
     /**
@@ -451,10 +455,18 @@ public class ManasSkillInstance {
     }
 
     /**
+     * @return if this skill is a sub-instance.
+     */
+    public boolean isSubInstance() {
+        return this.parentSkill != null;
+    }
+
+    /**
      * Set the parent skill of this instance.
      */
     public void setParentSkill(ManasSkill skill) {
         this.parentSkill = skill;
+        markDirty();
     }
 
     /**

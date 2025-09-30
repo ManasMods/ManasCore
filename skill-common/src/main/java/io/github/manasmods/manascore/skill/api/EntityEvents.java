@@ -8,6 +8,7 @@ package io.github.manasmods.manascore.skill.api;
 import dev.architectury.event.Event;
 import dev.architectury.event.EventFactory;
 import dev.architectury.event.EventResult;
+import dev.architectury.event.events.common.EntityEvent;
 import io.github.manasmods.manascore.network.api.util.Changeable;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -22,10 +23,18 @@ public class EntityEvents {
     public static Event<LivingTickEvent> LIVING_POST_TICK = EventFactory.createLoop();
     public static Event<LivingEffectAddedEvent> LIVING_EFFECT_ADDED = EventFactory.createEventResult();
     public static Event<LivingChangeTargetEvent> LIVING_CHANGE_TARGET = EventFactory.createEventResult();
+
+    public static Event<EntityEvent.LivingHurt> LIVING_PRE_DAMAGED = EventFactory.createEventResult();
+    public static Event<EntityEvent.LivingHurt> LIVING_ON_BEING_DAMAGED = EventFactory.createEventResult();
     public static Event<LivingHurtEvent> LIVING_HURT = EventFactory.createEventResult();
     public static Event<LivingDamageEvent> LIVING_DAMAGE = EventFactory.createEventResult();
     public static Event<ProjectileHitEvent> PROJECTILE_HIT = EventFactory.createLoop();
 
+    public static Event<EntityEvent.LivingDeath> DEATH_EVENT_FIRST = EventFactory.createEventResult();
+    public static Event<EntityEvent.LivingDeath> DEATH_EVENT_HIGH = EventFactory.createEventResult();
+    public static Event<EntityEvent.LivingDeath> DEATH_EVENT_NORMAL = EventFactory.createEventResult();
+    public static Event<EntityEvent.LivingDeath> DEATH_EVENT_LOW = EventFactory.createEventResult();
+    public static Event<EntityEvent.LivingDeath> DEATH_EVENT_LAST = EventFactory.createEventResult();
 
     @FunctionalInterface
     public interface LivingTickEvent {

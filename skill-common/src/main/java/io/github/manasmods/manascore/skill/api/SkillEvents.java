@@ -77,7 +77,7 @@ public interface SkillEvents {
 
     @FunctionalInterface
     interface SkillUpdateCooldownEvent {
-        EventResult cooldown(ManasSkillInstance skillInstance, LivingEntity owner, int currentCooldown, int mode);
+        EventResult cooldown(ManasSkillInstance skillInstance, LivingEntity owner, int mode, int currentCooldown, Changeable<Integer> newCooldown);
     }
 
     @FunctionalInterface
