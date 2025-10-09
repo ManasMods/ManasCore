@@ -67,4 +67,8 @@ public interface Races {
     }
 
     void markDirty();
+
+    default void checkAndMarkDirty(ManasRaceInstance instance) {
+        if (instance.isDirty()) this.markDirty();
+    }
 }

@@ -51,7 +51,7 @@ public record RequestRaceAbilityActivationPacket() implements CustomPacketPayloa
 
             instance.onActivateAbility(player);
             RaceStorage.tickingRaces.put(player.getUUID(), new TickingRace());
-            storage.markDirty();
+            storage.checkAndMarkDirty(instance);
         });
     }
 

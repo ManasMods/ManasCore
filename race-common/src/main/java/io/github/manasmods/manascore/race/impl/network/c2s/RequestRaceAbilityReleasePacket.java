@@ -50,7 +50,7 @@ public record RequestRaceAbilityReleasePacket(
             if (RaceEvents.RELEASE_ABILITY.invoker().releaseAbility(instance, player, heldTick).isFalse()) return;
             if (instance.canActivateAbility(player) && !instance.isOnCooldown()) {
                 instance.onReleaseAbility(player, heldTick);
-                storage.markDirty();
+                storage.checkAndMarkDirty(instance);
             }
             RaceStorage.tickingRaces.removeAll(player.getUUID());
         });

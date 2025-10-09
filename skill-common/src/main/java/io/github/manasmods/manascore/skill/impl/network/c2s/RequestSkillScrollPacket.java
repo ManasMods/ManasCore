@@ -65,7 +65,7 @@ public record RequestSkillScrollPacket(
                     if (!skill.canInteractSkill(player)) return;
 
                     skill.onScroll(player, deltaChangeable.get(), modeChangeable.get());
-                    storage.markDirty();
+                    storage.checkAndMarkDirty(skill);
                 });
             }
         });

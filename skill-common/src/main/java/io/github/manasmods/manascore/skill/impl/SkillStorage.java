@@ -77,7 +77,6 @@ public class SkillStorage  extends Storage implements Skills {
             Skills storage = SkillAPI.getSkillsFrom(entity);
             handleSkillTick(entity, level, storage);
             if (entity instanceof Player player) handleSkillHeldTick(player, storage);
-            storage.markDirty();
         });
 
         PlayerEvent.PLAYER_QUIT.register(player -> {
@@ -123,6 +122,7 @@ public class SkillStorage  extends Storage implements Skills {
         for (ManasSkillInstance instance : tickingSkills) {
             instance.onTick(entity);
             SkillEvents.SKILL_POST_TICK.invoker().tick(instance, entity);
+            storage.checkAndMarkDirty(instance);
         }
     }
 
@@ -138,11 +138,14 @@ public class SkillStorage  extends Storage implements Skills {
                 Changeable<Integer> newCooldown = Changeable.of(Math.max(0, currentCooldown - 1));
                 if (!SkillEvents.SKILL_UPDATE_COOLDOWN.invoker().cooldown(instance, entity, i, currentCooldown, newCooldown).isFalse())
                     instance.setCoolDown(newCooldown.get(), i);
+                storage.checkAndMarkDirty(instance);
             }
 
             // Update temporary skill timer
             if (!instance.isTemporarySkill()) continue;
             instance.decreaseRemoveTime(1);
+            storage.checkAndMarkDirty(instance);
+
             if (!instance.shouldRemove()) continue;
             toBeRemoved.add(instance);
         }
@@ -160,8 +163,9 @@ public class SkillStorage  extends Storage implements Skills {
                 Optional<ManasSkillInstance> instance = storage.getSkill(skill.getSkill());
                 if (instance.isEmpty()) return true;
                 skill.getSkill().removeAttributeModifiers(instance.get(), player, skill.getMode());
+                storage.checkAndMarkDirty(instance.get());
                 return true;
-            }
+            } else storage.markDirty();
             return false;
         });
     }
@@ -237,7 +241,7 @@ public class SkillStorage  extends Storage implements Skills {
             if (skill.canInteractSkill(getOwner()) && mode < skill.getModes()) {
                 if (!skill.onCoolDown(mode) || skill.canIgnoreCoolDown(getOwner(), mode)) {
                     skill.onRelease(getOwner(), heldTick, keyNumber, mode);
-                    if (skill.isDirty()) markDirty();
+                    this.checkAndMarkDirty(skillInstance);
                 }
             }
 

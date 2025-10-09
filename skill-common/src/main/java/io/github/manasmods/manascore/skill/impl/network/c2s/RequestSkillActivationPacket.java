@@ -60,7 +60,7 @@ public record RequestSkillActivationPacket(
                 skill.onPressed(player, keyNumber, mode);
                 skill.addHeldAttributeModifiers(player, mode);
                 SkillStorage.tickingSkills.put(player.getUUID(), new TickingSkill(skill.getSkill(), mode));
-                storage.markDirty();
+                storage.checkAndMarkDirty(skill);
             });
         });
     }

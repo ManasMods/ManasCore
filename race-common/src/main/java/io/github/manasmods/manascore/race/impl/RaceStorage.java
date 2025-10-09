@@ -51,7 +51,6 @@ public class RaceStorage extends Storage implements Races {
             Races storage = RaceAPI.getRaceFrom(entity);
             handleRaceTick(entity, level, storage);
             if (entity instanceof Player player) handleRaceHeldTick(player, storage);
-            storage.markDirty();
         });
 
         PlayerEvent.PLAYER_QUIT.register(player -> tickingRaces.removeAll(player.getUUID()));
@@ -69,6 +68,7 @@ public class RaceStorage extends Storage implements Races {
     private static void handleRaceHeldTick(Player player, Races storage) {
         if (!tickingRaces.containsKey(player.getUUID())) return;
         tickingRaces.get(player.getUUID()).removeIf(skill -> !skill.tick(storage, player));
+        storage.markDirty();
     }
 
     private static void tickRace(LivingEntity entity, Races storage) {
@@ -86,6 +86,7 @@ public class RaceStorage extends Storage implements Races {
         if (RaceEvents.RACE_PRE_TICK.invoker().tick(instance, entity).isFalse()) return;
         instance.onTick(entity);
         RaceEvents.RACE_POST_TICK.invoker().tick(instance, entity);
+        storage.checkAndMarkDirty(instance);
     }
 
     private ManasRaceInstance raceInstance = null;

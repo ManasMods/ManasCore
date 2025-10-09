@@ -48,14 +48,14 @@ public record RequestSkillTogglePacket(
                 if (skill == null) return;
                 if(!skill.canInteractSkill(player)) return;
 
-                if(skill.isToggled()) {
+                if (skill.isToggled()) {
                     skill.setToggled(false);
                     skill.onToggleOff(player);
                 } else {
                     skill.setToggled(true);
                     skill.onToggleOn(player);
                 }
-                storage.markDirty();
+                storage.checkAndMarkDirty(skill);
             });
         });
     }

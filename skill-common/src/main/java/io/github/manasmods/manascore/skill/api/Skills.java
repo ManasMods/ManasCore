@@ -20,6 +20,10 @@ import java.util.function.BiConsumer;
 public interface Skills {
     void markDirty();
 
+    default void checkAndMarkDirty(ManasSkillInstance instance) {
+        if (instance.isDirty()) this.markDirty();
+    }
+
     Collection<ManasSkillInstance> getLearnedSkills();
 
     /**

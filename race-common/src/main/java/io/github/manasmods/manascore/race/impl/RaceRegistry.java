@@ -11,10 +11,7 @@ import dev.architectury.event.events.common.PlayerEvent;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrarManager;
 import io.github.manasmods.manascore.race.ModuleConstants;
-import io.github.manasmods.manascore.race.api.ManasRace;
-import io.github.manasmods.manascore.race.api.ManasRaceInstance;
-import io.github.manasmods.manascore.race.api.RaceAPI;
-import io.github.manasmods.manascore.race.api.SpawnPointHelper;
+import io.github.manasmods.manascore.race.api.*;
 import io.github.manasmods.manascore.skill.api.EntityEvents;
 import io.github.manasmods.manascore.skill.api.SkillEvents;
 import net.minecraft.core.Registry;
@@ -31,12 +28,16 @@ public class RaceRegistry {
 
     public static void init() {
         EntityEvents.LIVING_EFFECT_ADDED.register((entity, source, changeableTarget) -> {
-            Optional<ManasRaceInstance> optional = RaceAPI.getRaceFrom(entity).getRace();
+            Races storage = RaceAPI.getRaceFrom(entity);
+            Optional<ManasRaceInstance> optional = storage.getRace();
             if (optional.isEmpty()) return EventResult.pass();
 
             ManasRaceInstance instance = optional.get();
             if (!instance.canActivateAbility(entity)) return EventResult.pass();
-            if (!instance.onEffectAdded(entity, source, changeableTarget)) return EventResult.interruptFalse();
+            if (!instance.onEffectAdded(entity, source, changeableTarget)) {
+                storage.checkAndMarkDirty(instance);
+                return EventResult.interruptFalse();
+            } else storage.checkAndMarkDirty(instance);
             return EventResult.pass();
         });
 
@@ -44,48 +45,66 @@ public class RaceRegistry {
             if (!changeableTarget.isPresent()) return EventResult.pass();
             LivingEntity owner = changeableTarget.get();
             if (owner == null) return EventResult.pass();
-            Optional<ManasRaceInstance> optional = RaceAPI.getRaceFrom(owner).getRace();
+
+            Races storage = RaceAPI.getRaceFrom(entity);
+            Optional<ManasRaceInstance> optional = storage.getRace();
             if (optional.isEmpty()) return EventResult.pass();
 
             ManasRaceInstance instance = optional.get();
             if (!instance.canActivateAbility(owner)) return EventResult.pass();
-            if (!instance.onBeingTargeted(changeableTarget, entity)) return EventResult.interruptFalse();
+            if (!instance.onBeingTargeted(changeableTarget, entity)) {
+                storage.checkAndMarkDirty(instance);
+                return EventResult.interruptFalse();
+            } else storage.checkAndMarkDirty(instance);
             return EventResult.pass();
         });
 
         SkillEvents.SKILL_DAMAGE_POST_CALCULATION.register((storage, target, source, amount) -> {
             if (!(source.getEntity() instanceof LivingEntity owner)) return EventResult.pass();
-            Optional<ManasRaceInstance> optional = RaceAPI.getRaceFrom(owner).getRace();
+            Races ownerStorage = RaceAPI.getRaceFrom(owner);
+            Optional<ManasRaceInstance> optional = ownerStorage.getRace();
             if (optional.isEmpty()) return EventResult.pass();
 
             ManasRaceInstance instance = optional.get();
             if (!instance.canActivateAbility(owner)) return EventResult.pass();
-            if (!instance.onAttackEntity(owner, target, source, amount)) return EventResult.interruptFalse();
+            if (!instance.onAttackEntity(owner, target, source, amount)) {
+                ownerStorage.checkAndMarkDirty(instance);
+                return EventResult.interruptFalse();
+            } else ownerStorage.checkAndMarkDirty(instance);
             return EventResult.pass();
         });
 
         EntityEvents.LIVING_DAMAGE.register((entity, source, amount) -> {
-            Optional<ManasRaceInstance> optional = RaceAPI.getRaceFrom(entity).getRace();
+            Races storage = RaceAPI.getRaceFrom(entity);
+            Optional<ManasRaceInstance> optional = storage.getRace();
             if (optional.isEmpty()) return EventResult.pass();
 
             ManasRaceInstance instance = optional.get();
             if (!instance.canActivateAbility(entity)) return EventResult.pass();
-            if (!instance.onHurt(entity, source, amount)) return EventResult.interruptFalse();
+            if (!instance.onHurt(entity, source, amount)) {
+                storage.checkAndMarkDirty(instance);
+                return EventResult.interruptFalse();
+            } else storage.checkAndMarkDirty(instance);
             return EventResult.pass();
         });
 
         EntityEvent.LIVING_DEATH.register((entity, source) -> {
-            Optional<ManasRaceInstance> optional = RaceAPI.getRaceFrom(entity).getRace();
+            Races storage = RaceAPI.getRaceFrom(entity);
+            Optional<ManasRaceInstance> optional = storage.getRace();
             if (optional.isEmpty()) return EventResult.pass();
 
             ManasRaceInstance instance = optional.get();
             if (!instance.canActivateAbility(entity)) return EventResult.pass();
-            if (!instance.onDeath(entity, source)) return EventResult.interruptFalse();
+            if (!instance.onDeath(entity, source)) {
+                storage.checkAndMarkDirty(instance);
+                return EventResult.interruptFalse();
+            } else storage.checkAndMarkDirty(instance);
             return EventResult.pass();
         });
 
         PlayerEvent.PLAYER_RESPAWN.register((newPlayer, conqueredEnd, removalReason) -> {
-            Optional<ManasRaceInstance> optional = RaceAPI.getRaceFrom(newPlayer).getRace();
+            Races storage = RaceAPI.getRaceFrom(newPlayer);
+            Optional<ManasRaceInstance> optional = storage.getRace();
             if (optional.isEmpty()) return;
 
             ManasRaceInstance instance = optional.get();
@@ -97,6 +116,7 @@ public class RaceRegistry {
 
             if (!instance.canActivateAbility(newPlayer)) return;
             instance.onRespawn(newPlayer, conqueredEnd);
+            storage.checkAndMarkDirty(instance);
         });
     }
 
