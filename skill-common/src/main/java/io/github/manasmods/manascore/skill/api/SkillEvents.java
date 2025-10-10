@@ -14,6 +14,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 
 public interface SkillEvents {
+    Event<Runnable> POST_INIT = EventFactory.createLoop();
     Event<UnlockSkillEvent> UNLOCK_SKILL = EventFactory.createEventResult();
     Event<RemoveSkillEvent> REMOVE_SKILL = EventFactory.createEventResult();
     Event<SkillActivationEvent> ACTIVATE_SKILL = EventFactory.createEventResult();

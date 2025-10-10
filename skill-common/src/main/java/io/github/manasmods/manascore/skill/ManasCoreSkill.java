@@ -7,6 +7,7 @@ package io.github.manasmods.manascore.skill;
 
 import dev.architectury.platform.Platform;
 import dev.architectury.utils.Env;
+import io.github.manasmods.manascore.skill.api.SkillEvents;
 import io.github.manasmods.manascore.skill.impl.SkillRegistry;
 import io.github.manasmods.manascore.skill.impl.SkillStorage;
 import io.github.manasmods.manascore.skill.impl.network.ManasSkillNetwork;
@@ -20,8 +21,7 @@ public final class ManasCoreSkill {
         SkillRegistry.init();
         SkillStorage.init();
         ManasSkillNetwork.init();
-        if (Platform.getEnvironment() == Env.CLIENT) {
-            ManasCoreSkillClient.init();
-        }
+        if (Platform.getEnvironment() == Env.CLIENT) ManasCoreSkillClient.init();
+        SkillEvents.POST_INIT.invoker().run();
     }
 }

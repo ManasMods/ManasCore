@@ -5,6 +5,7 @@
 
 package io.github.manasmods.manascore.race;
 
+import io.github.manasmods.manascore.race.api.RaceEvents;
 import io.github.manasmods.manascore.race.impl.RaceRegistry;
 import io.github.manasmods.manascore.race.impl.RaceStorage;
 import io.github.manasmods.manascore.race.impl.network.ManasRaceNetwork;
@@ -18,5 +19,6 @@ public final class ManasCoreRace {
         RaceRegistry.init();
         RaceStorage.init();
         ManasRaceNetwork.init();
+        RaceEvents.POST_INIT.invoker().run();
     }
 }

@@ -13,6 +13,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.LivingEntity;
 
 public interface RaceEvents {
+    Event<Runnable> POST_INIT = EventFactory.createLoop();
     Event<SetRaceEvent> SET_RACE = EventFactory.createEventResult();
     Event<RaceTickEvent> RACE_PRE_TICK = EventFactory.createEventResult();
     Event<RaceUpdateCooldownEvent> RACE_UPDATE_COOLDOWN = EventFactory.createEventResult();
