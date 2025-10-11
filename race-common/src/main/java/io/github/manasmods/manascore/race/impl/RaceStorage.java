@@ -79,6 +79,7 @@ public class RaceStorage extends Storage implements Races {
         if (instance.isOnCooldown()) {
             if (!RaceEvents.RACE_UPDATE_COOLDOWN.invoker().cooldown(instance, entity, instance.getCooldown()).isFalse())
                 instance.setCooldown(instance.getCooldown() - 1);
+            storage.checkAndMarkDirty(instance);
         }
 
         if (!instance.canActivateAbility(entity)) return;

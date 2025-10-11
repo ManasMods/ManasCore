@@ -8,13 +8,12 @@ package io.github.manasmods.manascore.skill.impl.network.c2s;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.utils.Env;
 import io.github.manasmods.manascore.network.api.util.Changeable;
+import io.github.manasmods.manascore.skill.ModuleConstants;
 import io.github.manasmods.manascore.skill.api.ManasSkillInstance;
 import io.github.manasmods.manascore.skill.api.SkillAPI;
 import io.github.manasmods.manascore.skill.api.SkillEvents;
 import io.github.manasmods.manascore.skill.api.Skills;
-import io.github.manasmods.manascore.skill.impl.SkillStorage;
 import io.github.manasmods.manascore.skill.impl.TickingSkill;
-import io.github.manasmods.manascore.skill.ModuleConstants;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -59,7 +58,7 @@ public record RequestSkillActivationPacket(
 
                 skill.onPressed(player, keyNumber, mode);
                 skill.addHeldAttributeModifiers(player, mode);
-                SkillStorage.tickingSkills.put(player.getUUID(), new TickingSkill(skill.getSkill(), mode));
+                TickingSkill.addTickingSkill(player, skill.getSkill(), mode, keyNumber);
                 storage.checkAndMarkDirty(skill);
             });
         });

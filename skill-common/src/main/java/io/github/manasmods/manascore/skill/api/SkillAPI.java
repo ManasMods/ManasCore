@@ -40,7 +40,7 @@ public class SkillAPI {
     /**
      * Can be used to load the {@link SkillStorage} from an {@link LivingEntity}.
      */
-    public static Skills getSkillsFrom(@NonNull LivingEntity entity) {
+    public static SkillStorage getSkillsFrom(@NonNull LivingEntity entity) {
         return entity.manasCore$getStorage(SkillStorage.getKey());
     }
 

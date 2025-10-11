@@ -74,7 +74,7 @@ public class SkillStorage  extends Storage implements Skills {
         EntityEvents.LIVING_POST_TICK.register(entity -> {
             Level level = entity.level();
             if (level.isClientSide()) return;
-            Skills storage = SkillAPI.getSkillsFrom(entity);
+            SkillStorage storage = SkillAPI.getSkillsFrom(entity);
             handleSkillTick(entity, level, storage);
             if (entity instanceof Player player) handleSkillHeldTick(player, storage);
         });
@@ -156,7 +156,7 @@ public class SkillStorage  extends Storage implements Skills {
         }
     }
 
-    private static void handleSkillHeldTick(Player player, Skills storage) {
+    private static void handleSkillHeldTick(Player player, SkillStorage storage) {
         if (!tickingSkills.containsKey(player.getUUID())) return;
         tickingSkills.get(player.getUUID()).removeIf(skill -> {
             if (!skill.tick(storage, player)) {
@@ -231,25 +231,24 @@ public class SkillStorage  extends Storage implements Skills {
         markDirty();
     }
 
-    public void handleSkillRelease(ResourceLocation skillId, int heldTick, int keyNumber, int mode) {
-        getSkill(skillId).ifPresent(skillInstance -> {
-            Changeable<ManasSkillInstance> changeable = Changeable.of(skillInstance);
-            if (SkillEvents.RELEASE_SKILL.invoker().releaseSkill(changeable, this.getOwner(), keyNumber, mode, heldTick).isFalse()) return;
-            ManasSkillInstance skill = changeable.get();
-            if (skill == null) return;
+    public void handleSkillRelease(ManasSkillInstance skillInstance, int heldTick, int keyNumber, int mode, boolean ignoreInteract) {
+        Changeable<ManasSkillInstance> changeable = Changeable.of(skillInstance);
+        if (SkillEvents.RELEASE_SKILL.invoker().releaseSkill(changeable, this.getOwner(), keyNumber, mode, heldTick).isFalse()) return;
+        ManasSkillInstance skill = changeable.get();
+        if (skill == null) return;
 
-            if (skill.canInteractSkill(getOwner()) && mode < skill.getModes()) {
-                if (!skill.onCoolDown(mode) || skill.canIgnoreCoolDown(getOwner(), mode)) {
-                    skill.onRelease(getOwner(), heldTick, keyNumber, mode);
-                    this.checkAndMarkDirty(skillInstance);
-                }
+        if ((ignoreInteract || skill.canInteractSkill(getOwner())) && mode < skill.getModes()) {
+            if (!skill.onCoolDown(mode) || skill.canIgnoreCoolDown(getOwner(), mode)) {
+                skill.onRelease(getOwner(), heldTick, keyNumber, mode);
+                this.checkAndMarkDirty(skillInstance);
             }
+        }
 
-            skill.removeAttributeModifiers(getOwner(), mode);
-            UUID ownerID = getOwner().getUUID();
-            if (tickingSkills.containsKey(ownerID))
-                tickingSkills.get(ownerID).removeIf(tickingSkill -> tickingSkill.getSkill() == skill.getSkill());
-        });
+        skill.removeAttributeModifiers(getOwner(), mode);
+        UUID ownerID = getOwner().getUUID();
+        if (tickingSkills.containsKey(ownerID))
+            tickingSkills.get(ownerID).removeIf(tickingSkill -> tickingSkill.matches(skill.getSkill(), mode));
+        this.checkAndMarkDirty(skillInstance);
     }
 
     @Override

@@ -190,6 +190,17 @@ public class ManasSkill {
     }
 
     /**
+     * Determine if this skill's {@link ManasSkill#onRelease} should be executed when onHeld is unnaturally interrupted.
+     *
+     * @param instance Affected {@link ManasSkillInstance}
+     * @param entity   Affected {@link LivingEntity} owning this Skill.
+     * @return true if this skill should execute the method.
+     */
+    public boolean shouldTriggerReleaseOnHeldInterrupt(ManasSkillInstance instance, LivingEntity entity, int keyNumber, int mode) {
+        return false;
+    }
+
+    /**
      * @return the number of modes that this skill can have.
      */
     public int getModes(ManasSkillInstance instance) {

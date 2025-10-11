@@ -44,7 +44,7 @@ public record RequestSkillReleasePacket(
             if (player == null) return;
             SkillStorage storage = StorageManager.getStorage(player, SkillStorage.getKey());
             if (storage == null) return;
-            storage.handleSkillRelease(skillId, heldTick, keyNumber, mode);
+            storage.getSkill(skillId).ifPresent(skillInstance -> storage.handleSkillRelease(skillInstance, heldTick, keyNumber, mode, false));
         });
     }
 
