@@ -40,7 +40,7 @@ public class SkillRegistry {
             LivingEntity owner = changeableTarget.get();
             if (owner == null) return EventResult.pass();
 
-            Skills storage = SkillAPI.getSkillsFrom(entity);
+            Skills storage = SkillAPI.getSkillsFrom(owner);
             for (ManasSkillInstance instance : storage.getLearnedSkills()) {
                 if (!instance.canInteractSkill(owner)) continue;
                 if (!instance.onBeingTargeted(changeableTarget, entity)) {

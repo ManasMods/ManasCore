@@ -231,13 +231,13 @@ public class SkillStorage  extends Storage implements Skills {
         markDirty();
     }
 
-    public void handleSkillRelease(ManasSkillInstance skillInstance, int heldTick, int keyNumber, int mode, boolean ignoreInteract) {
+    public void handleSkillRelease(ManasSkillInstance skillInstance, int heldTick, int keyNumber, int mode, boolean heldInterrupt) {
         Changeable<ManasSkillInstance> changeable = Changeable.of(skillInstance);
         if (SkillEvents.RELEASE_SKILL.invoker().releaseSkill(changeable, this.getOwner(), keyNumber, mode, heldTick).isFalse()) return;
         ManasSkillInstance skill = changeable.get();
         if (skill == null) return;
 
-        if ((ignoreInteract || skill.canInteractSkill(getOwner())) && mode < skill.getModes()) {
+        if ((heldInterrupt || skill.canInteractSkill(getOwner())) && mode < skill.getModes()) {
             if (!skill.onCoolDown(mode) || skill.canIgnoreCoolDown(getOwner(), mode)) {
                 skill.onRelease(getOwner(), heldTick, keyNumber, mode);
                 this.checkAndMarkDirty(skillInstance);
@@ -245,9 +245,11 @@ public class SkillStorage  extends Storage implements Skills {
         }
 
         skill.removeAttributeModifiers(getOwner(), mode);
-        UUID ownerID = getOwner().getUUID();
-        if (tickingSkills.containsKey(ownerID))
-            tickingSkills.get(ownerID).removeIf(tickingSkill -> tickingSkill.matches(skill.getSkill(), mode));
+        if (!heldInterrupt) {
+            UUID ownerID = getOwner().getUUID();
+            if (tickingSkills.containsKey(ownerID))
+                tickingSkills.get(ownerID).removeIf(tickingSkill -> tickingSkill.matches(skill.getSkill(), mode));
+        }
         this.checkAndMarkDirty(skillInstance);
     }
 
