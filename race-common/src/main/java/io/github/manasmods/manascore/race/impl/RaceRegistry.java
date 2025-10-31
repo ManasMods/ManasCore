@@ -46,7 +46,7 @@ public class RaceRegistry {
             LivingEntity owner = changeableTarget.get();
             if (owner == null) return EventResult.pass();
 
-            Races storage = RaceAPI.getRaceFrom(entity);
+            Races storage = RaceAPI.getRaceFrom(owner);
             Optional<ManasRaceInstance> optional = storage.getRace();
             if (optional.isEmpty()) return EventResult.pass();
 
