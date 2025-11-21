@@ -18,7 +18,6 @@ import io.github.manasmods.manascore.config.ConfigRegistry;
 import io.github.manasmods.manascore.race.api.ManasRace;
 import io.github.manasmods.manascore.race.api.RaceAPI;
 import io.github.manasmods.manascore.race.api.Races;
-import io.github.manasmods.manascore.race.impl.RaceRegistry;
 import io.github.manasmods.manascore.skill.api.ManasSkill;
 import io.github.manasmods.manascore.skill.api.SkillAPI;
 import io.github.manasmods.manascore.skill.api.Skills;
@@ -111,7 +110,7 @@ public class RegistryTest {
     public static final RegistrySupplier<TestSkill> TEST_SKILL = SKILLS.register("test_skill", TestSkill::new);
     public static final RegistrySupplier<TestSkill> TEST_SKILL_2 = SKILLS.register("test_skill_2", TestSkill::new);
 
-    public static final DeferredRegister<ManasRace> RACES = DeferredRegister.create(ModuleConstants.MOD_ID, RaceRegistry.KEY);
+    public static final DeferredRegister<ManasRace> RACES = DeferredRegister.create(ModuleConstants.MOD_ID, RaceAPI.getRaceRegistryKey());
     public static final RegistrySupplier<TestRace> TEST_RACE = RACES.register("test_race", TestRace::new);
     public static final RegistrySupplier<TestRaceEvolved> TEST_RACE_EVOLVED = RACES.register("test_race_evolved", TestRaceEvolved::new);
     

@@ -20,7 +20,7 @@ import net.minecraft.world.phys.EntityHitResult;
 public class SkillRegistry {
     private static final ResourceLocation registryId = ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "skills");
     public static final Registrar<ManasSkill> SKILLS = RegistrarManager.get(ModuleConstants.MOD_ID).<ManasSkill>builder(registryId).syncToClients().build();
-    public static final ResourceKey<Registry<ManasSkill>> KEY = (ResourceKey<Registry<ManasSkill>>) SKILLS.key();
+    public static final ResourceKey<Registry<ManasSkill>> KEY = ResourceKey.createRegistryKey(SKILLS.key().location());
 
     public static void init() {
         EntityEvents.LIVING_EFFECT_ADDED.register((entity, source, changeableTarget) -> {

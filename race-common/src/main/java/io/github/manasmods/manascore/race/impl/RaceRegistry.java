@@ -24,7 +24,7 @@ import java.util.Optional;
 public class RaceRegistry {
     private static final ResourceLocation registryId = ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "races");
     public static final Registrar<ManasRace> RACES = RegistrarManager.get(ModuleConstants.MOD_ID).<ManasRace>builder(registryId).syncToClients().build();
-    public static final ResourceKey<Registry<ManasRace>> KEY = (ResourceKey<Registry<ManasRace>>) RACES.key();
+    public static final ResourceKey<Registry<ManasRace>> KEY = ResourceKey.createRegistryKey(RACES.key().location());
 
     public static void init() {
         EntityEvents.LIVING_EFFECT_ADDED.register((entity, source, changeableTarget) -> {
