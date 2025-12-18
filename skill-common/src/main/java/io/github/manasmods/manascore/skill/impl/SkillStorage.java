@@ -79,17 +79,8 @@ public class SkillStorage  extends Storage implements Skills {
             if (entity instanceof Player player) handleSkillHeldTick(player, storage);
         });
 
-        PlayerEvent.PLAYER_QUIT.register(player -> {
-            Multimap<UUID, TickingSkill> multimap = tickingSkills;
-            if (multimap.containsKey(player.getUUID())) {
-                for (TickingSkill skill : multimap.get(player.getUUID())) {
-                    Optional<ManasSkillInstance> instance = SkillAPI.getSkillsFrom(player).getSkill(skill.getSkill());
-                    if (instance.isEmpty()) continue;
-                    skill.getSkill().removeAttributeModifiers(instance.get(), player, skill.getMode());
-                }
-                multimap.removeAll(player.getUUID());
-            }
-        });
+        PlayerEvent.PLAYER_QUIT.register(SkillStorage::removeTickingSkill);
+        PlayerEvent.CHANGE_DIMENSION.register((player, resourceKey, resourceKey1) -> SkillStorage.removeTickingSkill(player));
     }
 
     private static void handleSkillTick(LivingEntity entity, Level level, Skills storage) {
@@ -298,5 +289,17 @@ public class SkillStorage  extends Storage implements Skills {
 
     protected LivingEntity getOwner() {
         return (LivingEntity) this.holder;
+    }
+
+    public static void removeTickingSkill(Player player) {
+        Multimap<UUID, TickingSkill> multimap = tickingSkills;
+        if (multimap.containsKey(player.getUUID())) {
+            for (TickingSkill skill : multimap.get(player.getUUID())) {
+                Optional<ManasSkillInstance> instance = SkillAPI.getSkillsFrom(player).getSkill(skill.getSkill());
+                if (instance.isEmpty()) continue;
+                skill.getSkill().removeAttributeModifiers(instance.get(), player, skill.getMode());
+            }
+            multimap.removeAll(player.getUUID());
+        }
     }
 }

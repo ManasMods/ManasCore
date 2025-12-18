@@ -18,9 +18,10 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.EntityHitResult;
 
 public class SkillRegistry {
+    private static final RegistrarManager MANAGER = RegistrarManager.get(ModuleConstants.MOD_ID);
     private static final ResourceLocation registryId = ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "skills");
-    public static final Registrar<ManasSkill> SKILLS = RegistrarManager.get(ModuleConstants.MOD_ID).<ManasSkill>builder(registryId).syncToClients().build();
-    public static final ResourceKey<Registry<ManasSkill>> KEY = ResourceKey.createRegistryKey(SKILLS.key().location());
+    public static final Registrar<ManasSkill> SKILLS = MANAGER.<ManasSkill>builder(registryId).syncToClients().build();
+    public static final ResourceKey<Registry<ManasSkill>> KEY = createKey(SKILLS);
 
     public static void init() {
         EntityEvents.LIVING_EFFECT_ADDED.register((entity, source, changeableTarget) -> {
@@ -138,5 +139,9 @@ public class SkillRegistry {
     }
 
     private SkillRegistry() {
+    }
+
+    private static <T> ResourceKey<Registry<T>> createKey(final Registrar<T> registrar) {
+        return ResourceKey.createRegistryKey(registrar.key().location());
     }
 }

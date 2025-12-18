@@ -22,9 +22,10 @@ import net.minecraft.world.entity.LivingEntity;
 import java.util.Optional;
 
 public class RaceRegistry {
+    private static final RegistrarManager MANAGER = RegistrarManager.get(ModuleConstants.MOD_ID);
     private static final ResourceLocation registryId = ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "races");
-    public static final Registrar<ManasRace> RACES = RegistrarManager.get(ModuleConstants.MOD_ID).<ManasRace>builder(registryId).syncToClients().build();
-    public static final ResourceKey<Registry<ManasRace>> KEY = ResourceKey.createRegistryKey(RACES.key().location());
+    public static final Registrar<ManasRace> RACES = MANAGER.<ManasRace>builder(registryId).syncToClients().build();
+    public static final ResourceKey<Registry<ManasRace>> KEY = createKey(RACES);
 
     public static void init() {
         EntityEvents.LIVING_EFFECT_ADDED.register((entity, source, changeableTarget) -> {
@@ -121,5 +122,9 @@ public class RaceRegistry {
     }
 
     private RaceRegistry() {
+    }
+
+    private static <T> ResourceKey<Registry<T>> createKey(final Registrar<T> registrar) {
+        return ResourceKey.createRegistryKey(registrar.key().location());
     }
 }

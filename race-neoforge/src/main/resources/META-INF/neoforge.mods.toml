@@ -35,6 +35,13 @@ logoFile = "icon.png"
     side = "BOTH"
 
 [[dependencies.${mod_id}]]
+    modId = "manascore_storage"
+    type = "required"
+    versionRange = "[${version},)"
+    ordering = "AFTER"
+    side = "BOTH"
+
+[[dependencies.${mod_id}]]
     modId = "manascore_network"
     type = "required"
     versionRange = "[${version},)"

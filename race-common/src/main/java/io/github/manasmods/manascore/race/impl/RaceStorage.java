@@ -54,6 +54,7 @@ public class RaceStorage extends Storage implements Races {
         });
 
         PlayerEvent.PLAYER_QUIT.register(player -> tickingRaces.removeAll(player.getUUID()));
+        PlayerEvent.CHANGE_DIMENSION.register((player, resourceKey, resourceKey1) -> tickingRaces.removeAll(player.getUUID()));
     }
 
     private static void handleRaceTick(LivingEntity entity, Level level, Races storage) {
