@@ -22,7 +22,10 @@ public class EntityEvents {
     public static Event<LivingTickEvent> LIVING_PRE_TICK = EventFactory.createLoop();
     public static Event<LivingTickEvent> LIVING_POST_TICK = EventFactory.createLoop();
     public static Event<LivingEffectAddedEvent> LIVING_EFFECT_ADDED = EventFactory.createEventResult();
+
     public static Event<LivingChangeTargetEvent> LIVING_CHANGE_TARGET = EventFactory.createEventResult();
+    public static Event<LivingChangeTargetEvent> LIVING_CHANGE_TARGET_EARLY = EventFactory.createEventResult();
+    public static Event<LivingChangeTargetEvent> LIVING_CHANGE_TARGET_LATE = EventFactory.createEventResult();
 
     public static Event<EntityEvent.LivingHurt> LIVING_PRE_DAMAGED = EventFactory.createEventResult();
     public static Event<EntityEvent.LivingHurt> LIVING_ON_BEING_DAMAGED = EventFactory.createEventResult();

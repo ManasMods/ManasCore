@@ -20,6 +20,7 @@ public class PlatformCommandUtilsImpl {
     public static final Map<String, PermissionNode<Boolean>> PERMISSIONS = new HashMap<>();
 
     public static boolean hasPermission(CommandSourceStack commandSourceStack, Permission permission) {
+        if (commandSourceStack.hasPermission(permission.permissionLevel().getLevel())) return true;
         if (!commandSourceStack.isPlayer()) return true;
         return PermissionAPI.getPermission(Objects.requireNonNull(commandSourceStack.getPlayer()), PERMISSIONS.get(permission.value()));
     }

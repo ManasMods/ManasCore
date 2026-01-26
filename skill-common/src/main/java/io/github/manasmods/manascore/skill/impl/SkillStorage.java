@@ -48,6 +48,12 @@ public class SkillStorage  extends Storage implements Skills {
     public static void init() {
         StorageEvents.REGISTER_ENTITY_STORAGE.register(registry -> key = registry.register(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "skill_storage"), SkillStorage.class, LivingEntity.class::isInstance, target -> new SkillStorage((LivingEntity) target)));
 
+        EntityEvents.LIVING_CHANGE_TARGET.register((entity, changeableTarget) -> {
+            if (EntityEvents.LIVING_CHANGE_TARGET_EARLY.invoker().changeTarget(entity, changeableTarget).isFalse()) return EventResult.interruptFalse();
+            if (EntityEvents.LIVING_CHANGE_TARGET_LATE.invoker().changeTarget(entity, changeableTarget).isFalse()) return EventResult.interruptFalse();
+            return EventResult.pass();
+        });
+
         EntityEvent.LIVING_HURT.register((entity, source, amount) -> {
             if (EntityEvents.LIVING_PRE_DAMAGED.invoker().hurt(entity, source, amount).isFalse()) return EventResult.interruptFalse();
             if (EntityEvents.LIVING_ON_BEING_DAMAGED.invoker().hurt(entity, source, amount).isFalse()) return EventResult.interruptFalse();

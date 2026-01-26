@@ -11,6 +11,6 @@ public class ManasCoreConfig {
     public static void init() {
         Config.setInsertionOrderPreserved(true);
         ManasConfigNetwork.init();
-        PlayerEvent.PLAYER_JOIN.register(player -> ManasConfigNetwork.syncToClients());
+        PlayerEvent.PLAYER_JOIN.register(ManasConfigNetwork::syncToClient);
     }
 }

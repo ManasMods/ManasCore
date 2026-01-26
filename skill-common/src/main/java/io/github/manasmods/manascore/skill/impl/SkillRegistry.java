@@ -36,7 +36,7 @@ public class SkillRegistry {
             return EventResult.pass();
         });
 
-        EntityEvents.LIVING_CHANGE_TARGET.register((entity, changeableTarget) -> {
+        EntityEvents.LIVING_CHANGE_TARGET_LATE.register((entity, changeableTarget) -> {
             if (!changeableTarget.isPresent()) return EventResult.pass();
             LivingEntity owner = changeableTarget.get();
             if (owner == null) return EventResult.pass();
