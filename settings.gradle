@@ -19,3 +19,7 @@ rootProject.name = 'manascore'
     include ":$module-fabric"
     include ":$module-neoforge"
 }
+
+include ':bundle-fabric'
+include ':bundle-neoforge'
+

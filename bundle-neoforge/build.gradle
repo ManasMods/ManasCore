@@ -1,0 +1,37 @@
+/*
+ * Copyright (c) 2024-2025. ManasMods
+ * GNU General Public License 3
+ */
+
+ext {
+    includedProjects = [
+            ":network",
+            ":storage",
+            ":inventory",
+            ":command"
+    ]
+}
+
+base {
+    archivesName = "manascore-neoforge"
+}
+
+loom {
+    mods {
+        includedProjects.forEach {
+            def moduleProject = project("$it-neoforge")
+            register(moduleProject.name) {
+                sourceSet("main", moduleProject)
+            }
+        }
+    }
+}
+
+dependencies {
+    includedProjects.forEach {
+        common(project(path: "$it-common", configuration: 'namedElements'))
+        implementation(project(path: "$it-neoforge", configuration: 'namedElements'))
+
+        include project(path: "$it-neoforge")
+    }
+}
