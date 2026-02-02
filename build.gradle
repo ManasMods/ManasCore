@@ -27,7 +27,7 @@ subprojects {
     apply plugin: 'architectury-plugin'
     apply plugin: 'io.freefair.lombok'
 
-    if (!project.name.startsWith("testing")) {
+    if (!project.name.startsWith("testing") && !project.name.startsWith("bundle")) {
         apply plugin: 'org.jreleaser'
         apply plugin: 'maven-publish'
     }
@@ -154,22 +154,28 @@ subprojects {
             modImplementation "net.fabricmc.fabric-api:fabric-api:$rootProject.fabric_api_version"
             modImplementation "dev.architectury:architectury-fabric:$rootProject.architectury_api_version"
 
-            common(project(path: ":$project.module_name-common", configuration: 'namedElements')) { transitive false }
-            shadowBundle project(path: ":$project.module_name-common", configuration: 'transformProductionFabric')
+            if(!project.name.startsWith("bundle")) {
+                common(project(path: ":$project.module_name-common", configuration: 'namedElements')) { transitive false }
+                shadowBundle project(path: ":$project.module_name-common", configuration: 'transformProductionFabric')
+            }
         }
 
         if (project.name.endsWith("neoforge")) {
             neoForge "net.neoforged:neoforge:$rootProject.neoforge_version"
             modImplementation "dev.architectury:architectury-neoforge:$rootProject.architectury_api_version"
 
-            common(project(path: ":$project.module_name-common", configuration: 'namedElements')) { transitive false }
-            shadowBundle project(path: ":$project.module_name-common", configuration: 'transformProductionNeoForge')
+            if(!project.name.startsWith("bundle")) {
+                common(project(path: ":$project.module_name-common", configuration: 'namedElements')) { transitive false }
+                shadowBundle project(path: ":$project.module_name-common", configuration: 'transformProductionNeoForge')
+            }
         }
     }
 
     java {
-        withSourcesJar()
-        withJavadocJar()
+        if (!project.name.startsWith("bundle")) {
+            withSourcesJar()
+            withJavadocJar()
+        }
 
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
@@ -180,7 +186,7 @@ subprojects {
         it.options.release = 21
     }
 
-    if (!project.name.startsWith("testing")) {
+    if (!project.name.startsWith("testing") && !project.name.startsWith("bundle")) {
         jreleaser {
             gitRootSearch = true
 
@@ -307,7 +313,11 @@ subprojects {
     if (!project.name.endsWith("common")) {
         task copyJar(type: Copy) {
             from remapJar
-            into "${rootProject.projectDir}/build/${module_type}"
+            if (project.name.startsWith("bundle")) {
+                into "${rootProject.projectDir}/build"
+            } else {
+                into "${rootProject.projectDir}/build/${module_type}"
+            }
         }
         build.dependsOn copyJar
     }
