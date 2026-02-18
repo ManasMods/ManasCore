@@ -5,6 +5,7 @@
 
 package io.github.manasmods.manascore.storage.impl;
 
+import io.github.manasmods.manascore.storage.ManasCoreStorage;
 import io.github.manasmods.manascore.storage.api.*;
 import io.github.manasmods.manascore.storage.impl.network.s2c.StorageSyncPayload;
 import io.github.manasmods.manascore.storage.impl.network.s2c.SyncChunkStoragePayload;
@@ -31,6 +32,7 @@ public final class StorageManager {
     private static final StorageRegistryImpl<Level> LEVEL_STORAGE_REGISTRY = new StorageRegistryImpl<>();
 
     public static void init() {
+        ManasCoreStorage.LOG.info("event invoke registration");
         StorageEvents.REGISTER_WORLD_STORAGE.invoker().register(LEVEL_STORAGE_REGISTRY);
         StorageEvents.REGISTER_CHUNK_STORAGE.invoker().register(CHUNK_STORAGE_REGISTRY);
         StorageEvents.REGISTER_ENTITY_STORAGE.invoker().register(ENTITY_STORAGE_REGISTRY);
@@ -110,11 +112,17 @@ public final class StorageManager {
 
     @Nullable
     public static Storage constructStorageFor(StorageType type, ResourceLocation id, StorageHolder holder) {
-        return switch (type) {
-            case ENTITY -> ENTITY_STORAGE_REGISTRY.registry.get(id).getSecond().create((Entity) holder);
-            case CHUNK -> CHUNK_STORAGE_REGISTRY.registry.get(id).getSecond().create((LevelChunk) holder);
-            case WORLD -> LEVEL_STORAGE_REGISTRY.registry.get(id).getSecond().create((Level) holder);
-        };
+        try {
+            return switch (type) {
+                case ENTITY -> ENTITY_STORAGE_REGISTRY.registry.get(id).getSecond().create((Entity) holder);
+                case CHUNK -> CHUNK_STORAGE_REGISTRY.registry.get(id).getSecond().create((LevelChunk) holder);
+                case WORLD -> LEVEL_STORAGE_REGISTRY.registry.get(id).getSecond().create((Level) holder);
+            };
+        }
+        catch (Exception e) {
+            ManasCoreStorage.LOG.warn("Failed to find storage in registry {}", id.toString());
+            return null;
+        }
     }
 
     @Nullable
