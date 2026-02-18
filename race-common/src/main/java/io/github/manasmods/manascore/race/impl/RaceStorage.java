@@ -10,6 +10,7 @@ import com.google.common.collect.Multimap;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.PlayerEvent;
 import io.github.manasmods.manascore.network.api.util.Changeable;
+import io.github.manasmods.manascore.race.ManasCoreRace;
 import io.github.manasmods.manascore.race.ModuleConstants;
 import io.github.manasmods.manascore.race.api.*;
 import io.github.manasmods.manascore.skill.api.EntityEvents;
@@ -24,6 +25,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -31,6 +33,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 @Log4j2
 public class RaceStorage extends Storage implements Races {
@@ -39,12 +43,30 @@ public class RaceStorage extends Storage implements Races {
     public static final int INSTANCE_UPDATE = 20;
     public static final Multimap<UUID, TickingRace> tickingRaces = ArrayListMultimap.create();
     private static final String RACE_KEY = "race_key";
+    /*
+    private static final StorageEvents.RegisterStorage<Entity> listener = new StorageEvents.RegisterStorage<Entity>() {
+        @Override
+        public void register(StorageEvents.StorageRegistry<Entity> registry) {
+            ManasCoreRace.LOG.info("ManasRace storage event triggered");
+            key = registry.register(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "race_storage"),
+                    RaceStorage.class, LivingEntity.class::isInstance, target -> new RaceStorage((LivingEntity) target));
+            ManasCoreRace.LOG.info(key != null ? "storage Key registered " + key.toString() : "storage Key failed to register");
+        }
+    };*/
 
     public static void init() {
-        StorageEvents.REGISTER_ENTITY_STORAGE.register(registry ->
+        ManasCoreRace.LOG.info("event registration");
+        StorageEvents.RegisterStorage<Entity> listener = new StorageEvents.RegisterStorage<Entity>() {
+            @Override
+            public void register(StorageEvents.StorageRegistry<Entity> registry) {
+                ManasCoreRace.LOG.info("storage event triggered");
                 key = registry.register(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "race_storage"),
-                        RaceStorage.class, LivingEntity.class::isInstance, target -> new RaceStorage((LivingEntity) target)));
-
+                        RaceStorage.class, LivingEntity.class::isInstance, target -> new RaceStorage((LivingEntity) target));
+                ManasCoreRace.LOG.info(key != null ? "storage Key registered " + key.toString() : "storage Key failed to register");
+            }
+        };
+        StorageEvents.REGISTER_ENTITY_STORAGE.register(listener);
+        ManasCoreRace.LOG.info("storage event registered? {}", String.valueOf(StorageEvents.REGISTER_ENTITY_STORAGE.isRegistered(listener)));
         EntityEvents.LIVING_POST_TICK.register(entity -> {
             Level level = entity.level();
             if (level.isClientSide()) return;

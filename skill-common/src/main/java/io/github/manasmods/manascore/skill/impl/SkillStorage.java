@@ -26,6 +26,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -44,9 +45,29 @@ public class SkillStorage  extends Storage implements Skills {
     public static final int PASSIVE_SKILL = 100;
     public static final Multimap<UUID, TickingSkill> tickingSkills = ArrayListMultimap.create();
     private static final String SKILL_LIST_KEY = "skills";
+    /*
+    private static final StorageEvents.RegisterStorage<Entity> listener = new StorageEvents.RegisterStorage<Entity>() {
+        @Override
+        public void register(StorageEvents.StorageRegistry<Entity> registry) {
+            ManasCoreSkill.LOG.info("ManasSkill storage event triggered");
+            key = registry.register(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "skill_storage"), SkillStorage.class, LivingEntity.class::isInstance, target -> new SkillStorage((LivingEntity) target));
+            ManasCoreSkill.LOG.info(key != null ? "ManasSkill storage Key registered " + key.toString() : "ManasSkill storage Key failed to register");
+        }
+    };*/
 
     public static void init() {
-        StorageEvents.REGISTER_ENTITY_STORAGE.register(registry -> key = registry.register(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "skill_storage"), SkillStorage.class, LivingEntity.class::isInstance, target -> new SkillStorage((LivingEntity) target)));
+        ManasCoreSkill.LOG.info("event registration");
+        StorageEvents.RegisterStorage<Entity> listener = new StorageEvents.RegisterStorage<Entity>() {
+            @Override
+            public void register(StorageEvents.StorageRegistry<Entity> registry) {
+                ManasCoreSkill.LOG.info("storage event triggered");
+                key = registry.register(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "skill_storage"), SkillStorage.class, LivingEntity.class::isInstance, target -> new SkillStorage((LivingEntity) target));
+                ManasCoreSkill.LOG.info(key != null ? "storage Key registered " + key.toString() : "storage Key failed to register");
+            }
+        };
+
+        StorageEvents.REGISTER_ENTITY_STORAGE.register(listener);
+        ManasCoreSkill.LOG.info("storage event registered? {}", String.valueOf(StorageEvents.REGISTER_ENTITY_STORAGE.isRegistered(listener)));
 
         EntityEvents.LIVING_CHANGE_TARGET.register((entity, changeableTarget) -> {
             if (EntityEvents.LIVING_CHANGE_TARGET_EARLY.invoker().changeTarget(entity, changeableTarget).isFalse()) return EventResult.interruptFalse();

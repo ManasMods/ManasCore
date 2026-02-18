@@ -15,6 +15,7 @@ public final class ManasCoreStorage {
     public static final Logger LOG = LoggerFactory.getLogger("ManasCore - Storage");
 
     public static void init() {
+        LOG.info("init");
         ManasStorageNetwork.init();
         LifecycleEvent.SETUP.register(StorageManager::init);
     }
