@@ -42,6 +42,7 @@ public final class StorageManager {
             ServerLevel level = player.serverLevel();
             level.manasCore$sync(player);
         });
+
         // Synchronization on respawn and dimension change
         PlayerEvent.PLAYER_RESPAWN.register((player, b, removalReason) -> {
             player.manasCore$sync(player);
@@ -131,10 +132,10 @@ public final class StorageManager {
     }
 
     private static class StorageRegistryImpl<T extends StorageHolder> implements StorageEvents.StorageRegistry<T> {
-        private final Map<ResourceLocation, Pair<Predicate<T>, StorageEvents.StoraceFactory<T, ?>>> registry = new HashMap<>();
+        private final Map<ResourceLocation, Pair<Predicate<T>, StorageEvents.StorageFactory<T, ?>>> registry = new HashMap<>();
 
         @Override
-        public <S extends Storage> StorageKey<S> register(ResourceLocation id, Class<S> storageClass, Predicate<T> attachCheck, StorageEvents.StoraceFactory<T, S> factory) {
+        public <S extends Storage> StorageKey<S> register(ResourceLocation id, Class<S> storageClass, Predicate<T> attachCheck, StorageEvents.StorageFactory<T, S> factory) {
             this.registry.put(id, Pair.of(attachCheck, factory));
             return new StorageKey<>(id, storageClass);
         }

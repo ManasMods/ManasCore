@@ -33,8 +33,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 @Log4j2
 public class RaceStorage extends Storage implements Races {
@@ -67,6 +65,7 @@ public class RaceStorage extends Storage implements Races {
         };
         StorageEvents.REGISTER_ENTITY_STORAGE.register(listener);
         ManasCoreRace.LOG.info("storage event registered? {}", String.valueOf(StorageEvents.REGISTER_ENTITY_STORAGE.isRegistered(listener)));
+
         EntityEvents.LIVING_POST_TICK.register(entity -> {
             Level level = entity.level();
             if (level.isClientSide()) return;
@@ -105,7 +104,6 @@ public class RaceStorage extends Storage implements Races {
             storage.checkAndMarkDirty(instance);
         }
 
-        if (!instance.canActivateAbility(entity)) return;
         if (!instance.canTick(entity)) return;
         if (RaceEvents.RACE_PRE_TICK.invoker().tick(instance, entity).isFalse()) return;
         instance.onTick(entity);

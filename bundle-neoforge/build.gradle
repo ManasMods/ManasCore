@@ -5,10 +5,15 @@
 
 ext {
     includedProjects = [
-            ":network",
-            ":storage",
+            ":attribute",
+            ":command",
+            ":config",
             ":inventory",
-            ":command"
+            ":keybind",
+            ":network",
+            ":race",
+            ":storage",
+            ":skill"
     ]
 }
 
