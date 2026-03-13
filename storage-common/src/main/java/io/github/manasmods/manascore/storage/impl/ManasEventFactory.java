@@ -11,6 +11,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.AbstractQueue;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
@@ -18,7 +19,7 @@ import java.util.function.Function;
 
 public final class ManasEventFactory {
     private ManasEventFactory() {}
-    public static <T> Event<T> of(Function<AbstractQueue<T>, T> function) {
+    public static <T> Event<T> of(Function<List<T>, T> function) {
         return new EventImpl<>(function);
     }
 
@@ -175,12 +176,14 @@ public final class ManasEventFactory {
     }
 
     private static class EventImpl<T> implements Event<T> {
-        private final Function<AbstractQueue<T>, T> function;
+        private final Function<List<T>, T> function;
         private T invoker = null;
         private AbstractQueue<T> listeners;
 
-        public EventImpl(Function<AbstractQueue<T>, T> function) {
+        public EventImpl(Function<List<T>, T> function) {
             this.function = function;
+            // We're using ConcurrentLinkedQueue as a thread safe way to add listeners to the event,
+            // we're not actually using it as a queue, but as a thread safe linked list.
             this.listeners = new ConcurrentLinkedQueue<>();
         }
 
@@ -216,10 +219,11 @@ public final class ManasEventFactory {
         }
 
         public void update() {
+            // Using peek() and .stream().toList() to prevent listeners from being de-registered
             if (listeners.size() == 1) {
-                invoker = listeners.poll();
+                invoker = listeners.peek();
             } else {
-                invoker = function.apply(listeners);
+                invoker = function.apply(listeners.stream().toList());
             }
         }
     }
