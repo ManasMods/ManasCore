@@ -56,18 +56,18 @@ public class SkillStorage  extends Storage implements Skills {
     };*/
 
     public static void init() {
-        ManasCoreSkill.LOG.info("event registration");
         StorageEvents.RegisterStorage<Entity> listener = new StorageEvents.RegisterStorage<Entity>() {
             @Override
             public void register(StorageEvents.StorageRegistry<Entity> registry) {
-                ManasCoreSkill.LOG.info("storage event triggered");
                 key = registry.register(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "skill_storage"), SkillStorage.class, LivingEntity.class::isInstance, target -> new SkillStorage((LivingEntity) target));
-                ManasCoreSkill.LOG.info(key != null ? "storage Key registered " + key.toString() : "storage Key failed to register");
             }
         };
 
         StorageEvents.REGISTER_ENTITY_STORAGE.register(listener);
-        ManasCoreSkill.LOG.info("storage event registered? {}", String.valueOf(StorageEvents.REGISTER_ENTITY_STORAGE.isRegistered(listener)));
+
+        if (!StorageEvents.REGISTER_ENTITY_STORAGE.isRegistered(listener)) {
+            ManasCoreSkill.LOG.warn("Failed to register storage event");
+        }
 
         EntityEvents.LIVING_CHANGE_TARGET.register((entity, changeableTarget) -> {
             if (EntityEvents.LIVING_CHANGE_TARGET_EARLY.invoker().changeTarget(entity, changeableTarget).isFalse()) return EventResult.interruptFalse();

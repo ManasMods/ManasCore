@@ -53,18 +53,19 @@ public class RaceStorage extends Storage implements Races {
     };*/
 
     public static void init() {
-        ManasCoreRace.LOG.info("event registration");
         StorageEvents.RegisterStorage<Entity> listener = new StorageEvents.RegisterStorage<Entity>() {
             @Override
             public void register(StorageEvents.StorageRegistry<Entity> registry) {
-                ManasCoreRace.LOG.info("storage event triggered");
                 key = registry.register(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "race_storage"),
                         RaceStorage.class, LivingEntity.class::isInstance, target -> new RaceStorage((LivingEntity) target));
-                ManasCoreRace.LOG.info(key != null ? "storage Key registered " + key.toString() : "storage Key failed to register");
             }
         };
+
         StorageEvents.REGISTER_ENTITY_STORAGE.register(listener);
-        ManasCoreRace.LOG.info("storage event registered? {}", String.valueOf(StorageEvents.REGISTER_ENTITY_STORAGE.isRegistered(listener)));
+
+        if (!StorageEvents.REGISTER_ENTITY_STORAGE.isRegistered(listener)) {
+            ManasCoreRace.LOG.warn("Failed to register storage event");
+        }
 
         EntityEvents.LIVING_POST_TICK.register(entity -> {
             Level level = entity.level();
