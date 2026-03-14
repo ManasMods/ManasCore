@@ -16,7 +16,6 @@ public final class ManasCoreRace {
     public static final Logger LOG = LoggerFactory.getLogger("ManasCore - Race");
 
     public static void init() {
-        LOG.info("init");
         RaceRegistry.init();
         RaceStorage.init();
         ManasRaceNetwork.init();
