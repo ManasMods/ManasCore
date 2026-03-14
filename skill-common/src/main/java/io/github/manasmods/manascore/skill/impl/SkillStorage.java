@@ -14,6 +14,7 @@ import io.github.manasmods.manascore.network.api.util.Changeable;
 import io.github.manasmods.manascore.skill.ManasCoreSkill;
 import io.github.manasmods.manascore.skill.ModuleConstants;
 import io.github.manasmods.manascore.skill.api.*;
+import io.github.manasmods.manascore.skill.impl.data.ManascoreEntityTags;
 import io.github.manasmods.manascore.storage.api.Storage;
 import io.github.manasmods.manascore.storage.api.StorageEvents;
 import io.github.manasmods.manascore.storage.api.StorageKey;
@@ -145,7 +146,7 @@ public class SkillStorage  extends Storage implements Skills {
     }
 
     private static void checkPlayerOnlyEffects(LivingEntity entity, Skills storage) {
-        if (!(entity instanceof Player)) return;
+        if (!entity.getType().is(ManascoreEntityTags.SKILL_COOLDOWN_ALLOWED)) return;
         List<ManasSkillInstance> toBeRemoved = new ArrayList<>();
 
         for (ManasSkillInstance instance : storage.getLearnedSkills()) {
