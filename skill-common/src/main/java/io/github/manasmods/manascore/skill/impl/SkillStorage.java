@@ -31,6 +31,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,15 +47,6 @@ public class SkillStorage  extends Storage implements Skills {
     public static final int PASSIVE_SKILL = 100;
     public static final Multimap<UUID, TickingSkill> tickingSkills = ArrayListMultimap.create();
     private static final String SKILL_LIST_KEY = "skills";
-    /*
-    private static final StorageEvents.RegisterStorage<Entity> listener = new StorageEvents.RegisterStorage<Entity>() {
-        @Override
-        public void register(StorageEvents.StorageRegistry<Entity> registry) {
-            ManasCoreSkill.LOG.info("ManasSkill storage event triggered");
-            key = registry.register(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "skill_storage"), SkillStorage.class, LivingEntity.class::isInstance, target -> new SkillStorage((LivingEntity) target));
-            ManasCoreSkill.LOG.info(key != null ? "ManasSkill storage Key registered " + key.toString() : "ManasSkill storage Key failed to register");
-        }
-    };*/
 
     public static void init() {
         StorageEvents.RegisterStorage<Entity> listener = new StorageEvents.RegisterStorage<Entity>() {
@@ -116,13 +108,10 @@ public class SkillStorage  extends Storage implements Skills {
         if (server == null) return;
 
         boolean shouldPassiveConsume = server.getTickCount() % INSTANCE_UPDATE == 0;
-        if (!shouldPassiveConsume) return;
-        checkPlayerOnlyEffects(entity, storage);
+        if (shouldPassiveConsume) checkSkillTimers(entity, storage);
 
         boolean passiveSkillActivate = server.getTickCount() % PASSIVE_SKILL == 0;
-        if (!passiveSkillActivate) return;
-
-        tickSkills(entity, storage);
+        if (passiveSkillActivate) tickSkills(entity, storage);
     }
 
     private static void tickSkills(LivingEntity entity, Skills storage) {
@@ -145,14 +134,17 @@ public class SkillStorage  extends Storage implements Skills {
         }
     }
 
-    private static void checkPlayerOnlyEffects(LivingEntity entity, Skills storage) {
-        if (!entity.getType().is(ManascoreEntityTags.SKILL_COOLDOWN_ALLOWED)) return;
+    private static void checkSkillTimers(LivingEntity entity, Skills storage) {
+        ManascoreEntityTags
+        if (!storage.shouldActiveTick()) return;
         List<ManasSkillInstance> toBeRemoved = new ArrayList<>();
 
+        boolean shouldContinueToTick = false;
         for (ManasSkillInstance instance : storage.getLearnedSkills()) {
             // Update cooldown
             for (int i = 0; i < instance.getModes(); i++) {
                 if (!instance.onCoolDown(i)) continue;
+                shouldContinueToTick = true;
                 int currentCooldown = instance.getCoolDown(i);
                 Changeable<Integer> newCooldown = Changeable.of(Math.max(0, currentCooldown - 1));
                 if (!SkillEvents.SKILL_UPDATE_COOLDOWN.invoker().cooldown(instance, entity, i, currentCooldown, newCooldown).isFalse())
@@ -162,6 +154,7 @@ public class SkillStorage  extends Storage implements Skills {
 
             // Update temporary skill timer
             if (!instance.isTemporarySkill()) continue;
+            shouldContinueToTick = true;
             instance.decreaseRemoveTime(1);
             storage.checkAndMarkDirty(instance);
 
@@ -172,6 +165,10 @@ public class SkillStorage  extends Storage implements Skills {
         // Remove temporary skills
         for (ManasSkillInstance instance : toBeRemoved) {
             storage.forgetSkill(instance);
+        }
+
+        if (!shouldContinueToTick) {
+            storage.clearActiveTick();
         }
     }
 
@@ -191,6 +188,7 @@ public class SkillStorage  extends Storage implements Skills {
 
     private final Map<ResourceLocation, ManasSkillInstance> skillInstances = new ConcurrentHashMap<>();
     private boolean hasRemovedSkills = false;
+    private boolean hasCooldowns = false;
 
     protected SkillStorage(LivingEntity holder) {
         super(holder);
@@ -202,7 +200,9 @@ public class SkillStorage  extends Storage implements Skills {
 
     public void updateSkill(@NonNull ManasSkillInstance updatedInstance, boolean sync) {
         updatedInstance.markDirty();
+        updatedInstance.setOwningStorage(this);
         this.skillInstances.put(updatedInstance.getSkillId(), updatedInstance);
+        this.checkAndMarkActiveTick(updatedInstance);
         if (sync) markDirty();
     }
 
@@ -217,7 +217,9 @@ public class SkillStorage  extends Storage implements Skills {
         if (result.isFalse()) return false;
 
         instance.markDirty();
+        instance.setOwningStorage(this);
         this.skillInstances.put(instance.getSkillId(), instance);
+        this.checkAndMarkActiveTick(instance);
         if (unlockMessage.isPresent()) getOwner().sendSystemMessage(unlockMessage.get());
         instance.onLearnSkill(this.getOwner());
         markDirty();
@@ -291,7 +293,9 @@ public class SkillStorage  extends Storage implements Skills {
         for (Tag tag : data.getList(SKILL_LIST_KEY, Tag.TAG_COMPOUND)) {
             try {
                 ManasSkillInstance instance = ManasSkillInstance.fromNBT((CompoundTag) tag);
+                instance.setOwningStorage(this);
                 this.skillInstances.put(instance.getSkillId(), instance);
+                this.checkAndMarkActiveTick(instance);
             } catch (Exception e) {
                 ManasCoreSkill.LOG.error("Failed to load skill instance from NBT", e);
             }
@@ -315,7 +319,8 @@ public class SkillStorage  extends Storage implements Skills {
         }
     }
 
-    protected LivingEntity getOwner() {
+    @Override
+    public LivingEntity getOwner() {
         return (LivingEntity) this.holder;
     }
 
@@ -328,6 +333,33 @@ public class SkillStorage  extends Storage implements Skills {
                 skill.getSkill().removeAttributeModifiers(instance.get(), player, skill.getMode());
             }
             multimap.removeAll(player.getUUID());
+        }
+    }
+
+    public void markActiveTick() {
+        this.hasCooldowns = true;
+    }
+
+    @ApiStatus.Internal
+    public void clearActiveTick() {
+        this.hasCooldowns = false;
+    }
+
+    public boolean shouldActiveTick() {
+        return this.hasCooldowns;
+    }
+
+    private void checkAndMarkActiveTick(ManasSkillInstance instance) {
+        if (this.shouldActiveTick()) return;
+        if (instance.isTemporarySkill()) {
+            this.markActiveTick();
+            return;
+        }
+        for (int i = 0; i < instance.getModes(); i++) {
+            if (instance.getCoolDown(i) > 0) {
+                this.markActiveTick();
+                return;
+            }
         }
     }
 }

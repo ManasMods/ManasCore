@@ -6,8 +6,6 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 
 public class ManascoreEntityTags {
-    public static TagKey<EntityType<?>> SKILL_COOLDOWN_ALLOWED = modTag("skill_cooldown_allowed");
-
     static TagKey<EntityType<?>> modTag(String name) {
         return create(ResourceLocation.fromNamespaceAndPath("manascore", name));
     }
