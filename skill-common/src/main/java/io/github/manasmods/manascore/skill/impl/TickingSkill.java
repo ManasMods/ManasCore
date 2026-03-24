@@ -7,6 +7,7 @@ package io.github.manasmods.manascore.skill.impl;
 
 import io.github.manasmods.manascore.skill.api.ManasSkill;
 import io.github.manasmods.manascore.skill.api.ManasSkillInstance;
+import io.github.manasmods.manascore.skill.api.SkillAPI;
 import lombok.Getter;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -60,24 +61,23 @@ public class TickingSkill {
         return this.skill == skill && this.mode == mode && this.keyNumber == keyNumber;
     }
 
-    public static void addTickingSkill(Player player, ManasSkill skill, int mode, int keyNumber) {
-        UUID uuid = player.getUUID();
-        Collection<TickingSkill> skills = SkillStorage.tickingSkills.get(uuid);
-        for (TickingSkill tickingSkill : skills) if (tickingSkill.matches(skill, mode)) return;
-        SkillStorage.tickingSkills.put(uuid, new TickingSkill(skill, mode, keyNumber));
+    public static void addTickingSkill(LivingEntity livingEntity, ManasSkill skill, int mode, int keyNumber) {
+        SkillStorage storage = SkillAPI.getSkillsFrom(livingEntity);
+        for (TickingSkill tickingSkill : storage.heldSkills) if (tickingSkill.matches(skill, mode)) return;
+        storage.heldSkills.add(new TickingSkill(skill, mode, keyNumber));
     }
 
     public static boolean isTickingSkill(LivingEntity entity, ManasSkill skill, int mode) {
-        UUID uuid = entity.getUUID();
-        for (TickingSkill tickingSkill : SkillStorage.tickingSkills.get(uuid)) {
+        SkillStorage storage = SkillAPI.getSkillsFrom(entity);
+        for (TickingSkill tickingSkill : storage.heldSkills) {
             if (tickingSkill.matches(skill, mode)) return true;
         }
         return false;
     }
 
     public static boolean isTickingSkill(LivingEntity entity, ManasSkill skill) {
-        UUID uuid = entity.getUUID();
-        for (TickingSkill tickingSkill : SkillStorage.tickingSkills.get(uuid)) {
+        SkillStorage storage = SkillAPI.getSkillsFrom(entity);
+        for (TickingSkill tickingSkill : storage.heldSkills) {
             if (tickingSkill.getSkill() == skill) return true;
         }
         return false;
