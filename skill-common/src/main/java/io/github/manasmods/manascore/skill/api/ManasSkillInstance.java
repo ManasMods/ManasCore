@@ -43,11 +43,31 @@ public class ManasSkillInstance {
     @Getter
     private boolean dirty = false;
     protected final RegistrySupplier<ManasSkill> skillRegistryObject;
+    private Skills owningStorage = null;
 
     protected ManasSkillInstance(ManasSkill skill) {
         this.skillRegistryObject = SkillAPI.getSkillRegistry().delegate(SkillAPI.getSkillRegistry().getId(skill));
         this.subInstances = new HashMap<>();
         this.cooldownList = NonNullList.withSize(this.getModes(), 0);
+    }
+
+    /**
+     * Used to get the {@link Skills} which possesses this instance.
+     */
+    public @Nullable Skills getOwningStorage() {
+        return this.owningStorage;
+    }
+
+    /**
+     * Used to determine if the instance has a reference to a storage which should be possessing it.
+     */
+    public boolean hasOwningStorage() {
+        return this.owningStorage != null;
+    }
+
+    @ApiStatus.Internal
+    public void setOwningStorage(Skills storage) {
+        this.owningStorage = storage;
     }
 
     /**
@@ -72,7 +92,9 @@ public class ManasSkillInstance {
         clone.masteryPoint = this.masteryPoint;
         clone.toggled = this.toggled;
         if (this.tag != null) clone.tag = this.tag.copy();
-        clone.subInstances = this.subInstances;
+        for (ManasSkillInstance instance : this.subInstances.values()) {
+            clone.subInstances.put(instance.getSkill(), instance.copy());
+        }
         clone.parentSkill = this.parentSkill;
         return clone;
     }
@@ -161,7 +183,7 @@ public class ManasSkillInstance {
     /**
      * This Method is invoked to indicate that a {@link ManasSkillInstance} has been synced with the clients.
      * <p>
-     * Do <strong>NOT</strong> use that method on our own!
+     * Do <strong>NOT</strong> use this method on your own!
      */
     @ApiStatus.Internal
     public void resetDirty() {
@@ -321,6 +343,9 @@ public class ManasSkillInstance {
      */
     public void setCoolDown(int coolDown, int mode) {
         if (mode < 0 || mode >= cooldownList.size()) return;
+        if (this.hasOwningStorage() && !this.getOwningStorage().shouldActiveTick()) {
+            if (coolDown > 0) this.getOwningStorage().markActiveTick();
+        }
         this.cooldownList.set(mode, coolDown);
         markDirty();
     }
@@ -330,6 +355,9 @@ public class ManasSkillInstance {
      */
     public void setCoolDowns(int coolDown) {
         Collections.fill(this.cooldownList, coolDown);
+        if (this.hasOwningStorage() && !this.getOwningStorage().shouldActiveTick()) {
+            if (coolDown > 0) this.getOwningStorage().shouldActiveTick();
+        }
         markDirty();
     }
 
@@ -339,6 +367,7 @@ public class ManasSkillInstance {
     public void decreaseCoolDown(int coolDown, int mode) {
         if (mode < 0 || mode >= cooldownList.size()) return;
         this.cooldownList.set(mode, Math.max(0, this.cooldownList.get(mode) - coolDown));
+        if (this.hasOwningStorage() && !this.getOwningStorage().shouldActiveTick() && this.getCoolDown(mode) > 0) this.getOwningStorage().markActiveTick();
         markDirty();
     }
 
@@ -347,6 +376,9 @@ public class ManasSkillInstance {
      */
     public void setCoolDownList(List<Integer> list) {
         this.cooldownList = list;
+        if (this.hasOwningStorage() && !this.getOwningStorage().shouldActiveTick()) {
+            for (int i : list) if (i > 0) this.getOwningStorage().markActiveTick();
+        }
     }
 
     /**
@@ -375,6 +407,7 @@ public class ManasSkillInstance {
      */
     public void setRemoveTime(int removeTime) {
         this.removeTime = removeTime;
+        if (removeTime != -1 && hasOwningStorage() && !getOwningStorage().shouldActiveTick()) getOwningStorage().markActiveTick();
         markDirty();
     }
 
@@ -384,6 +417,7 @@ public class ManasSkillInstance {
     public void decreaseRemoveTime(int time) {
         if (this.removeTime > 0) {
             this.removeTime = Math.max(0, this.removeTime - time);
+            if (hasOwningStorage() && !getOwningStorage().shouldActiveTick()) getOwningStorage().markActiveTick();
             markDirty();
         }
     }
