@@ -46,7 +46,8 @@ public record RequestSkillTogglePacket(
 
                 ManasSkillInstance skill = changeable.get();
                 if (skill == null) return;
-                if(!skill.canInteractSkill(player)) return;
+                if (!skill.canInteractSkill(player)) return;
+                if (!skill.canBeToggled(player)) return;
 
                 if (skill.isToggled()) {
                     skill.setToggled(false);

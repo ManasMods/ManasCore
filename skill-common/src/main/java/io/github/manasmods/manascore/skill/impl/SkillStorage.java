@@ -351,6 +351,7 @@ public class SkillStorage  extends Storage implements Skills {
             this.markActiveTick();
             return;
         }
+
         for (int i = 0; i < instance.getModes(); i++) {
             if (instance.getCoolDown(i) > 0) {
                 this.markActiveTick();
