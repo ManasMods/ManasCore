@@ -62,9 +62,9 @@ public class SkillAPI {
      *
      * @see InternalSkillPacketActions#sendSkillReleasePacket
      */
-    public static void skillReleasePacket(ResourceLocation skill, int keyNumber, int mode, int heldTicks) {
+    public static void skillReleasePacket(ResourceLocation skill, int keyNumber, int mode) {
         if (Platform.getEnvironment() == Env.CLIENT) {
-            InternalSkillPacketActions.sendSkillReleasePacket(skill, keyNumber, mode, heldTicks);
+            InternalSkillPacketActions.sendSkillReleasePacket(skill, keyNumber, mode);
         }
     }
 

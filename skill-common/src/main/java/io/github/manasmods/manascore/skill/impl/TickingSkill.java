@@ -20,6 +20,7 @@ import java.util.UUID;
  * This is the Registry Object for Ticking Skills when a {@link ManasSkill} is held down in specific mode.
  */
 public class TickingSkill {
+    @Getter
     private int duration = 0;
     @Getter
     private final ManasSkill skill;
@@ -41,7 +42,7 @@ public class TickingSkill {
         ManasSkillInstance instance = optional.get();
         if (this.reachedMaxDuration(instance, entity) || !instance.canInteractSkill(entity)) {
             if (instance.shouldTriggerReleaseOnHeldInterrupt(entity, keyNumber, mode))
-                storage.handleSkillRelease(instance, this.duration, this.keyNumber, this.mode, true);
+                storage.handleSkillRelease(instance, this.keyNumber, this.mode, true);
             return false;
         }
         return instance.onHeld(entity, this.duration++, this.mode);

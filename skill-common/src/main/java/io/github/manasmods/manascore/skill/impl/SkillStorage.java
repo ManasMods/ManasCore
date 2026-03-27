@@ -247,8 +247,19 @@ public class SkillStorage  extends Storage implements Skills {
         markDirty();
     }
 
-    public void handleSkillRelease(ManasSkillInstance skillInstance, int heldTick, int keyNumber, int mode, boolean heldInterrupt) {
+    public void handleSkillRelease(ManasSkillInstance skillInstance, int keyNumber, int mode, boolean heldInterrupt) {
         Changeable<ManasSkillInstance> changeable = Changeable.of(skillInstance);
+
+        int heldTick = -1;
+        if (!this.heldSkills.isEmpty()) {
+            for (TickingSkill tickingSkill : List.copyOf(this.heldSkills)) {
+                if (tickingSkill.matches(skillInstance.getSkill(), mode)) {
+                    heldTick = tickingSkill.getDuration();
+                }
+            }
+        }
+        if (heldTick < 0) return;
+
         if (SkillEvents.RELEASE_SKILL.invoker().releaseSkill(changeable, this.getOwner(), keyNumber, mode, heldTick).isFalse()) return;
         ManasSkillInstance skill = changeable.get();
         if (skill == null) return;

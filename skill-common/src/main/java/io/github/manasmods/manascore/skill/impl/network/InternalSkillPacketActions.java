@@ -34,11 +34,11 @@ public class InternalSkillPacketActions {
      * This Method filters {@link ManasSkill} that meets the conditions of the {@link SkillEvents.SkillReleaseEvent} then send packet for them.
      * Only executes on client using the dist executor.
      */
-    public static void sendSkillReleasePacket(ResourceLocation skillId, int keyNumber, int mode, int heldTicks) {
+    public static void sendSkillReleasePacket(ResourceLocation skillId, int keyNumber, int mode) {
         var minecraft = Minecraft.getInstance();
         Player player = minecraft.player;
-        if (player == null || heldTicks < 0) return;
-        NetworkManager.sendToServer(new RequestSkillReleasePacket(heldTicks, keyNumber, mode, skillId));
+        if (player == null) return;
+        NetworkManager.sendToServer(new RequestSkillReleasePacket(keyNumber, mode, skillId));
     }
 
     /**
