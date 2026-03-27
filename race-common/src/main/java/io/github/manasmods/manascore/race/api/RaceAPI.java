@@ -62,9 +62,9 @@ public class RaceAPI {
      *
      * @see InternalRacePacketActions#sendRaceAbilityReleasePacket
      */
-    public static void raceAbilityReleasePacket(int heldTick) {
+    public static void raceAbilityReleasePacket() {
         if (Platform.getEnvironment() == Env.CLIENT) {
-            InternalRacePacketActions.sendRaceAbilityReleasePacket(heldTick);
+            InternalRacePacketActions.sendRaceAbilityReleasePacket();
         }
     }
 

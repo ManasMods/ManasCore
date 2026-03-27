@@ -23,7 +23,7 @@ public class KeybindingTest {
                     RaceAPI.raceAbilityActivationPacket();
                 }, duration -> {
                     ManasCoreTesting.LOG.info("Released in {} Seconds", duration / 1000.0);
-                    RaceAPI.raceAbilityReleasePacket((int) (duration / 50));
+                    RaceAPI.raceAbilityReleasePacket();
                 }),
                 new ManasKeybinding("manascore.keybinding.test_press", category, () -> {
                     ManasCoreTesting.LOG.info("Pressed");
