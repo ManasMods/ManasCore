@@ -1,82 +1,49 @@
 package io.github.manasmods.manascore.architectury.mixin.architectury.event;
 
-import org.spongepowered.asm.mixin.Final;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.AbstractQueue;
-import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.function.Function;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @Mixin(targets = "dev.architectury.event.EventFactory$EventImpl")
 public class MixinEventFactory<T> {
-    @Shadow(remap = false) @Final
-    private Function<List<T>, T> function;
-    @Shadow(remap = false)
-    private T invoker;
-    private AbstractQueue<T> listenerQueue;
+    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
-    @Inject(
-            method = "<init>", at = @At("RETURN"),
-            remap = false
-    )
-    void initQueue(Function<List<T>, T> function, CallbackInfo ci) {
-        listenerQueue = new ConcurrentLinkedQueue<>();
+    @WrapMethod( method = "register", remap = false )
+    void registerListener(T listener, Operation<Void> original) {
+        readWriteLock.writeLock().lock();
+        original.call(listener);
+        readWriteLock.writeLock().unlock();
     }
 
-    @Inject(
-            method = "register", at = @At("HEAD"),
-            remap = false, cancellable = true
-    )
-    void registerListener(T listener, CallbackInfo ci) {
-        listenerQueue.add(listener);
-        invoker = null;
-        ci.cancel();
+    @WrapMethod( method = "unregister", remap = false )
+    void removeListener(T listener, Operation<Void> original) {
+        readWriteLock.writeLock().lock();
+        original.call(listener);
+        readWriteLock.writeLock().unlock();
     }
 
-    @Inject(
-            method = "unregister", at = @At("HEAD"),
-            remap = false, cancellable = true
-    )
-    void removeListener(T listener, CallbackInfo ci) {
-        listenerQueue.remove(listener);
-        invoker = null;
-        ci.cancel();
+    @WrapMethod( method = "isRegistered", remap = false )
+    boolean isListenerRegistered(T listener, Operation<Boolean> original) {
+        readWriteLock.readLock().lock();
+        boolean result = original.call(listener);
+        readWriteLock.readLock().unlock();
+        return result;
     }
 
-    @Inject(
-            method = "isRegistered", at = @At("HEAD"),
-            remap = false, cancellable = true
-    )
-    void isListenerRegistered(T listener, CallbackInfoReturnable<Boolean> cir) {
-        cir.setReturnValue(listenerQueue.contains(listener));
+    @WrapMethod( method = "clearListeners", remap = false )
+    void clearListeners(Operation<Void> original) {
+        readWriteLock.writeLock().lock();
+        original.call();
+        readWriteLock.writeLock().unlock();
     }
 
-    @Inject(
-            method = "clearListeners", at = @At("HEAD"),
-            remap = false, cancellable = true
-    )
-    void clearListeners(CallbackInfo ci) {
-        listenerQueue.clear();
-        invoker = null;
-        ci.cancel();
-    }
-
-    @Inject(
-            method = "update", at = @At("HEAD"),
-            remap = false, cancellable = true
-    )
-    void updateInvoker(CallbackInfo ci) {
-        if (listenerQueue.size() == 1) {
-            invoker = listenerQueue.peek();
-        } else {
-            invoker = function.apply(listenerQueue.stream().toList());
-        }
-        ci.cancel();
+    @WrapMethod( method = "update", remap = false )
+    void updateInvoker(Operation<Void> original) {
+        readWriteLock.readLock().lock();
+        original.call();
+        readWriteLock.readLock().unlock();
     }
 }
