@@ -255,6 +255,7 @@ public class SkillStorage  extends Storage implements Skills {
             for (TickingSkill tickingSkill : List.copyOf(this.heldSkills)) {
                 if (tickingSkill.matches(skillInstance.getSkill(), mode)) {
                     heldTick = tickingSkill.getDuration();
+                    break;
                 }
             }
         }

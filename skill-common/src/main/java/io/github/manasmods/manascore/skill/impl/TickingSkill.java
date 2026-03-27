@@ -10,11 +10,8 @@ import io.github.manasmods.manascore.skill.api.ManasSkillInstance;
 import io.github.manasmods.manascore.skill.api.SkillAPI;
 import lombok.Getter;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 
-import java.util.Collection;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * This is the Registry Object for Ticking Skills when a {@link ManasSkill} is held down in specific mode.
