@@ -24,7 +24,7 @@ public interface Races {
     boolean startHeldAbility();
 
     /**
-     * Forcibly interrupts the ongoing ability, preventing any affects that would normally occur if {@link  Races#releaseHeldAbility()} was called.
+     * Forcibly interrupts the ongoing ability, preventing any effects that would normally occur if {@link  Races#releaseHeldAbility()} was called.
      */
     void interruptHeldAbility();
 

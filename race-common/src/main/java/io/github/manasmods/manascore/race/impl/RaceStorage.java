@@ -125,7 +125,7 @@ public class RaceStorage extends Storage implements Races {
 
     public boolean releaseHeldAbility() {
         Optional<ManasRaceInstance> optional = this.getRace();
-        if (optional.isEmpty()) return false;
+        if (optional.isEmpty() || this.raceHeldAbility == null) return false;
         raceInstance = optional.get();
         int heldTicks = this.raceHeldAbility.getDuration();
         if (RaceEvents.RELEASE_ABILITY.invoker().releaseAbility(raceInstance, getOwner(), heldTicks).isFalse()) return false;

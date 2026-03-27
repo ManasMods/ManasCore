@@ -14,36 +14,37 @@ public class MixinEventFactory<T> {
     @WrapMethod( method = "register", remap = false )
     void registerListener(T listener, Operation<Void> original) {
         readWriteLock.writeLock().lock();
-        original.call(listener);
-        readWriteLock.writeLock().unlock();
+        try { original.call(listener); }
+        finally { readWriteLock.writeLock().unlock(); }
     }
 
     @WrapMethod( method = "unregister", remap = false )
     void removeListener(T listener, Operation<Void> original) {
         readWriteLock.writeLock().lock();
-        original.call(listener);
-        readWriteLock.writeLock().unlock();
+        try { original.call(listener); }
+        finally { readWriteLock.writeLock().unlock(); }
     }
 
     @WrapMethod( method = "isRegistered", remap = false )
     boolean isListenerRegistered(T listener, Operation<Boolean> original) {
         readWriteLock.readLock().lock();
-        boolean result = original.call(listener);
-        readWriteLock.readLock().unlock();
+        boolean result = false;
+        try { result = original.call(listener); }
+        finally { readWriteLock.readLock().unlock(); }
         return result;
     }
 
     @WrapMethod( method = "clearListeners", remap = false )
     void clearListeners(Operation<Void> original) {
         readWriteLock.writeLock().lock();
-        original.call();
-        readWriteLock.writeLock().unlock();
+        try { original.call(); }
+        finally { readWriteLock.writeLock().unlock(); }
     }
 
     @WrapMethod( method = "update", remap = false )
     void updateInvoker(Operation<Void> original) {
         readWriteLock.readLock().lock();
-        original.call();
-        readWriteLock.readLock().unlock();
+        try { original.call(); }
+        finally { readWriteLock.readLock().unlock(); }
     }
 }
