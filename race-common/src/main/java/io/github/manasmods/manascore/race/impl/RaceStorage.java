@@ -116,6 +116,7 @@ public class RaceStorage extends Storage implements Races {
         if (!raceInstance.canActivateAbility(getOwner()) || raceInstance.isOnCooldown()) return false;
         raceInstance.onActivateAbility(getOwner());
         this.raceHeldAbility = new TickingRace();
+        this.checkAndMarkDirty(raceInstance);
         return true;
     }
 
