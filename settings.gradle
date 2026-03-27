@@ -20,6 +20,9 @@ rootProject.name = 'manascore'
     include ":$module-neoforge"
 }
 
+include ":architectury-common"
+include ":architectury-neoforge"
+
 include ':bundle-fabric'
 include ':bundle-neoforge'
 
