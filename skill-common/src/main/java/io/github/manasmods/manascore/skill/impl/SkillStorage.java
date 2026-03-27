@@ -189,6 +189,29 @@ public class SkillStorage  extends Storage implements Skills {
         super(holder);
     }
 
+    public boolean startHoldSkill(ResourceLocation skillId, int keyNumber, int mode) {
+        Optional<ManasSkillInstance> optional = getSkill(skillId);
+        if (optional.isEmpty()) return false;
+        return startHoldSkill(optional.get(), keyNumber, mode);
+    }
+
+    public boolean startHoldSkill(ManasSkillInstance skillInstance, int keyNumber, int mode) {
+        Changeable<ManasSkillInstance> changeable = Changeable.of(skillInstance);
+        if (SkillEvents.ACTIVATE_SKILL.invoker().activateSkill(changeable, getOwner(), keyNumber, mode).isFalse()) return false;
+        ManasSkillInstance skill = changeable.get();
+        if (skill == null) return false;
+        if(!skill.canInteractSkill(getOwner())) return false;
+
+        if (mode < 0 || mode >= skill.getModes()) return false;
+        if (skill.onCoolDown(mode) && !skill.canIgnoreCoolDown(getOwner(), mode)) return false;
+
+        skill.onPressed(getOwner(), keyNumber, mode);
+        skill.addHeldAttributeModifiers(getOwner(), mode);
+        TickingSkill.addTickingSkill(getOwner(), skill.getSkill(), mode, keyNumber);
+        this.checkAndMarkDirty(skill);
+        return true;
+    }
+
     public Collection<ManasSkillInstance> getLearnedSkills() {
         return this.skillInstances.values();
     }
