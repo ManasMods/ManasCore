@@ -28,8 +28,7 @@ public class TickingRace {
         if (optional.isEmpty()) return false;
 
         ManasRaceInstance instance = optional.get();
-        if (reachedMaxDuration(instance, entity)) return false;
-
+        if (this.reachedMaxDuration(instance, entity)) return false;
         if (!instance.canActivateAbility(entity)) return false;
         return instance.onHeldAbility(entity, this.duration++);
     }
@@ -37,6 +36,6 @@ public class TickingRace {
     public boolean reachedMaxDuration(ManasRaceInstance instance, LivingEntity entity) {
         int maxDuration = instance.getMaxHeldTime(entity);
         if (maxDuration == -1) return false;
-        return duration >= maxDuration;
+        return this.duration >= maxDuration;
     }
 }

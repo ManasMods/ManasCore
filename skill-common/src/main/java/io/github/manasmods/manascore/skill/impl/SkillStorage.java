@@ -183,8 +183,9 @@ public class SkillStorage  extends Storage implements Skills {
     private final Map<ResourceLocation, ManasSkillInstance> skillInstances = new ConcurrentHashMap<>();
     private boolean hasRemovedSkills = false;
     private boolean hasCooldowns = false;
-    public ArrayList<TickingSkill> heldSkills = new ArrayList<>(0);
 
+    @Getter
+    public ArrayList<TickingSkill> heldSkills = new ArrayList<>(0);
     protected SkillStorage(LivingEntity holder) {
         super(holder);
     }
@@ -198,6 +199,7 @@ public class SkillStorage  extends Storage implements Skills {
     public boolean startHoldSkill(ManasSkillInstance skillInstance, int keyNumber, int mode) {
         Changeable<ManasSkillInstance> changeable = Changeable.of(skillInstance);
         if (SkillEvents.ACTIVATE_SKILL.invoker().activateSkill(changeable, getOwner(), keyNumber, mode).isFalse()) return false;
+
         ManasSkillInstance skill = changeable.get();
         if (skill == null) return false;
         if(!skill.canInteractSkill(getOwner())) return false;
@@ -284,13 +286,14 @@ public class SkillStorage  extends Storage implements Skills {
         }
         if (heldTick < 0) return;
 
-        if (SkillEvents.RELEASE_SKILL.invoker().releaseSkill(changeable, this.getOwner(), keyNumber, mode, heldTick).isFalse()) return;
+        Changeable<Integer> heldTickChangeable = Changeable.of(heldTick);
+        if (SkillEvents.RELEASE_SKILL.invoker().releaseSkill(changeable, this.getOwner(), keyNumber, mode, heldTickChangeable).isFalse()) return;
         ManasSkillInstance skill = changeable.get();
         if (skill == null) return;
 
         if ((heldInterrupt || skill.canInteractSkill(getOwner())) && mode < skill.getModes()) {
             if (!skill.onCoolDown(mode) || skill.canIgnoreCoolDown(getOwner(), mode)) {
-                skill.onRelease(getOwner(), heldTick, keyNumber, mode);
+                skill.onRelease(getOwner(), heldTickChangeable.get(), keyNumber, mode);
                 this.checkAndMarkDirty(skillInstance);
             }
         }

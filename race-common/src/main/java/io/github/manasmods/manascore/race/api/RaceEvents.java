@@ -48,6 +48,6 @@ public interface RaceEvents {
 
     @FunctionalInterface
     interface RaceAbilityReleaseEvent {
-        EventResult releaseAbility(ManasRaceInstance instance, LivingEntity owner, int heldTicks);
+        EventResult releaseAbility(ManasRaceInstance instance, LivingEntity owner, Changeable<Integer> heldTicks);
     }
 }

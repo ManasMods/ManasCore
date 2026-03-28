@@ -6,6 +6,7 @@
 package io.github.manasmods.manascore.skill.api;
 
 import io.github.manasmods.manascore.skill.impl.SkillStorage;
+import io.github.manasmods.manascore.skill.impl.TickingSkill;
 import lombok.NonNull;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -15,6 +16,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -50,6 +52,11 @@ public interface Skills {
      * Starts activating the specified skill and treating it as if it were being held down. Returns true if successful.
      */
     boolean startHoldSkill(ManasSkillInstance skillInstance, int keyNumber, int mode);
+
+    /**
+     * Returns all active {@link TickingSkill} of the storage.
+     */
+    ArrayList<TickingSkill> getHeldSkills();
 
     /**
      * If the provided instance is dirty, marks this as dirty.

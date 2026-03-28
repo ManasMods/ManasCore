@@ -111,12 +111,12 @@ public class RaceStorage extends Storage implements Races {
     public boolean startHeldAbility() {
         Optional<ManasRaceInstance> optional = this.getRace();
         if (optional.isEmpty()) return false;
-        raceInstance = optional.get();
-        if (RaceEvents.ACTIVATE_ABILITY.invoker().activateAbility(raceInstance, getOwner()).isFalse()) return false;
-        if (!raceInstance.canActivateAbility(getOwner()) || raceInstance.isOnCooldown()) return false;
-        raceInstance.onActivateAbility(getOwner());
+        this.raceInstance = optional.get();
+        if (RaceEvents.ACTIVATE_ABILITY.invoker().activateAbility(this.raceInstance, this.getOwner()).isFalse()) return false;
+        if (!this.raceInstance.canActivateAbility(this.getOwner()) || this.raceInstance.isOnCooldown()) return false;
+        this.raceInstance.onActivateAbility(this.getOwner());
         this.raceHeldAbility = new TickingRace();
-        this.checkAndMarkDirty(raceInstance);
+        this.checkAndMarkDirty(this.raceInstance);
         return true;
     }
 
@@ -127,14 +127,15 @@ public class RaceStorage extends Storage implements Races {
     public boolean releaseHeldAbility() {
         Optional<ManasRaceInstance> optional = this.getRace();
         if (optional.isEmpty() || this.raceHeldAbility == null) return false;
-        raceInstance = optional.get();
-        int heldTicks = this.raceHeldAbility.getDuration();
-        if (RaceEvents.RELEASE_ABILITY.invoker().releaseAbility(raceInstance, getOwner(), heldTicks).isFalse()) return false;
+        this.raceInstance = optional.get();
+        Changeable<Integer> heldTicks = Changeable.of(this.raceHeldAbility.getDuration());
+        if (RaceEvents.RELEASE_ABILITY.invoker().releaseAbility(this.raceInstance, this.getOwner(), heldTicks).isFalse()) return false;
+
         boolean result = false;
-        if (raceInstance.canActivateAbility(this.getOwner()) && !raceInstance.isOnCooldown()) {
-            raceInstance.onReleaseAbility(getOwner(), heldTicks);
+        if (this.raceInstance.canActivateAbility(this.getOwner()) && !this.raceInstance.isOnCooldown()) {
+            this.raceInstance.onReleaseAbility(this.getOwner(), heldTicks.get());
             result = true;
-            this.checkAndMarkDirty(raceInstance);
+            this.checkAndMarkDirty(this.raceInstance);
         }
         this.raceHeldAbility = null;
         return result;

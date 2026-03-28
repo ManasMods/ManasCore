@@ -48,7 +48,7 @@ public interface SkillEvents {
 
     @FunctionalInterface
     interface SkillReleaseEvent {
-        EventResult releaseSkill(Changeable<ManasSkillInstance> skillInstance, LivingEntity owner, int keyNumber, int mode, int heldTicks);
+        EventResult releaseSkill(Changeable<ManasSkillInstance> skillInstance, LivingEntity owner, int keyNumber, int mode, Changeable<Integer> heldTicks);
     }
 
     @FunctionalInterface
