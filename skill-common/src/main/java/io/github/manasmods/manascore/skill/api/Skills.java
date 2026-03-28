@@ -42,6 +42,16 @@ public interface Skills {
     LivingEntity getOwner();
 
     /**
+     * Starts activating the specified skill and treating it as if it were being held down. Returns true if successful.
+     */
+    boolean startHoldSkill(ResourceLocation skillId, int keyNumber, int mode);
+
+    /**
+     * Starts activating the specified skill and treating it as if it were being held down. Returns true if successful.
+     */
+    boolean startHoldSkill(ManasSkillInstance skillInstance, int keyNumber, int mode);
+
+    /**
      * If the provided instance is dirty, marks this as dirty.
      */
     default void checkAndMarkDirty(ManasSkillInstance instance) {

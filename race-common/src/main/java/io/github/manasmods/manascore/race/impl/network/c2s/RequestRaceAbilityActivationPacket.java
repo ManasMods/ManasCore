@@ -8,12 +8,8 @@ package io.github.manasmods.manascore.race.impl.network.c2s;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.utils.Env;
 import io.github.manasmods.manascore.race.ModuleConstants;
-import io.github.manasmods.manascore.race.api.ManasRaceInstance;
 import io.github.manasmods.manascore.race.api.RaceAPI;
-import io.github.manasmods.manascore.race.api.RaceEvents;
 import io.github.manasmods.manascore.race.api.Races;
-import io.github.manasmods.manascore.race.impl.RaceStorage;
-import io.github.manasmods.manascore.race.impl.TickingRace;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -41,17 +37,7 @@ public record RequestRaceAbilityActivationPacket() implements CustomPacketPayloa
             if(player == null) return;
 
             Races storage = RaceAPI.getRaceFrom(player);
-            Optional<ManasRaceInstance> optional = storage.getRace();
-            if (optional.isEmpty()) return;
-
-            ManasRaceInstance instance = optional.get();
-            if (RaceEvents.ACTIVATE_ABILITY.invoker().activateAbility(instance, player).isFalse()) return;
-            if (!instance.canActivateAbility(player)) return;
-            if (instance.isOnCooldown()) return;
-
-            instance.onActivateAbility(player);
-            RaceStorage.tickingRaces.put(player.getUUID(), new TickingRace());
-            storage.checkAndMarkDirty(instance);
+            storage.startHeldAbility();
         });
     }
 

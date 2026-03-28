@@ -33,11 +33,11 @@ public class InternalRacePacketActions {
      * This Method sends packet for the {@link ManasRace} Ability Release.
      * Only executes on client using the dist executor.
      */
-    public static void sendRaceAbilityReleasePacket(int heldTick) {
+    public static void sendRaceAbilityReleasePacket() {
         var minecraft = Minecraft.getInstance();
         Player player = minecraft.player;
         if (player == null) return;
-        NetworkManager.sendToServer(new RequestRaceAbilityReleasePacket(heldTick));
+        NetworkManager.sendToServer(new RequestRaceAbilityReleasePacket());
     }
 
     /**

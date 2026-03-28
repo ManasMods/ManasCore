@@ -23,7 +23,7 @@ public class KeybindingTest {
                     RaceAPI.raceAbilityActivationPacket();
                 }, duration -> {
                     ManasCoreTesting.LOG.info("Released in {} Seconds", duration / 1000.0);
-                    RaceAPI.raceAbilityReleasePacket((int) (duration / 50));
+                    RaceAPI.raceAbilityReleasePacket();
                 }),
                 new ManasKeybinding("manascore.keybinding.test_press", category, () -> {
                     ManasCoreTesting.LOG.info("Pressed");
@@ -33,12 +33,12 @@ public class KeybindingTest {
                         () -> SkillAPI.skillActivationPacket(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID,
                                 "test_skill"), 0, 0),
                         duration -> SkillAPI.skillReleasePacket(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID,
-                                "test_skill"), 0, 0, (int) (duration / 50))),
+                                "test_skill"), 0, 0)),
                 new ManasKeybinding("manascore.keybinding.skill_2", category,
                         () -> SkillAPI.skillActivationPacket(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID,
                                 "test_skill"), 1, 1),
                         duration -> SkillAPI.skillReleasePacket(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID,
-                                "test_skill"), 1, 1, (int) (duration / 50))),
+                                "test_skill"), 1, 1)),
                 new ManasKeybinding("manascore.keybinding.skill_toggle", category,
                         () -> SkillAPI.skillTogglePacket(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "test_skill")))
         );

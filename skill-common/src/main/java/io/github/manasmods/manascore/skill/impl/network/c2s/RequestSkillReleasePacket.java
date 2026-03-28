@@ -18,7 +18,6 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 public record RequestSkillReleasePacket(
-        int heldTick,
         int keyNumber,
         int mode,
         ResourceLocation skillId
@@ -27,11 +26,10 @@ public record RequestSkillReleasePacket(
     public static final StreamCodec<FriendlyByteBuf, RequestSkillReleasePacket> STREAM_CODEC = CustomPacketPayload.codec(RequestSkillReleasePacket::encode, RequestSkillReleasePacket::new);
 
     public RequestSkillReleasePacket(FriendlyByteBuf buf) {
-        this(buf.readInt(), buf.readInt(), buf.readInt(), buf.readResourceLocation());
+        this(buf.readInt(), buf.readInt(), buf.readResourceLocation());
     }
 
     public void encode(FriendlyByteBuf buf) {
-        buf.writeInt(this.heldTick);
         buf.writeInt(this.keyNumber);
         buf.writeInt(this.mode);
         buf.writeResourceLocation(this.skillId);
@@ -44,7 +42,7 @@ public record RequestSkillReleasePacket(
             if (player == null) return;
             SkillStorage storage = StorageManager.getStorage(player, SkillStorage.getKey());
             if (storage == null) return;
-            storage.getSkill(skillId).ifPresent(skillInstance -> storage.handleSkillRelease(skillInstance, heldTick, keyNumber, mode, false));
+            storage.getSkill(skillId).ifPresent(skillInstance -> storage.handleSkillRelease(skillInstance, keyNumber, mode, false));
         });
     }
 

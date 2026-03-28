@@ -8,6 +8,7 @@ package io.github.manasmods.manascore.race.impl;
 import io.github.manasmods.manascore.race.api.ManasRace;
 import io.github.manasmods.manascore.race.api.ManasRaceInstance;
 import io.github.manasmods.manascore.race.api.Races;
+import lombok.Getter;
 import net.minecraft.world.entity.LivingEntity;
 
 import java.util.Optional;
@@ -16,6 +17,7 @@ import java.util.Optional;
  * This is the Registry Object for Ticking Races when a {@link ManasRace} is held down.
  */
 public class TickingRace {
+    @Getter
     private int duration = 0;
     public TickingRace() {
     }

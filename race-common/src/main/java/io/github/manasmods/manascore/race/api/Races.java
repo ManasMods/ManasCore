@@ -5,9 +5,11 @@
 
 package io.github.manasmods.manascore.race.api;
 
+import io.github.manasmods.manascore.race.impl.TickingRace;
 import lombok.NonNull;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,6 +17,30 @@ import java.util.Optional;
 
 public interface Races {
     Optional<ManasRaceInstance> getRace();
+
+    /**
+     * Starts activating the race held ability for the storage holder. Returns true when ability was successfully activated
+     */
+    boolean startHeldAbility();
+
+    /**
+     * Forcibly interrupts the ongoing ability, preventing any effects that would normally occur if {@link  Races#releaseHeldAbility()} was called.
+     */
+    void interruptHeldAbility();
+
+    /**
+     * Releases held ability if active, returns true if {@link ManasRaceInstance#onReleaseAbility(LivingEntity, int)} was called.
+     */
+    boolean releaseHeldAbility();
+
+    /**
+     * Returns if the storage is currently holding/charging a race ability.
+     */
+    default boolean hasHeldAbility() {
+        return getHeldAbility() != null;
+    }
+
+    TickingRace getHeldAbility();
 
     default boolean setRace(@NotNull ResourceLocation raceId, boolean teleportToSpawn) {
         return setRace(raceId, teleportToSpawn, null);

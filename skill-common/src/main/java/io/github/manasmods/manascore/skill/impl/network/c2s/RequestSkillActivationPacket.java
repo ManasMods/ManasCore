@@ -45,22 +45,7 @@ public record RequestSkillActivationPacket(
             Player player = context.getPlayer();
             if(player == null) return;
             Skills storage = SkillAPI.getSkillsFrom(player);
-            storage.getSkill(skillId).ifPresent(skillInstance -> {
-                Changeable<ManasSkillInstance> changeable = Changeable.of(skillInstance);
-                if (SkillEvents.ACTIVATE_SKILL.invoker().activateSkill(changeable, player, keyNumber, mode).isFalse()) return;
-
-                ManasSkillInstance skill = changeable.get();
-                if (skill == null) return;
-                if(!skill.canInteractSkill(player)) return;
-
-                if (mode < 0 || mode >= skill.getModes()) return;
-                if (skill.onCoolDown(mode) && !skill.canIgnoreCoolDown(player, mode)) return;
-
-                skill.onPressed(player, keyNumber, mode);
-                skill.addHeldAttributeModifiers(player, mode);
-                TickingSkill.addTickingSkill(player, skill.getSkill(), mode, keyNumber);
-                storage.checkAndMarkDirty(skill);
-            });
+            storage.startHoldSkill(skillId, keyNumber, mode);
         });
     }
 

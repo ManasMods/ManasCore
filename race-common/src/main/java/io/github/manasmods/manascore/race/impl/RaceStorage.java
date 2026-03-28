@@ -5,8 +5,6 @@
 
 package io.github.manasmods.manascore.race.impl;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.PlayerEvent;
 import io.github.manasmods.manascore.network.api.util.Changeable;
@@ -27,30 +25,17 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Log4j2
 public class RaceStorage extends Storage implements Races {
     @Getter
     private static StorageKey<RaceStorage> key = null;
     public static final int INSTANCE_UPDATE = 20;
-    public static final Multimap<UUID, TickingRace> tickingRaces = ArrayListMultimap.create();
     private static final String RACE_KEY = "race_key";
-    /*
-    private static final StorageEvents.RegisterStorage<Entity> listener = new StorageEvents.RegisterStorage<Entity>() {
-        @Override
-        public void register(StorageEvents.StorageRegistry<Entity> registry) {
-            ManasCoreRace.LOG.info("ManasRace storage event triggered");
-            key = registry.register(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "race_storage"),
-                    RaceStorage.class, LivingEntity.class::isInstance, target -> new RaceStorage((LivingEntity) target));
-            ManasCoreRace.LOG.info(key != null ? "storage Key registered " + key.toString() : "storage Key failed to register");
-        }
-    };*/
 
     public static void init() {
         StorageEvents.RegisterStorage<Entity> listener = new StorageEvents.RegisterStorage<Entity>() {
@@ -72,11 +57,11 @@ public class RaceStorage extends Storage implements Races {
             if (level.isClientSide()) return;
             Races storage = RaceAPI.getRaceFrom(entity);
             handleRaceTick(entity, level, storage);
-            if (entity instanceof Player player) handleRaceHeldTick(player, storage);
+            handleRaceHeldTick(entity, storage);
         });
 
-        PlayerEvent.PLAYER_QUIT.register(player -> tickingRaces.removeAll(player.getUUID()));
-        PlayerEvent.CHANGE_DIMENSION.register((player, resourceKey, resourceKey1) -> tickingRaces.removeAll(player.getUUID()));
+        PlayerEvent.PLAYER_QUIT.register(player -> RaceAPI.getRaceFrom(player).interruptHeldAbility());
+        PlayerEvent.CHANGE_DIMENSION.register((player, resourceKey, resourceKey1) -> RaceAPI.getRaceFrom(player).interruptHeldAbility());
     }
 
     private static void handleRaceTick(LivingEntity entity, Level level, Races storage) {
@@ -88,9 +73,9 @@ public class RaceStorage extends Storage implements Races {
         tickRace(entity, storage);
     }
 
-    private static void handleRaceHeldTick(Player player, Races storage) {
-        if (!tickingRaces.containsKey(player.getUUID())) return;
-        tickingRaces.get(player.getUUID()).removeIf(skill -> !skill.tick(storage, player));
+    private static void handleRaceHeldTick(LivingEntity entity, Races storage) {
+        if (!storage.hasHeldAbility()) return;
+        if (!storage.getHeldAbility().tick(storage, entity)) storage.interruptHeldAbility();
         storage.markDirty();
     }
 
@@ -113,6 +98,7 @@ public class RaceStorage extends Storage implements Races {
     }
 
     private ManasRaceInstance raceInstance = null;
+    public TickingRace raceHeldAbility = null;
 
     protected RaceStorage(LivingEntity holder) {
         super(holder);
@@ -120,6 +106,42 @@ public class RaceStorage extends Storage implements Races {
 
     public Optional<ManasRaceInstance> getRace() {
         return Optional.ofNullable(this.raceInstance);
+    }
+
+    public boolean startHeldAbility() {
+        Optional<ManasRaceInstance> optional = this.getRace();
+        if (optional.isEmpty()) return false;
+        raceInstance = optional.get();
+        if (RaceEvents.ACTIVATE_ABILITY.invoker().activateAbility(raceInstance, getOwner()).isFalse()) return false;
+        if (!raceInstance.canActivateAbility(getOwner()) || raceInstance.isOnCooldown()) return false;
+        raceInstance.onActivateAbility(getOwner());
+        this.raceHeldAbility = new TickingRace();
+        this.checkAndMarkDirty(raceInstance);
+        return true;
+    }
+
+    public void interruptHeldAbility() {
+        this.raceHeldAbility = null;
+    }
+
+    public boolean releaseHeldAbility() {
+        Optional<ManasRaceInstance> optional = this.getRace();
+        if (optional.isEmpty() || this.raceHeldAbility == null) return false;
+        raceInstance = optional.get();
+        int heldTicks = this.raceHeldAbility.getDuration();
+        if (RaceEvents.RELEASE_ABILITY.invoker().releaseAbility(raceInstance, getOwner(), heldTicks).isFalse()) return false;
+        boolean result = false;
+        if (raceInstance.canActivateAbility(this.getOwner()) && !raceInstance.isOnCooldown()) {
+            raceInstance.onReleaseAbility(getOwner(), heldTicks);
+            result = true;
+            this.checkAndMarkDirty(raceInstance);
+        }
+        this.raceHeldAbility = null;
+        return result;
+    }
+
+    public TickingRace getHeldAbility() {
+        return this.raceHeldAbility;
     }
 
     public boolean setRace(@NonNull ManasRaceInstance race, boolean evolution, boolean teleportToSpawn, @Nullable MutableComponent component) {
