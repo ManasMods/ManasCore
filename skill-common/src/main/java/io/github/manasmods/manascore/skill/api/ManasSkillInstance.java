@@ -356,7 +356,7 @@ public class ManasSkillInstance {
     public void setCoolDowns(int coolDown) {
         Collections.fill(this.cooldownList, coolDown);
         if (this.hasOwningStorage() && !this.getOwningStorage().shouldActiveTick()) {
-            if (coolDown > 0) this.getOwningStorage().shouldActiveTick();
+            if (coolDown > 0) this.getOwningStorage().markActiveTick();
         }
         markDirty();
     }
