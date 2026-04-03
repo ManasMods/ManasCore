@@ -30,7 +30,6 @@ public abstract class MixinLevel implements StorageHolder, LevelAccessor {
     @Unique
     private CombinedStorage storage;
 
-
     @Override
     public @NotNull CompoundTag manasCore$getStorage() {
         return this.storage.toNBT();
