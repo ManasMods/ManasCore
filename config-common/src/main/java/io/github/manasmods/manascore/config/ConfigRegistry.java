@@ -6,12 +6,13 @@ import io.github.manasmods.manascore.config.api.SyncToClient;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Handles the registration and management of all {@link ManasConfig} instances.
  */
 public class ConfigRegistry {
-    private static final Map<Class<? extends ManasConfig>, ManasConfig> CONFIGS = new HashMap<>();
+    private static final Map<Class<? extends ManasConfig>, ManasConfig> CONFIGS = new ConcurrentHashMap<>();
 
     /**
      * Retrieves a registered config instance by class type.

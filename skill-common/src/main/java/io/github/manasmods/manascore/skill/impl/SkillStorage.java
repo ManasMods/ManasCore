@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 
 @Log4j2
-public class SkillStorage  extends Storage implements Skills {
+public class SkillStorage extends Storage implements Skills {
     @Getter
     private static StorageKey<SkillStorage> key = null;
     public static final int INSTANCE_UPDATE = 20;
@@ -311,10 +311,7 @@ public class SkillStorage  extends Storage implements Skills {
     @Override
     public void save(CompoundTag data) {
         ListTag skillList = new ListTag();
-        this.skillInstances.values().forEach(instance -> {
-            skillList.add(instance.toNBT());
-            instance.resetDirty();
-        });
+        this.skillInstances.values().forEach(instance -> skillList.add(instance.toNBT()));
         data.put(SKILL_LIST_KEY, skillList);
     }
 
