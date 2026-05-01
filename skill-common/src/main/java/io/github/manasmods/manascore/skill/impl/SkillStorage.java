@@ -116,8 +116,8 @@ public class SkillStorage extends Storage implements Skills {
             if (optional.isEmpty()) continue;
 
             ManasSkillInstance skillInstance = optional.get();
-            if (!skillInstance.canInteractSkill(entity)) continue;
             if (!skillInstance.canTick(entity)) continue;
+            if (!skillInstance.canInteractSkill(entity)) continue;
             if (SkillEvents.SKILL_PRE_TICK.invoker().tick(skillInstance, entity).isFalse()) continue;
             tickingSkills.add(skillInstance);
         }
@@ -202,7 +202,7 @@ public class SkillStorage extends Storage implements Skills {
 
         ManasSkillInstance skill = changeable.get();
         if (skill == null) return false;
-        if(!skill.canInteractSkill(getOwner())) return false;
+        if(!skill.canActivateSkill(this.getOwner(), mode)) return false;
 
         if (mode < 0 || mode >= skill.getModes()) return false;
         if (skill.onCoolDown(mode) && !skill.canIgnoreCoolDown(getOwner(), mode)) return false;
@@ -290,7 +290,7 @@ public class SkillStorage extends Storage implements Skills {
         ManasSkillInstance skill = changeable.get();
         if (skill == null) return;
 
-        if ((heldInterrupt || skill.canInteractSkill(getOwner())) && mode < skill.getModes()) {
+        if ((heldInterrupt || skill.canActivateSkill(this.getOwner(), mode)) && mode < skill.getModes()) {
             if (!skill.onCoolDown(mode) || skill.canIgnoreCoolDown(getOwner(), mode)) {
                 skill.onRelease(getOwner(), heldTickChangeable.get(), keyNumber, mode);
                 this.checkAndMarkDirty(skillInstance);

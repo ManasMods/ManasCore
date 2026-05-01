@@ -62,7 +62,7 @@ public record RequestSkillScrollPacket(
                     ManasSkillInstance skill = skillChangeable.get();
                     if (skill == null || deltaChangeable.isEmpty()) return;
                     if (!skill.canScroll(player, modeChangeable.get())) return;
-                    if (!skill.canInteractSkill(player)) return;
+                    if (!skill.canActivateSkill(player, modeChangeable.get())) return;
 
                     skill.onScroll(player, deltaChangeable.get(), modeChangeable.get());
                     storage.checkAndMarkDirty(skill);

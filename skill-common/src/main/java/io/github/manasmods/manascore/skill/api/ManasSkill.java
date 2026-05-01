@@ -138,6 +138,17 @@ public class ManasSkill {
     }
 
     /**
+     * Determine if the {@link ManasSkillInstance} of this Skill can be activated by {@link LivingEntity}.
+     *
+     * @param instance Affected {@link ManasSkillInstance}
+     * @param user   Affected {@link LivingEntity} owning this Skill.
+     * @return false will stop {@link LivingEntity} from using any feature of the skill.
+     */
+    public boolean canActivateSkill(ManasSkillInstance instance, LivingEntity user, int mode) {
+        return this.canInteractSkill(instance, user);
+    }
+
+    /**
      * @return the maximum number of ticks that this skill can be held down with the skill activation button.
      * </p>
      */

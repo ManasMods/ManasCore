@@ -37,8 +37,8 @@ public class TickingSkill {
         if (optional.isEmpty()) return false;
 
         ManasSkillInstance instance = optional.get();
-        if (this.reachedMaxDuration(instance, entity) || !instance.canInteractSkill(entity)) {
-            if (instance.shouldTriggerReleaseOnHeldInterrupt(entity, keyNumber, mode))
+        if (this.reachedMaxDuration(instance, entity) || !instance.canActivateSkill(entity, this.mode)) {
+            if (instance.shouldTriggerReleaseOnHeldInterrupt(entity, this.keyNumber, this.mode))
                 storage.handleSkillRelease(instance, this.keyNumber, this.mode, true);
             return false;
         }
