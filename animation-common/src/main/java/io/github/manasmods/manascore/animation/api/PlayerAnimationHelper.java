@@ -21,20 +21,32 @@ public final class PlayerAnimationHelper {
      * Plays the given animation ({@code <modid>:<name>}) on the entity for all tracking players and the entity itself.
      * No-op when called on the client.
      */
-    public static void play(Entity entity, String animation, boolean override, boolean firstPerson) {
+    public static void play(Entity entity, String animation, String nextAnimation, boolean override, boolean firstPerson) {
         if (entity.level().isClientSide()) return;
-        PlayPlayerAnimationPayload payload = new PlayPlayerAnimationPayload(entity.getId(), animation, override, firstPerson);
+        PlayPlayerAnimationPayload payload = new PlayPlayerAnimationPayload(entity.getId(), animation, nextAnimation, override, firstPerson);
         NetworkManager.sendToPlayers(PlayerLookup.trackingAndSelf(entity), payload);
     }
 
+    public static void play(Entity entity, String animation, boolean override, boolean firstPerson) {
+        play(entity, animation, "", override, firstPerson);
+    }
+
     public static void play(Entity entity, String animation) {
-        play(entity, animation, true, true);
+        play(entity, animation, "", true, true);
+    }
+
+    /**
+     * Plays {@code animation} once, then automatically plays {@code nextAnimation} when it finishes.
+     * Use a looping {@code nextAnimation} for charge-style holds (intro → loop until {@link #stop}).
+     */
+    public static void playThenLoop(Entity entity, String animation, String nextAnimation) {
+        play(entity, animation, nextAnimation, true, true);
     }
 
     /**
      * Resets any active animation on the entity.
      */
     public static void stop(Entity entity) {
-        play(entity, "", true, true);
+        play(entity, "", "", true, true);
     }
 }

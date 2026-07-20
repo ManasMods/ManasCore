@@ -27,9 +27,11 @@ public class AnimationClientHandler {
             state.reset = true;
             state.firstPerson = false;
             state.currentAnimation = "";
+            state.nextAnimation = "";
             state.hasProgress = false;
         } else {
             state.currentAnimation = packet.animation();
+            state.nextAnimation = packet.nextAnimation();
             state.override = packet.override();
             state.firstPerson = packet.firstPerson();
         }

@@ -102,14 +102,24 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
             data.lastTickTime = ageInTicks;
             if (animationProgress >= animation.length) {
                 if (!animation.hold_on_last_frame && !animation.loop) {
-                    data.currentAnimation = "";
-                    data.hasProgress = false;
-                    data.lastAnimationProgress = 0f;
-                    data.playedSounds.clear();
-                    data.reset = true;
-                    data.firstPerson = false;
-                    PlayerAnimationAPI.active_animations.put(player, null);
-                    animationProgress = animation.length;
+                    if (!data.nextAnimation.isEmpty()) {
+                        data.currentAnimation = data.nextAnimation;
+                        data.nextAnimation = "";
+                        data.hasProgress = false;
+                        data.lastAnimationProgress = 0f;
+                        data.playedSounds.clear();
+                        PlayerAnimationAPI.active_animations.put(player, null);
+                        animationProgress = animation.length;
+                    } else {
+                        data.currentAnimation = "";
+                        data.hasProgress = false;
+                        data.lastAnimationProgress = 0f;
+                        data.playedSounds.clear();
+                        data.reset = true;
+                        data.firstPerson = false;
+                        PlayerAnimationAPI.active_animations.put(player, null);
+                        animationProgress = animation.length;
+                    }
                 } else if (animation.hold_on_last_frame) {
                     data.progress = animation.length;
                 } else if (animation.loop) {
