@@ -6,6 +6,7 @@
 ext {
     includedProjects = [
             ":architectury",
+            ":animation",
             ":attribute",
             ":command",
             ":config",

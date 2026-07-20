@@ -171,10 +171,11 @@ public class SkillStorage extends Storage implements Skills {
         for (TickingSkill skill : List.copyOf(storage.heldSkills)) {
             if (!skill.tick(storage, livingEntity)) {
                 Optional<ManasSkillInstance> instance = storage.getSkill(skill.getSkill());
-                instance.ifPresent(skillInstance -> {
+                instance.ifPresentOrElse(skillInstance -> {
                     skill.getSkill().removeAttributeModifiers(skillInstance, livingEntity, skill.getMode());
+                    skillInstance.onHeldStop(livingEntity, skill.getDuration(), skill.getMode());
                     storage.checkAndMarkDirty(skillInstance);
-                });
+                }, () -> skill.getSkill().onHeldStop(null, livingEntity, skill.getDuration(), skill.getMode()));
                 storage.heldSkills.remove(skill);
             } else storage.markDirty();
         }
@@ -301,6 +302,7 @@ public class SkillStorage extends Storage implements Skills {
         if (!heldInterrupt && !this.heldSkills.isEmpty()) {
             for (TickingSkill tickingSkill : List.copyOf(this.heldSkills)) {
                 if (tickingSkill.matches(skill.getSkill(), mode)) {
+                    skill.onHeldStop(this.getOwner(), heldTickChangeable.get(), mode);
                     this.heldSkills.remove(tickingSkill);
                 }
             }
@@ -359,9 +361,10 @@ public class SkillStorage extends Storage implements Skills {
         SkillStorage storage = SkillAPI.getSkillsFrom(livingEntity);
         for (TickingSkill skill : List.copyOf(storage.heldSkills)) {
             Optional<ManasSkillInstance> instance = SkillAPI.getSkillsFrom(livingEntity).getSkill(skill.getSkill());
-            instance.ifPresent(skillInstance -> {
+            instance.ifPresentOrElse(skillInstance -> {
                 skill.getSkill().removeAttributeModifiers(skillInstance, livingEntity, skill.getMode());
-            });
+                skillInstance.onHeldStop(livingEntity, skill.getDuration(), skill.getMode());
+            }, () -> skill.getSkill().onHeldStop(null, livingEntity, skill.getDuration(), skill.getMode()));
         }
         storage.heldSkills.clear();
     }

@@ -5,6 +5,7 @@
 
 ext {
     includedProjects = [
+            ":animation",
             ":attribute",
             ":command",
             ":config",

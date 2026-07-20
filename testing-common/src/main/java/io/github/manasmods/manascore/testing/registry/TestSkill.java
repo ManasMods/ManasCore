@@ -5,6 +5,7 @@
 
 package io.github.manasmods.manascore.testing.registry;
 
+import io.github.manasmods.manascore.animation.api.PlayerAnimationHelper;
 import io.github.manasmods.manascore.config.ConfigRegistry;
 import io.github.manasmods.manascore.network.api.util.Changeable;
 import io.github.manasmods.manascore.skill.api.EntityEvents;
@@ -77,13 +78,19 @@ public class TestSkill extends ManasSkill {
 
     public void onPressed(ManasSkillInstance instance, LivingEntity entity, int keyNumber, int mode) {
         ManasCoreTesting.LOG.info("I'm pressed");
+        if (mode == 0) PlayerAnimationHelper.play(entity, "manascore:weird_hand");
         if (mode == 1) ManasCoreTesting.LOG.info("In second mode");
     }
 
     public boolean onHeld(ManasSkillInstance instance, LivingEntity living, int heldTicks, int mode) {
         ManasCoreTesting.LOG.info("Held for {} ticks", heldTicks);
-        if (mode == 1) ManasCoreTesting.LOG.info("In second mode");
+        if (living.isShiftKeyDown()) return false;
+        if (mode == 1 && heldTicks == 0) PlayerAnimationHelper.play(living, "manascore:spin");
         return true;
+    }
+
+    public void onHeldStop(@Nullable ManasSkillInstance instance, LivingEntity entity, int heldTicks, int mode) {
+        if (mode == 1) PlayerAnimationHelper.stop(entity);
     }
 
     public void onRelease(ManasSkillInstance instance, LivingEntity entity, int heldTicks, int keyNumber, int mode) {

@@ -51,8 +51,14 @@ public class ManasCoreAttributeUtils {
 
     public static boolean canElytraGlide(LivingEntity entity, boolean additionalCheck) {
         Changeable<Boolean> glide = Changeable.of(additionalCheck && !entity.onGround() && !entity.isPassenger()
-                && !entity.hasEffect(MobEffects.LEVITATION) && entity.getAttributeValue(ManasCoreAttributes.GLIDE_SPEED_MULTIPLIER) > 0);
+                && !entity.hasEffect(MobEffects.LEVITATION) && ManasCoreAttributeUtils.hasGlideSpeed(entity));
         if (AttributeEvents.START_GLIDE_EVENT.invoker().glide(entity, glide).isFalse()) return false;
         return glide.get();
+    }
+
+    public static boolean hasGlideSpeed(LivingEntity entity) {
+        AttributeInstance instance = entity.getAttribute(ManasCoreAttributes.GLIDE_SPEED_MULTIPLIER);
+        if (instance == null) return false;
+        return instance.getValue() > 0;
     }
 }

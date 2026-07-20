@@ -1,0 +1,18 @@
+{
+  "required": true,
+  "package": "io.github.manasmods.manascore.animation.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "minVersion": "0.8",
+  "client": [
+    "accessor.AccessorCamera",
+    "client.MixinEntityRenderDispatcherAnimation",
+    "client.MixinItemInHandRendererAnimation",
+    "client.MixinLevelRendererAnimation",
+    "client.MixinPlayerModel",
+    "client.MixinPlayerRendererAnimation"
+  ],
+  "mixins": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

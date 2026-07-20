@@ -375,6 +375,16 @@ public class ManasSkill {
     }
 
     /**
+     * Called when the {@link LivingEntity} owning this Skill stops holding the skill activation button (including when disrupted or after released).
+     *
+     * @param instance Affected {@link ManasSkillInstance} including null instance
+     * @param entity   Affected {@link LivingEntity} owning this Skill.
+     */
+    public void onHeldStop(@Nullable ManasSkillInstance instance, LivingEntity entity, int heldTicks, int mode) {
+        // Override this method to add your own logic
+    }
+
+    /**
      * Called when the {@link LivingEntity} owning this Skill releases the skill activation button after {@param heldTicks}.
      *
      * @param instance Affected {@link ManasSkillInstance}

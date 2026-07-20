@@ -591,6 +591,17 @@ public class ManasSkillInstance {
     }
 
     /**
+     * Called when the {@link LivingEntity} owning this Skill stops holding the skill activation button (including when disrupted or after released).
+     *
+     * @param entity    Affected {@link LivingEntity} owning this instance.
+     * @param heldTicks The number of ticks the skill activation button is being held down.
+     * @param mode      The mode that is being held down.
+     */
+    public void onHeldStop(LivingEntity entity, int heldTicks, int mode) {
+        this.getSkill().onHeldStop(this, entity, heldTicks, mode);
+    }
+
+    /**
      * Called when the {@link LivingEntity} owning this Skill holds the skill activation button.
      *
      * @param entity    Affected {@link LivingEntity} owning this instance.
