@@ -57,6 +57,7 @@ public class PlayerAnimationAPI {
     public static class PlayerAnimationState {
         public String currentAnimation = "";
         public String nextAnimation = "";
+        public String currentConditional = "";
         public boolean override = false;
         public boolean firstPerson = false;
         public boolean reset = false;

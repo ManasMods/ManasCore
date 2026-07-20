@@ -9,7 +9,9 @@ import dev.architectury.event.CompoundEventResult;
 import dev.architectury.event.events.client.ClientChatEvent;
 import dev.architectury.event.events.client.ClientLifecycleEvent;
 import dev.architectury.registry.client.level.entity.EntityRendererRegistry;
+import io.github.manasmods.manascore.animation.api.ConditionalAnimations;
 import io.github.manasmods.manascore.testing.configs.TestConfig;
+import net.minecraft.world.entity.animal.Pig;
 import io.github.manasmods.manascore.testing.module.InventoryTabsTest;
 import io.github.manasmods.manascore.testing.module.StorageModuleTest;
 import io.github.manasmods.manascore.testing.registry.RegistryTest;
@@ -19,6 +21,8 @@ import net.minecraft.client.renderer.entity.VillagerRenderer;
 public class ManasCoreTestingClient {
     public static void init() {
         KeybindingTest.init();
+        ConditionalAnimations.register(player -> player.getVehicle() instanceof Pig, "manascore:spin");
+
         ClientChatEvent.RECEIVED.register((type, message) -> {
             var player = Minecraft.getInstance().player;
             if (player != null) {

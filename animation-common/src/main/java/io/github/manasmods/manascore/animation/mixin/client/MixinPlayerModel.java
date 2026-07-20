@@ -5,6 +5,7 @@
 
 package io.github.manasmods.manascore.animation.mixin.client;
 
+import io.github.manasmods.manascore.animation.api.ConditionalAnimations;
 import io.github.manasmods.manascore.animation.api.PlayerAnimationAPI;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.PlayerModel;
@@ -51,7 +52,6 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
         PlayerAnimationAPI.PlayerAnimationState data = PlayerAnimationAPI.state(player);
         String playingAnimation = data.currentAnimation;
         boolean overrideAnimation = data.override;
-        boolean firstPerson = data.firstPerson && !PlayerAnimationAPI.renderingGuiEntity && manascore$mc.options.getCameraType().isFirstPerson() && player == manascore$mc.player && manascore$mc.screen == null;
         if (data.reset) {
             data.reset = false;
             data.lastAnimationProgress = 0f;
@@ -59,7 +59,25 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
             PlayerAnimationAPI.active_animations.put(player, null);
         }
 
-        if (playingAnimation.isEmpty()) return;
+        // No packet-driven animation: fall back to a condition-driven ambient pose (client-evaluated, unsynced by design).
+        if (playingAnimation.isEmpty()) {
+            ConditionalAnimations.ConditionalAnimation conditional = ConditionalAnimations.evaluate(player);
+            String conditionalKey = conditional == null ? "" : conditional.key();
+            if (!conditionalKey.equals(data.currentConditional)) {
+                data.currentConditional = conditionalKey;
+                data.hasProgress = false;
+                data.lastAnimationProgress = 0f;
+                data.playedSounds.clear();
+                data.firstPerson = conditional != null && conditional.firstPerson();
+                PlayerAnimationAPI.active_animations.put(player, null);
+            }
+            if (conditional == null) return;
+            playingAnimation = conditionalKey;
+        } else if (!data.currentConditional.isEmpty()) {
+            data.currentConditional = "";
+        }
+
+        boolean firstPerson = data.firstPerson && !PlayerAnimationAPI.renderingGuiEntity && manascore$mc.options.getCameraType().isFirstPerson() && player == manascore$mc.player && manascore$mc.screen == null;
         if (firstPerson) {
             player.yBodyRotO = player.yHeadRotO;
             player.yBodyRot = player.yHeadRot;
