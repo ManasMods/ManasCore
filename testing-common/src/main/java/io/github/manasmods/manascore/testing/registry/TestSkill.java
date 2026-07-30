@@ -86,7 +86,7 @@ public class TestSkill extends ManasSkill {
         ManasCoreTesting.LOG.info("Held for {} ticks", heldTicks);
         if (mode == 1 && heldTicks == 0) {
             if (living.onGround()) PlayerAnimationHelper.playThenLoop(living, "manascore:weird_hand", "manascore:beam");
-            else PlayerAnimationHelper.play(living, "manascore:spin");
+            else PlayerAnimationHelper.play(living, "manascore:arrow");
         }
         return true;
     }
@@ -99,7 +99,7 @@ public class TestSkill extends ManasSkill {
         ManasCoreTesting.LOG.info("I'm released after {} ticks", heldTicks);
         if (mode == 1) {
             ManasCoreTesting.LOG.info("In second mode");
-            instance.setCoolDown(5, mode);
+//            instance.setCoolDown(5, mode);
         }
     }
 

@@ -14,9 +14,11 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Quaternionf;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -66,7 +68,6 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
             PlayerAnimationAPI.active_animations.put(player, null);
         }
 
-        // No packet-driven animation: fall back to a condition-driven ambient pose (client-evaluated, unsynced by design).
         if (playingAnimation.isEmpty()) {
             ConditionalAnimations.ConditionalAnimation conditional = ConditionalAnimations.evaluate(player);
             String conditionalKey = conditional == null ? "" : conditional.key();
@@ -194,8 +195,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
             }
 
             if (animation.aimBones.contains(boneName) && !firstPersonArms) {
-                modelPart.xRot += headPitch * ((float) Math.PI / 180F);
-                modelPart.yRot += netHeadYaw * ((float) Math.PI / 180F);
+                manascore$applyAim(modelPart, netHeadYaw, headPitch);
             }
 
             Vec3 position = PlayerAnimationAPI.PlayerBone.interpolate(bone.positions, animationProgress, player);
@@ -246,6 +246,39 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
         model.rightSleeve.copyFrom(model.rightArm);
         model.jacket.copyFrom(model.body);
         model.hat.copyFrom(model.head);
+    }
+
+    /**
+     * Swings an aim bone onto the player's look direction, carrying its authored pose rigidly so the bone
+     * keeps its shape and pivots at its own origin - the shoulder, for an arm.
+     * <p>
+     * The view angles must be composed as an <em>outer</em> rotation, not added into {@code xRot}/{@code yRot}.
+     * {@link ModelPart#translateAndRotate} rebuilds rotation as {@code Rz * Ry * Rx} with Z outermost, so for a
+     * bone with authored roll an added angle lands inside that roll and tilts the entire aiming plane. Vanilla
+     * gets away with the addition on the head only because the head's base {@code yRot} and {@code zRot} are
+     * both zero.
+     * <p>
+     * {@code netHeadYaw} is head yaw minus body yaw, so it is the yaw the body has <em>not</em> already taken
+     * care of. With {@code manascore:aim_body} squaring the body up it collapses to zero and this contributes
+     * pitch alone; without it, or while the body is still catching up, it closes the remaining gap. Writing
+     * both terms is correct either way - do not reduce this to pitch only.
+     */
+    @Unique
+    private void manascore$applyAim(ModelPart modelPart, float netHeadYaw, float headPitch) {
+        float toRadians = (float) Math.PI / 180F;
+        Quaternionf composed = new Quaternionf()
+                .rotationYXZ(netHeadYaw * toRadians, headPitch * toRadians, 0f)
+                .mul(new Quaternionf().rotationZYX(modelPart.zRot, modelPart.yRot, modelPart.xRot));
+        float x = composed.x, y = composed.y, z = composed.z, w = composed.w;
+        float sinY = Mth.clamp(-2f * (x * z - y * w), -1f, 1f);
+        modelPart.yRot = (float) Math.asin(sinY);
+        if (Math.abs(sinY) < 0.99999f) {
+            modelPart.xRot = (float) Math.atan2(2f * (y * z + x * w), 1f - 2f * (x * x + y * y));
+            modelPart.zRot = (float) Math.atan2(2f * (x * y + z * w), 1f - 2f * (y * y + z * z));
+        } else {
+            modelPart.xRot = (float) Math.atan2(-2f * (y * z - x * w), 1f - 2f * (x * x + z * z));
+            modelPart.zRot = 0f;
+        }
     }
 
     @Unique

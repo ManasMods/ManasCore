@@ -31,6 +31,29 @@ public abstract class MixinPlayerRendererAnimation extends LivingEntityRenderer<
         super(context, entityModel, f);
     }
 
+    /**
+     * Squares the body up with the head for animations declaring {@code manascore:aim_body}, so the whole
+     * player turns toward what they are looking at instead of only the listed bones.
+     * <p>
+     * This has to run at {@code HEAD}, before {@code LivingEntityRenderer#render} reads {@code yBodyRot} to
+     * derive the {@code netHeadYaw} it hands to the model. Doing it later - in {@code setupAnim}, where the
+     * first-person path does the same thing - would only take effect on the following frame.
+     * <p>
+     * Yaw only, by design: the body never pitches. The bones in {@code manascore:aim_bones} carry the
+     * vertical, and because {@code netHeadYaw} is head-minus-body it collapses to zero once this has run,
+     * so those bones contribute pitch alone without needing to know this happened.
+     */
+    @Inject(method = "render(Lnet/minecraft/client/player/AbstractClientPlayer;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
+            at = @At("HEAD"))
+    private void manascore$aimBodyTowardsView(AbstractClientPlayer entity, float entityYaw, float partialTicks,
+                                              PoseStack poseStack, MultiBufferSource bufferSource, int light,
+                                              CallbackInfo ci) {
+        PlayerAnimationAPI.PlayerAnimation animation = PlayerAnimationAPI.active_animations.get(entity);
+        if (animation == null || !animation.aimBody) return;
+        entity.yBodyRot = entity.yHeadRot;
+        entity.yBodyRotO = entity.yHeadRotO;
+    }
+
     @Inject(method = "render(Lnet/minecraft/client/player/AbstractClientPlayer;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/LivingEntityRenderer;render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V"))
     private void hideBonesInFirstPerson(AbstractClientPlayer entity, float f, float g, PoseStack poseStack,

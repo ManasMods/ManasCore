@@ -166,9 +166,10 @@
 		"beam": {
 			"loop": true,
 			"animation_length": 1.25,
-            "manascore:aim_bones": ["right_arm", "left_arm"],
-            "manascore:additive_bones": ["left_leg", "right_leg", "head"],
-            "manascore:suppress_crouch": false,
+            "manascore:aim_body": true,
+			"manascore:aim_bones": ["right_arm", "left_arm"],
+			"manascore:additive_bones": ["left_leg", "right_leg", "head"],
+			"manascore:suppress_crouch": false,
 			"bones": {
 				"body": {
 					"rotation": {
@@ -252,6 +253,73 @@
 						"0.1667": [0.13, -0.1, -0.58],
 						"1.0": [0.13, -0.1, -0.58],
 						"1.25": [0.12726, -0.09661, -0.57781]
+					}
+				}
+			}
+		},
+		"arrow": {
+			"loop": true,
+			"animation_length": 0.25,
+            "manascore:aim_body": true,
+            "manascore:aim_bones": ["right_arm", "left_arm"],
+            "manascore:additive_bones": ["left_leg", "right_leg", "head"],
+			"bones": {
+				"body": {
+					"rotation": {
+						"0.0": [-5, 72.5, 0],
+						"0.25": [-5, 72.5, 0]
+					}
+				},
+				"torso": {
+					"rotation": {
+						"0.0": [-5, 0, 0],
+						"0.25": [-5, 0, 0]
+					},
+					"position": {
+						"0.0": [0, -0.1, 1.1],
+						"0.25": [0, -0.1, 1.1]
+					}
+				},
+				"head": {
+					"rotation": {
+						"0.0": [21.46254, -59.7224, 1.20303],
+						"0.25": [21.46254, -59.7224, 1.20303]
+					},
+					"position": {
+						"0.0": [0, -0.1, 1.1],
+						"0.25": [0, -0.1, 1.1]
+					}
+				},
+				"right_arm": {
+					"rotation": {
+						"0.0": [-106.93206, -20.67543, 39.75905],
+						"0.25": [-106.93206, -20.67543, 39.75905]
+					},
+					"position": {
+						"0.0": [-1.35867, -0.65663, 4.22513],
+						"0.25": [-1.35867, -0.65663, 4.22513]
+					}
+				},
+				"left_arm": {
+					"rotation": {
+						"0.0": [-36.51764, 36.68694, -111.97778],
+						"0.25": [-36.51764, 36.68694, -111.97778]
+					},
+					"position": {
+						"0.0": [1.71167, -0.98, 0.02089],
+						"0.25": [1.71167, -0.98, 0.02089]
+					}
+				},
+				"right_leg": {
+					"rotation": {
+						"0.0": [0.4931, -0.2496, 9.5328],
+						"0.25": [0.4931, -0.2496, 9.5328]
+					}
+				},
+				"left_leg": {
+					"rotation": {
+						"0.0": [12.7507, -0.1405, -7.151],
+						"0.25": [12.7507, -0.1405, -7.151]
 					}
 				}
 			}

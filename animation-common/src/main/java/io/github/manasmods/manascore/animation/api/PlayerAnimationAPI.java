@@ -101,22 +101,33 @@ public class PlayerAnimationAPI {
         public final float length;
         public boolean loop = false;
         public boolean hold_on_last_frame = false;
+
         /** Populated from {@code manascore:additive_bones}. Bones listed here add their rotation
          *  on top of the vanilla pose instead of replacing it. Never null; empty means every bone
          *  replaces the vanilla pose, i.e. the original behaviour. */
         public final Set<String> additiveBones;
+
         /** Populated from {@code manascore:aim_bones}. Bones listed here rotate to follow the
          *  player's look direction, pivoting at the bone's own origin (the shoulder, for an arm).
          *  Applied on top of the authored pose. Never null; empty means no bone aims. */
         public final Set<String> aimBones;
+
+        /** Populated from {@code manascore:aim_body}. Turns the whole entity to face where the player is
+         *  looking, horizontally only - the body never pitches. Pairs with {@link #aimBones}, which handles
+         *  the vertical: with the body squared up, {@code netHeadYaw} collapses to zero and the listed bones
+         *  contribute pitch alone. Defaults to {@code false}. */
+        public final boolean aimBody;
+
         /** Populated from {@code manascore:suppress_attack}. Tri-state: {@code null} means the field
          *  was absent, so callers should fall back to the bone heuristic - this is NOT the same as
          *  {@code Boolean.FALSE}, which explicitly means "never suppress". Boxed on purpose so this
          *  distinction can't be lost; do not "simplify" it to a primitive boolean. */
         public final Boolean suppressAttack;
+
         /** Populated from {@code manascore:suppress_crouch}. Defaults to {@code true} because the
          *  original code unconditionally cleared {@code crouching} for every active animation. */
         public final boolean suppressCrouch;
+
         public final Map<String, PlayerBone> bones;
         public final Map<Float, String> soundEffects;
 
@@ -154,6 +165,14 @@ public class PlayerAnimationAPI {
                     }
                 }
             }
+            boolean parsedAimBody = false;
+            if (animation.has("manascore:aim_body")) {
+                JsonElement aimBodyElement = animation.get("manascore:aim_body");
+                if (aimBodyElement.isJsonPrimitive() && aimBodyElement.getAsJsonPrimitive().isBoolean()) {
+                    parsedAimBody = aimBodyElement.getAsBoolean();
+                }
+            }
+            this.aimBody = parsedAimBody;
             Boolean parsedSuppressAttack = null;
             if (animation.has("manascore:suppress_attack")) {
                 JsonElement suppressAttackElement = animation.get("manascore:suppress_attack");
