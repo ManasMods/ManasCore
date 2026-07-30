@@ -49,7 +49,7 @@ public class TestSkill extends ManasSkill {
     }
 
     public int getMaxHeldTime(ManasSkillInstance instance, LivingEntity entity) {
-        return 100;
+        return 200;
     }
 
     public boolean canBeToggled(ManasSkillInstance instance, LivingEntity entity) {
@@ -84,9 +84,8 @@ public class TestSkill extends ManasSkill {
 
     public boolean onHeld(ManasSkillInstance instance, LivingEntity living, int heldTicks, int mode) {
         ManasCoreTesting.LOG.info("Held for {} ticks", heldTicks);
-        if (living.isShiftKeyDown()) return false;
         if (mode == 1 && heldTicks == 0) {
-            if (living.onGround()) PlayerAnimationHelper.playThenLoop(living, "manascore:weird_hand", "manascore:spin");
+            if (living.onGround()) PlayerAnimationHelper.playThenLoop(living, "manascore:weird_hand", "manascore:beam");
             else PlayerAnimationHelper.play(living, "manascore:spin");
         }
         return true;

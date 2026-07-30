@@ -226,8 +226,8 @@ subprojects {
 
                         developers {
                             developer {
-                                id = 'Charismara'
-                                name = 'Christian Raoulis'
+                                id = 'minheragon'
+                                name = 'Minh Eragon'
                             }
                         }
 
@@ -247,7 +247,7 @@ subprojects {
                         username System.getenv().getOrDefault("MANAS_REPO_USER", nexusUsername)
                         password System.getenv().getOrDefault("MANAS_REPO_USER_PASSWORD", nexusPassword)
                     }
-                    url "https://nexus.nighti.dev/repository/manasmods-public/"
+                    url "https://maven.manasmods.com/repository/manascore/"
                 }
             }
         }

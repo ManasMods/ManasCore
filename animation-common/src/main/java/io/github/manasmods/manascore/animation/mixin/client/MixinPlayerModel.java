@@ -38,9 +38,16 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
 
         PlayerAnimationAPI.PlayerAnimation animation = PlayerAnimationAPI.active_animations.get(player);
         if (animation == null) return;
-        if (animation.bones.get("left_arm") != null || animation.bones.get("torso") != null
-                || animation.bones.get("right_arm") != null) model.attackTime = 0;
-        model.crouching = false;
+        boolean armsOrTorso = manascore$suppressesVanillaArm(animation, "left_arm")
+                || manascore$suppressesVanillaArm(animation, "right_arm")
+                || manascore$suppressesVanillaArm(animation, "torso");
+        if (animation.suppressAttack != null ? animation.suppressAttack : armsOrTorso) model.attackTime = 0;
+        if (animation.suppressCrouch) model.crouching = false;
+    }
+
+    @Unique
+    private boolean manascore$suppressesVanillaArm(PlayerAnimationAPI.PlayerAnimation animation, String boneName) {
+        return animation.bones.get(boneName) != null && !animation.additiveBones.contains(boneName);
     }
 
     @Inject(method = "setupAnim*", at = @At(value = "TAIL"))
@@ -171,12 +178,24 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
             PlayerAnimationAPI.PlayerBone bone = entry.getValue();
             ModelPart modelPart = manascore$getModelPart(model, boneName);
             if (modelPart == null) continue;
+            boolean firstPersonArms = firstPerson && (boneName.equals("right_arm") || boneName.equals("left_arm"));
 
             Vec3 rotation = PlayerAnimationAPI.PlayerBone.interpolate(bone.rotations, animationProgress, player);
             if (rotation != null) {
-                modelPart.xRot = (float) Math.toRadians(rotation.x);
-                modelPart.yRot = (float) Math.toRadians(rotation.y);
-                modelPart.zRot = (float) Math.toRadians(rotation.z);
+                if (animation.additiveBones.contains(boneName)) {
+                    modelPart.xRot += (float) Math.toRadians(rotation.x);
+                    modelPart.yRot += (float) Math.toRadians(rotation.y);
+                    modelPart.zRot += (float) Math.toRadians(rotation.z);
+                } else {
+                    modelPart.xRot = (float) Math.toRadians(rotation.x);
+                    modelPart.yRot = (float) Math.toRadians(rotation.y);
+                    modelPart.zRot = (float) Math.toRadians(rotation.z);
+                }
+            }
+
+            if (animation.aimBones.contains(boneName) && !firstPersonArms) {
+                modelPart.xRot += headPitch * ((float) Math.PI / 180F);
+                modelPart.yRot += netHeadYaw * ((float) Math.PI / 180F);
             }
 
             Vec3 position = PlayerAnimationAPI.PlayerBone.interpolate(bone.positions, animationProgress, player);
@@ -193,7 +212,6 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
                 modelPart.zScale = (float) scale.z;
             }
 
-            boolean firstPersonArms = firstPerson && (boneName.equals("right_arm") || boneName.equals("left_arm"));
             if (firstPersonArms) {
                 float frameBuffer = 0.09f;
                 float timeLeft = animation.length - animationProgress;
