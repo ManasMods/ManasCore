@@ -127,6 +127,23 @@
 						}
 					}
 				},
+				"right_item": {
+					"rotation": {
+						"0.0": [0, 0, 0],
+						"0.5": [0, 0, 180],
+						"1.0": [0, 0, 360]
+					},
+					"position": {
+						"0.0": [0, 0, 0],
+						"0.5": [0, 4, 0],
+						"1.0": [0, 0, 0]
+					},
+					"scale": {
+						"0.0": [1, 1, 1],
+						"0.5": [1.6, 1.6, 1.6],
+						"1.0": [1, 1, 1]
+					}
+				},
 				"left_arm": {
 					"rotation": {
 						"0.0": {
@@ -160,13 +177,22 @@
 							"lerp_mode": "catmullrom"
 						}
 					}
+				},
+				"left_item": {
+					"rotation": {
+						"0.0": [0, 0, 0],
+						"0.25": [-360, 0, 0],
+						"0.5": [0, 0, 0],
+						"0.75": [-360, 0, 0],
+						"1.0": [0, 0, 0]
+					}
 				}
 			}
 		},
 		"beam": {
 			"loop": true,
 			"animation_length": 1.25,
-            "manascore:aim_body": true,
+			"manascore:aim_body": true,
 			"manascore:aim_bones": ["right_arm", "left_arm"],
 			"manascore:additive_bones": ["left_leg", "right_leg", "head"],
 			"manascore:suppress_crouch": false,
@@ -260,9 +286,9 @@
 		"arrow": {
 			"loop": true,
 			"animation_length": 0.25,
-            "manascore:aim_body": true,
-            "manascore:aim_bones": ["right_arm", "left_arm"],
-            "manascore:additive_bones": ["left_leg", "right_leg", "head"],
+			"manascore:aim_body": true,
+			"manascore:aim_bones": ["right_arm", "left_arm"],
+			"manascore:additive_bones": ["left_leg", "right_leg", "head"],
 			"bones": {
 				"body": {
 					"rotation": {

@@ -6,6 +6,7 @@
   "client": [
     "accessor.AccessorCamera",
     "client.MixinEntityRenderDispatcherAnimation",
+    "client.MixinItemInHandLayerAnimation",
     "client.MixinItemInHandRendererAnimation",
     "client.MixinLevelRendererAnimation",
     "client.MixinPlayerModel",
