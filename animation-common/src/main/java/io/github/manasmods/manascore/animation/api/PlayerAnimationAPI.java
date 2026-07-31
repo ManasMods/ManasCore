@@ -50,8 +50,36 @@ public class PlayerAnimationAPI {
      *  skipped here so the widget shows the whole model instead of only the arms. */
     public static boolean renderingGuiEntity = false;
 
+    /**
+     * Reserved entry for {@code manascore:requires_animation} meaning "nothing is currently playing".
+     * Safe from collision because every real animation key is {@code <modid>:<name>}, so a bare word can
+     * never name one.
+     */
+    public static final String NO_ANIMATION = "none";
+
     public static PlayerAnimationState state(Player player) {
         return states.computeIfAbsent(player, key -> new PlayerAnimationState());
+    }
+
+    /**
+     * Whether {@code animationKey} is allowed to start while {@code currentAnimation} is playing, per the
+     * target animation's {@code manascore:requires_animation} allowlist.
+     * <p>
+     * Evaluated client-side, because that is the only side that knows what is playing - the server tracks no
+     * animation state at all, so there is nothing for this to disagree with. A blocked request is dropped
+     * silently; the caller has already sent its packet and does not find out.
+     * <p>
+     * Only the packet-driven {@code currentAnimation} counts as "playing". A conditional animation is the
+     * ambient fallback for when nothing is playing, so it reads as {@link #NO_ANIMATION} here.
+     *
+     * @param animationKey     the animation being requested
+     * @param currentAnimation the animation currently playing, or empty for none
+     */
+    public static boolean canPlay(String animationKey, String currentAnimation) {
+        PlayerAnimation animation = animations.get(animationKey);
+        if (animation == null || animation.requiresAnimation.isEmpty()) return true;
+        if (currentAnimation.isEmpty()) return animation.requiresAnimation.contains(NO_ANIMATION);
+        return animation.requiresAnimation.contains(currentAnimation);
     }
 
     public static class PlayerAnimationState {
@@ -118,6 +146,12 @@ public class PlayerAnimationAPI {
          *  contribute pitch alone. Defaults to {@code false}. */
         public final boolean aimBody;
 
+        /** Populated from {@code manascore:requires_animation}. An allowlist of animation keys this one is
+         *  permitted to start from: if it is non-empty and the animation currently playing is not in it, the
+         *  play request is dropped. Use {@link #NO_ANIMATION} to permit starting from an idle player.
+         *  Never null; empty means no restriction, which is the default and the original behaviour. */
+        public final Set<String> requiresAnimation;
+
         /** Populated from {@code manascore:suppress_attack}. Tri-state: {@code null} means the field
          *  was absent, so callers should fall back to the bone heuristic - this is NOT the same as
          *  {@code Boolean.FALSE}, which explicitly means "never suppress". Boxed on purpose so this
@@ -173,6 +207,17 @@ public class PlayerAnimationAPI {
                 }
             }
             this.aimBody = parsedAimBody;
+            this.requiresAnimation = new HashSet<>();
+            if (animation.has("manascore:requires_animation")) {
+                JsonElement requiresElement = animation.get("manascore:requires_animation");
+                if (requiresElement.isJsonArray()) {
+                    for (JsonElement requiredElement : requiresElement.getAsJsonArray()) {
+                        if (requiredElement.isJsonPrimitive()) {
+                            this.requiresAnimation.add(requiredElement.getAsString());
+                        }
+                    }
+                }
+            }
             Boolean parsedSuppressAttack = null;
             if (animation.has("manascore:suppress_attack")) {
                 JsonElement suppressAttackElement = animation.get("manascore:suppress_attack");

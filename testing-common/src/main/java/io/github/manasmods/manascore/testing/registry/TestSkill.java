@@ -92,7 +92,10 @@ public class TestSkill extends ManasSkill {
     }
 
     public void onHeldStop(@Nullable ManasSkillInstance instance, LivingEntity entity, int heldTicks, int mode) {
-        if (mode == 1) PlayerAnimationHelper.play(entity, "manascore:weird_hand");
+        if (mode == 1) {
+            if (entity.onGround()) PlayerAnimationHelper.play(entity, "manascore:weird_hand");
+            else PlayerAnimationHelper.stop(entity);
+        }
     }
 
     public void onRelease(ManasSkillInstance instance, LivingEntity entity, int heldTicks, int keyNumber, int mode) {

@@ -10,6 +10,7 @@ import dev.architectury.registry.ReloadListenerRegistry;
 import dev.architectury.utils.Env;
 import io.github.manasmods.manascore.animation.api.PlayerAnimationAPI;
 import io.github.manasmods.manascore.animation.network.ManasAnimationNetwork;
+import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
@@ -21,6 +22,7 @@ public class ManasCoreAnimation {
     }
 
     private static void registerClientAnimationLoader() {
+        if (Minecraft.getInstance() == null) return;
         ReloadListenerRegistry.register(PackType.CLIENT_RESOURCES,
                 (ResourceManagerReloadListener) PlayerAnimationAPI::loadClientSideAnimations,
                 ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "manas_animations"));

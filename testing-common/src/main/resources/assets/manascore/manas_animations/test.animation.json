@@ -3,6 +3,7 @@
 	"animations": {
 		"weird_hand": {
 			"animation_length": 1,
+			"manascore:requires_animation": ["none", "manascore:beam"],
 			"bones": {
 				"body": {
 					"rotation": {

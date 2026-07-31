@@ -30,6 +30,7 @@ public class AnimationClientHandler {
             state.nextAnimation = "";
             state.hasProgress = false;
         } else {
+            if (!PlayerAnimationAPI.canPlay(packet.animation(), state.currentAnimation)) return;
             state.currentAnimation = packet.animation();
             state.nextAnimation = packet.nextAnimation();
             state.override = packet.override();

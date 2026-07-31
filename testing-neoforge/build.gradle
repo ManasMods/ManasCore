@@ -12,6 +12,15 @@ loom {
             }
         }
     }
+
+    runs {
+        data {
+            data()
+            programArgs "--all", "--mod", "manascore-testing"
+            programArgs "--output", project(':testing-common').file('src/generated/resources').absolutePath
+            programArgs "--existing", project(':testing-common').file('src/main/resources').absolutePath
+        }
+    }
 }
 
 dependencies {
