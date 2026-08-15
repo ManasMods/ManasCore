@@ -47,6 +47,18 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
         if (animation.suppressCrouch) model.crouching = false;
     }
 
+    /**
+     * Whether this render is the local player seeing themselves from their own eyes - the one case where the
+     * body is the camera rather than something being looked at.
+     * <p>
+     * {@link PlayerAnimationAPI#renderingLevel} is what keeps GUI previews and HUD widgets out: they draw the
+     * same player, from the same camera type, and must get the ordinary third-person treatment.
+     */
+    @Unique
+    private boolean manascore$renderingOwnView(Player player) {
+        return PlayerAnimationAPI.renderingLevel && manascore$mc.options.getCameraType().isFirstPerson() && player == manascore$mc.player;
+    }
+
     @Unique
     private boolean manascore$suppressesVanillaArm(PlayerAnimationAPI.PlayerAnimation animation, String boneName) {
         return animation.bones.get(boneName) != null && !animation.additiveBones.contains(boneName);
@@ -85,7 +97,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
             data.currentConditional = "";
         }
 
-        boolean firstPerson = data.firstPerson && !PlayerAnimationAPI.renderingGuiEntity && manascore$mc.options.getCameraType().isFirstPerson() && player == manascore$mc.player && manascore$mc.screen == null;
+        boolean firstPerson = data.firstPerson && manascore$renderingOwnView(player);
         if (firstPerson) {
             player.yBodyRotO = player.yHeadRotO;
             player.yBodyRot = player.yHeadRot;
@@ -96,7 +108,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
             data.hasProgress = false;
             data.lastAnimationProgress = 0f;
             data.playedSounds.clear();
-            firstPerson = data.firstPerson && !PlayerAnimationAPI.renderingGuiEntity && manascore$mc.options.getCameraType().isFirstPerson() && player == manascore$mc.player && manascore$mc.screen == null;
+            firstPerson = data.firstPerson && manascore$renderingOwnView(player);
             PlayerAnimationAPI.active_animations.put(player, null);
         }
 
@@ -175,8 +187,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
             data.lastAnimationProgress = animationProgress;
         }
 
-        if (!data.firstPerson && manascore$mc.options.getCameraType().isFirstPerson()
-                && player == manascore$mc.player && manascore$mc.screen == null) return;
+        if (!data.firstPerson && manascore$renderingOwnView(player)) return;
         for (Map.Entry<String, PlayerAnimationAPI.PlayerBone> entry : animation.bones.entrySet()) {
             String boneName = entry.getKey();
             PlayerAnimationAPI.PlayerBone bone = entry.getValue();

@@ -35,6 +35,11 @@ public abstract class MixinPlayerRendererAnimation extends LivingEntityRenderer<
      * Squares the body up with the head for animations declaring {@code manascore:aim_body}, so the whole
      * player turns toward what they are looking at instead of only the listed bones.
      * <p>
+     * First-person animations always get this, whatever they declared: the camera <em>is</em> the head, so a
+     * body left trailing behind it would swing the arms off-centre from the view they are supposed to aim
+     * along. {@code MixinPlayerModel#setupAnim} squares the body up in first person for the same reason, but
+     * it runs too late to reach this frame's {@code netHeadYaw} - doing it here is what makes that immediate.
+     * <p>
      * This has to run at {@code HEAD}, before {@code LivingEntityRenderer#render} reads {@code yBodyRot} to
      * derive the {@code netHeadYaw} it hands to the model. Doing it later - in {@code setupAnim}, where the
      * first-person path does the same thing - would only take effect on the following frame.
@@ -49,17 +54,30 @@ public abstract class MixinPlayerRendererAnimation extends LivingEntityRenderer<
                                               PoseStack poseStack, MultiBufferSource bufferSource, int light,
                                               CallbackInfo ci) {
         PlayerAnimationAPI.PlayerAnimation animation = PlayerAnimationAPI.active_animations.get(entity);
-        if (animation == null || !animation.aimBody) return;
+        if (animation == null) return;
+        if (!animation.aimBody && !manascore$isFirstPerson(entity)) return;
         entity.yBodyRot = entity.yHeadRot;
         entity.yBodyRotO = entity.yHeadRotO;
+    }
+
+    /**
+     * Whether {@code player} is being drawn as the first-person owner of the camera - a first-person animation
+     * on the local player, in first-person camera, as part of the world render.
+     * <p>
+     * {@link PlayerAnimationAPI#renderingLevel} is the GUI guard: the same player also gets drawn into
+     * inventory previews and HUD widgets, and those must show the whole model.
+     */
+    @Unique
+    private boolean manascore$isFirstPerson(AbstractClientPlayer player) {
+        return PlayerAnimationAPI.state(player).firstPerson && PlayerAnimationAPI.renderingLevel
+                && manascore$mc.options.getCameraType().isFirstPerson() && player == manascore$mc.player;
     }
 
     @Inject(method = "render(Lnet/minecraft/client/player/AbstractClientPlayer;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/LivingEntityRenderer;render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V"))
     private void hideBonesInFirstPerson(AbstractClientPlayer entity, float f, float g, PoseStack poseStack,
                                                   MultiBufferSource bufferSource, int light, CallbackInfo ci) {
-        if (PlayerAnimationAPI.state(entity).firstPerson && !PlayerAnimationAPI.renderingGuiEntity
-                && manascore$mc.options.getCameraType().isFirstPerson() && entity == manascore$mc.player && manascore$mc.screen == null) {
+        if (manascore$isFirstPerson(entity)) {
             this.model.head.visible = false;
             this.model.body.visible = false;
             this.model.leftLeg.visible = false;
@@ -86,7 +104,7 @@ public abstract class MixinPlayerRendererAnimation extends LivingEntityRenderer<
         if (bone == null) return;
 
         PlayerAnimationAPI.PlayerAnimationState data = PlayerAnimationAPI.state(player);
-        boolean firstPerson = data.firstPerson && !PlayerAnimationAPI.renderingGuiEntity && manascore$mc.options.getCameraType().isFirstPerson() && player == manascore$mc.player && manascore$mc.screen == null;
+        boolean firstPerson = manascore$isFirstPerson(player);
         float animationProgress = data.progress;
         Vec3 scale = PlayerAnimationAPI.PlayerBone.interpolate(bone.scales, animationProgress, player);
         if (scale != null) poseStack.scale((float) scale.x, (float) scale.y, (float) scale.z);

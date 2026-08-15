@@ -9,6 +9,7 @@
     "client.MixinItemInHandLayerAnimation",
     "client.MixinItemInHandRendererAnimation",
     "client.MixinLevelRendererAnimation",
+    "client.MixinLivingEntityRendererAnimation",
     "client.MixinPlayerModel",
     "client.MixinPlayerRendererAnimation"
   ],

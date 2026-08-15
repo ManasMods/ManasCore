@@ -26,10 +26,28 @@ public abstract class MixinLevelRendererAnimation {
     @Unique
     private final Minecraft manascore$mc = Minecraft.getInstance();
 
+    /**
+     * Marks the world render, which is what tells the rest of the animation module that a player is being
+     * drawn into the level and not into a GUI widget or a HUD overlay - both of those run after this method
+     * returns, in {@code Gui#render} and screen rendering, and must not get the first-person treatment.
+     * <p>
+     * Cleared at {@code RETURN}, which a throw inside {@code renderLevel} would skip. That leaves the flag
+     * stuck true, but a throw here has already ended the frame, so nothing renders to observe it.
+     */
+    @Inject(method = "renderLevel", at = @At("HEAD"))
+    private void markRenderingLevel(DeltaTracker deltaTracker, boolean bl, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f matrix4f, Matrix4f matrix4f2, CallbackInfo ci) {
+        PlayerAnimationAPI.renderingLevel = true;
+    }
+
+    @Inject(method = "renderLevel", at = @At("RETURN"))
+    private void clearRenderingLevel(DeltaTracker deltaTracker, boolean bl, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f matrix4f, Matrix4f matrix4f2, CallbackInfo ci) {
+        PlayerAnimationAPI.renderingLevel = false;
+    }
+
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;isDetached()Z"))
     private void fakeThirdPersonMode(DeltaTracker deltaTracker, boolean bl, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f matrix4f, Matrix4f matrix4f2, CallbackInfo ci) {
         if (camera.getEntity() instanceof Player player && PlayerAnimationAPI.state(player).firstPerson
-                && manascore$mc.player == player && manascore$mc.screen == null) ((AccessorCamera) camera).setDetached(true);
+                && manascore$mc.player == player) ((AccessorCamera) camera).setDetached(true);
     }
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;isDetached()Z", shift = At.Shift.AFTER))

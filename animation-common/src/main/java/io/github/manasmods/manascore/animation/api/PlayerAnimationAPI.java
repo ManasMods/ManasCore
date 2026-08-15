@@ -46,9 +46,18 @@ public class PlayerAnimationAPI {
     /** Client-side per-player playback state. */
     public static final Map<Player, PlayerAnimationState> states = new Object2ObjectOpenHashMap<>();
 
-    /** Set while rendering a player into a GUI (inventory/overlay). First-person handling must be
-     *  skipped here so the widget shows the whole model instead of only the arms. */
-    public static boolean renderingGuiEntity = false;
+    /**
+     * Set for the duration of {@code LevelRenderer#renderLevel}, so client code can tell a player being drawn
+     * into the world from the same player being drawn into a GUI widget or a HUD overlay - those run outside
+     * {@code renderLevel}, in {@code Gui#render} and screen rendering, and must show the whole model rather
+     * than the arms-only first-person pose.
+     * <p>
+     * This is what gates first-person handling, <em>not</em> {@code Minecraft#screen}: the world still renders
+     * behind an open inventory, where a screen check would wrongly report a GUI render and pop the body into
+     * view. Nothing outside {@link io.github.manasmods.manascore.animation.mixin.client.MixinLevelRendererAnimation}
+     * should write this.
+     */
+    public static boolean renderingLevel = false;
 
     /**
      * Reserved entry for {@code manascore:requires_animation} meaning "nothing is currently playing".

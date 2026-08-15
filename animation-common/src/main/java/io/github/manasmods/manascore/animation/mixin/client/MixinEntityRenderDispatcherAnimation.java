@@ -26,6 +26,6 @@ public class MixinEntityRenderDispatcherAnimation {
                                                float opacity, float tickDelta, LevelReader world, float radius, CallbackInfo ci) {
         Minecraft mc = Minecraft.getInstance();
         if (entity instanceof Player player && mc.options.getCameraType().isFirstPerson() && player == mc.player
-                && mc.screen == null && PlayerAnimationAPI.state(player).firstPerson) ci.cancel();
+                && PlayerAnimationAPI.renderingLevel && PlayerAnimationAPI.state(player).firstPerson) ci.cancel();
     }
 }
