@@ -8,7 +8,7 @@ package io.github.manasmods.manascore.animation.network;
 import io.github.manasmods.manascore.animation.api.PlayerAnimationAPI;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 
 /**
@@ -20,9 +20,9 @@ public class AnimationClientHandler {
     static void handle(PlayPlayerAnimationPayload packet) {
         if (Minecraft.getInstance().level == null) return;
         Entity entity = getEntityFromId(packet.entityId());
-        if (!(entity instanceof Player player)) return;
+        if (!(entity instanceof LivingEntity living)) return;
 
-        PlayerAnimationAPI.PlayerAnimationState state = PlayerAnimationAPI.state(player);
+        PlayerAnimationAPI.PlayerAnimationState state = PlayerAnimationAPI.state(living);
         if (packet.animation().isEmpty()) {
             state.reset = true;
             state.firstPerson = false;

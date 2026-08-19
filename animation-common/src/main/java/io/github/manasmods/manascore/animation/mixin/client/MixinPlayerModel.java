@@ -16,7 +16,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
 import org.spongepowered.asm.mixin.Mixin;
@@ -36,9 +35,8 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
     public void setupPivot(T entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
         PlayerModel<T> model = (PlayerModel<T>) (Object) this;
         manascore$resetModelPose(model);
-        if (!(entityIn instanceof Player player)) return;
 
-        PlayerAnimationAPI.PlayerAnimation animation = PlayerAnimationAPI.active_animations.get(player);
+        PlayerAnimationAPI.PlayerAnimation animation = PlayerAnimationAPI.active_animations.get(entityIn);
         if (animation == null) return;
         boolean armsOrTorso = manascore$suppressesVanillaArm(animation, "left_arm")
                 || manascore$suppressesVanillaArm(animation, "right_arm")
@@ -55,8 +53,8 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
      * same player, from the same camera type, and must get the ordinary third-person treatment.
      */
     @Unique
-    private boolean manascore$renderingOwnView(Player player) {
-        return PlayerAnimationAPI.renderingLevel && manascore$mc.options.getCameraType().isFirstPerson() && player == manascore$mc.player;
+    private boolean manascore$renderingOwnView(LivingEntity entity) {
+        return PlayerAnimationAPI.renderingLevel && manascore$mc.options.getCameraType().isFirstPerson() && entity == manascore$mc.player;
     }
 
     @Unique
@@ -68,20 +66,19 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
     public void setupAnim(T entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
         if (ageInTicks <= 0) return;
         PlayerModel<T> model = (PlayerModel<T>) (Object) this;
-        if (!(entityIn instanceof Player player)) return;
 
-        PlayerAnimationAPI.PlayerAnimationState data = PlayerAnimationAPI.state(player);
+        PlayerAnimationAPI.PlayerAnimationState data = PlayerAnimationAPI.state(entityIn);
         String playingAnimation = data.currentAnimation;
         boolean overrideAnimation = data.override;
         if (data.reset) {
             data.reset = false;
             data.lastAnimationProgress = 0f;
             data.playedSounds.clear();
-            PlayerAnimationAPI.active_animations.put(player, null);
+            PlayerAnimationAPI.active_animations.put(entityIn, null);
         }
 
         if (playingAnimation.isEmpty()) {
-            ConditionalAnimations.ConditionalAnimation conditional = ConditionalAnimations.evaluate(player);
+            ConditionalAnimations.ConditionalAnimation conditional = ConditionalAnimations.evaluate(entityIn);
             String conditionalKey = conditional == null ? "" : conditional.key();
             if (!conditionalKey.equals(data.currentConditional)) {
                 data.currentConditional = conditionalKey;
@@ -89,7 +86,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
                 data.lastAnimationProgress = 0f;
                 data.playedSounds.clear();
                 data.firstPerson = conditional != null && conditional.firstPerson();
-                PlayerAnimationAPI.active_animations.put(player, null);
+                PlayerAnimationAPI.active_animations.put(entityIn, null);
             }
             if (conditional == null) return;
             playingAnimation = conditionalKey;
@@ -97,10 +94,10 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
             data.currentConditional = "";
         }
 
-        boolean firstPerson = data.firstPerson && manascore$renderingOwnView(player);
+        boolean firstPerson = data.firstPerson && manascore$renderingOwnView(entityIn);
         if (firstPerson) {
-            player.yBodyRotO = player.yHeadRotO;
-            player.yBodyRot = player.yHeadRot;
+            entityIn.yBodyRotO = entityIn.yHeadRotO;
+            entityIn.yBodyRot = entityIn.yHeadRot;
         }
 
         if (overrideAnimation) {
@@ -108,18 +105,18 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
             data.hasProgress = false;
             data.lastAnimationProgress = 0f;
             data.playedSounds.clear();
-            firstPerson = data.firstPerson && manascore$renderingOwnView(player);
-            PlayerAnimationAPI.active_animations.put(player, null);
+            firstPerson = data.firstPerson && manascore$renderingOwnView(entityIn);
+            PlayerAnimationAPI.active_animations.put(entityIn, null);
         }
 
-        PlayerAnimationAPI.PlayerAnimation animation = PlayerAnimationAPI.active_animations.get(player);
+        PlayerAnimationAPI.PlayerAnimation animation = PlayerAnimationAPI.active_animations.get(entityIn);
         if (animation == null) {
             animation = PlayerAnimationAPI.animations.get(playingAnimation);
             if (animation == null) {
                 PlayerAnimationAPI.LOG.info("Attempted to play null animation {}, did animations fail to load?", playingAnimation);
                 return;
             }
-            PlayerAnimationAPI.active_animations.put(player, animation);
+            PlayerAnimationAPI.active_animations.put(entityIn, animation);
         }
 
         float animationProgress;
@@ -148,7 +145,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
                         data.hasProgress = false;
                         data.lastAnimationProgress = 0f;
                         data.playedSounds.clear();
-                        PlayerAnimationAPI.active_animations.put(player, null);
+                        PlayerAnimationAPI.active_animations.put(entityIn, null);
                         animationProgress = animation.length;
                     } else {
                         data.currentAnimation = "";
@@ -158,7 +155,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
                         data.playedSounds.clear();
                         data.reset = true;
                         data.firstPerson = false;
-                        PlayerAnimationAPI.active_animations.put(player, null);
+                        PlayerAnimationAPI.active_animations.put(entityIn, null);
                         animationProgress = animation.length;
                     }
                 } else if (animation.hold_on_last_frame) {
@@ -179,15 +176,15 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
                 boolean shouldPlay;
                 if (lastAnimationProgress <= animationProgress) shouldPlay = lastAnimationProgress <= soundTime && animationProgress >= soundTime;
                 else shouldPlay = lastAnimationProgress <= soundTime || animationProgress >= soundTime;
-                if (shouldPlay && player.level() instanceof ClientLevel clientLevel) {
-                    clientLevel.playLocalSound(player.getX(), player.getY(), player.getZ(), BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse(soundId)), SoundSource.NEUTRAL, 1.0F, 1.0F, false);
+                if (shouldPlay && entityIn.level() instanceof ClientLevel clientLevel) {
+                    clientLevel.playLocalSound(entityIn.getX(), entityIn.getY(), entityIn.getZ(), BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse(soundId)), SoundSource.NEUTRAL, 1.0F, 1.0F, false);
                     data.playedSounds.add(soundTime);
                 }
             }
             data.lastAnimationProgress = animationProgress;
         }
 
-        if (!data.firstPerson && manascore$renderingOwnView(player)) return;
+        if (!data.firstPerson && manascore$renderingOwnView(entityIn)) return;
         for (Map.Entry<String, PlayerAnimationAPI.PlayerBone> entry : animation.bones.entrySet()) {
             String boneName = entry.getKey();
             PlayerAnimationAPI.PlayerBone bone = entry.getValue();
@@ -195,7 +192,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
             if (modelPart == null) continue;
             boolean firstPersonArms = firstPerson && (boneName.equals("right_arm") || boneName.equals("left_arm"));
 
-            Vec3 rotation = PlayerAnimationAPI.PlayerBone.interpolate(bone.rotations, animationProgress, player);
+            Vec3 rotation = PlayerAnimationAPI.PlayerBone.interpolate(bone.rotations, animationProgress, entityIn);
             if (rotation != null) {
                 if (animation.additiveBones.contains(boneName)) {
                     modelPart.xRot += (float) Math.toRadians(rotation.x);
@@ -212,14 +209,14 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
                 manascore$applyAim(modelPart, netHeadYaw, headPitch);
             }
 
-            Vec3 position = PlayerAnimationAPI.PlayerBone.interpolate(bone.positions, animationProgress, player);
+            Vec3 position = PlayerAnimationAPI.PlayerBone.interpolate(bone.positions, animationProgress, entityIn);
             if (position != null) {
                 modelPart.x += (float) position.x;
                 modelPart.y -= (float) position.y;
                 modelPart.z += (float) position.z;
             }
 
-            Vec3 scale = PlayerAnimationAPI.PlayerBone.interpolate(bone.scales, animationProgress, player);
+            Vec3 scale = PlayerAnimationAPI.PlayerBone.interpolate(bone.scales, animationProgress, entityIn);
             if (scale != null) {
                 modelPart.xScale = (float) scale.x;
                 modelPart.yScale = (float) scale.y;
@@ -236,7 +233,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
                 }
 
                 if (fpWeight > 0) {
-                    float pitchRadians = (float) Math.toRadians(player.getXRot());
+                    float pitchRadians = (float) Math.toRadians(entityIn.getXRot());
                     modelPart.xRot += pitchRadians * fpWeight;
                     float yRotCorrection = pitchRadians * (rightArm ? -0.42f : 0.42f);
                     modelPart.yRot += yRotCorrection * fpWeight;
@@ -263,7 +260,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
     }
 
     /**
-     * Swings an aim bone onto the player's look direction, carrying its authored pose rigidly so the bone
+     * Swings an aim bone onto the entity's look direction, carrying its authored pose rigidly so the bone
      * keeps its shape and pivots at its own origin - the shoulder, for an arm.
      * <p>
      * The view angles must be composed as an <em>outer</em> rotation, not added into {@code xRot}/{@code yRot}.

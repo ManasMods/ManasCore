@@ -16,7 +16,7 @@ import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.client.Minecraft;
 import org.slf4j.Logger;
@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 
 /**
  * Bedrock-format player animation runtime.
@@ -41,10 +42,19 @@ import java.util.Set;
 public class PlayerAnimationAPI {
     public static final Logger LOG = LoggerFactory.getLogger("ManasCore Animation");
     public static final Map<String, PlayerAnimation> animations = new Object2ObjectOpenHashMap<>();
-    public static final Map<Player, PlayerAnimation> active_animations = new Object2ObjectOpenHashMap<>();
+    /**
+     * Animation currently playing on each entity. Keyed by {@link LivingEntity} rather than
+     * {@code Player} so anything drawn with a {@link net.minecraft.client.model.PlayerModel} - clones,
+     * player-like mobs - animates through the same pipeline as a player.
+     * <p>
+     * Weakly keyed: nothing removes entries when an entity is unloaded, and with mob-shaped animation
+     * users that would grow without bound. Weak keys let an entity's state die with the entity itself,
+     * which is also what clears it on relog or dimension change, where the client rebuilds the entity.
+     */
+    public static final Map<LivingEntity, PlayerAnimation> active_animations = new WeakHashMap<>();
 
-    /** Client-side per-player playback state. */
-    public static final Map<Player, PlayerAnimationState> states = new Object2ObjectOpenHashMap<>();
+    /** Client-side per-entity playback state. Weakly keyed for the same reason as {@link #active_animations}. */
+    public static final Map<LivingEntity, PlayerAnimationState> states = new WeakHashMap<>();
 
     /**
      * Set for the duration of {@code LevelRenderer#renderLevel}, so client code can tell a player being drawn
@@ -66,8 +76,8 @@ public class PlayerAnimationAPI {
      */
     public static final String NO_ANIMATION = "none";
 
-    public static PlayerAnimationState state(Player player) {
-        return states.computeIfAbsent(player, key -> new PlayerAnimationState());
+    public static PlayerAnimationState state(LivingEntity entity) {
+        return states.computeIfAbsent(entity, key -> new PlayerAnimationState());
     }
 
     /**
@@ -381,12 +391,12 @@ public class PlayerAnimationAPI {
             return new KeyframeValue(Vec3.ZERO);
         }
 
-        public static Vec3 interpolate(List<Keyframe> keyframes, float time, Player player) {
+        public static Vec3 interpolate(List<Keyframe> keyframes, float time, LivingEntity entity) {
             if (keyframes.isEmpty())
                 return null;
             if (keyframes.size() == 1) {
                 Keyframe kf = keyframes.get(0);
-                return kf.value.isMolang() ? evalMolang(kf.value.molang, time, player) : kf.value.vector;
+                return kf.value.isMolang() ? evalMolang(kf.value.molang, time, entity) : kf.value.vector;
             }
             Keyframe lastKf = null;
             Keyframe nextKf = null;
@@ -404,7 +414,7 @@ public class PlayerAnimationAPI {
             }
             if (lastKf == null)
                 return null;
-            Vec3 postVec = lastKf.post.isMolang() ? evalMolang(lastKf.post.molang, time, player) : lastKf.post.vector;
+            Vec3 postVec = lastKf.post.isMolang() ? evalMolang(lastKf.post.molang, time, entity) : lastKf.post.vector;
             if (nextKf == null)
                 return postVec;
             float t1 = lastKf.time;
@@ -413,16 +423,16 @@ public class PlayerAnimationAPI {
                 return postVec;
             float alpha = (time - t1) / (t2_ - t1);
             Vec3 v1 = postVec;
-            Vec3 v2 = nextKf.pre.isMolang() ? evalMolang(nextKf.pre.molang, time, player) : nextKf.pre.vector;
+            Vec3 v2 = nextKf.pre.isMolang() ? evalMolang(nextKf.pre.molang, time, entity) : nextKf.pre.vector;
             if (lastKf.catmullrom) {
                 Vec3 p0 = v1, p1 = v1, p2 = v2, p3 = v2;
                 if (lastIdx > 0) {
                     KeyframeValue kv = keyframes.get(lastIdx - 1).post;
-                    p0 = kv.isMolang() ? evalMolang(kv.molang, time, player) : kv.vector;
+                    p0 = kv.isMolang() ? evalMolang(kv.molang, time, entity) : kv.vector;
                 }
                 if (lastIdx + 1 < keyframes.size() - 1) {
                     KeyframeValue kv = keyframes.get(lastIdx + 2).pre;
-                    p3 = kv.isMolang() ? evalMolang(kv.molang, time, player) : kv.vector;
+                    p3 = kv.isMolang() ? evalMolang(kv.molang, time, entity) : kv.vector;
                 }
                 float t = alpha, t2 = t * t, t3 = t2 * t;
                 return new Vec3(0.5 * ((2 * p1.x) + (-p0.x + p2.x) * t + (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 + (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3),
@@ -432,15 +442,15 @@ public class PlayerAnimationAPI {
             return new Vec3(v1.x + (v2.x - v1.x) * alpha, v1.y + (v2.y - v1.y) * alpha, v1.z + (v2.z - v1.z) * alpha);
         }
 
-        private static Vec3 evalMolang(String expr, float time, Player player) {
-            expr = preprocessMolangQueries(expr, time, player);
+        private static Vec3 evalMolang(String expr, float time, LivingEntity entity) {
+            expr = preprocessMolangQueries(expr, time, entity);
             try {
                 if (expr.trim().startsWith("[") && expr.trim().endsWith("]")) {
                     String inner = expr.trim().substring(1, expr.trim().length() - 1);
                     String[] parts = inner.split(",");
-                    return new Vec3(parts.length > 0 ? evalFloat(parts[0].trim(), time, player) : 0, parts.length > 1 ? evalFloat(parts[1].trim(), time, player) : 0, parts.length > 2 ? evalFloat(parts[2].trim(), time, player) : 0);
+                    return new Vec3(parts.length > 0 ? evalFloat(parts[0].trim(), time, entity) : 0, parts.length > 1 ? evalFloat(parts[1].trim(), time, entity) : 0, parts.length > 2 ? evalFloat(parts[2].trim(), time, entity) : 0);
                 }
-                float val = evalFloat(expr, time, player);
+                float val = evalFloat(expr, time, entity);
                 return new Vec3(val, val, val);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -448,32 +458,32 @@ public class PlayerAnimationAPI {
             }
         }
 
-        private static float evalFloat(String expr, float time, Player player) {
+        private static float evalFloat(String expr, float time, LivingEntity entity) {
             if (expr == null || expr.isEmpty())
                 return 0.0f;
             expr = expr.trim().replace(" ", "");
             String lower = expr.toLowerCase();
             if (lower.startsWith("math.sin(") && lower.endsWith(")")) {
-                return (float) Math.sin(Math.toRadians(evalFloat(expr.substring(9, expr.length() - 1), time, player)));
+                return (float) Math.sin(Math.toRadians(evalFloat(expr.substring(9, expr.length() - 1), time, entity)));
             }
             if (lower.startsWith("math.cos(") && lower.endsWith(")")) {
-                return (float) Math.cos(Math.toRadians(evalFloat(expr.substring(9, expr.length() - 1), time, player)));
+                return (float) Math.cos(Math.toRadians(evalFloat(expr.substring(9, expr.length() - 1), time, entity)));
             }
             if (lower.startsWith("math.tan(") && lower.endsWith(")")) {
-                return (float) Math.tan(Math.toRadians(evalFloat(expr.substring(9, expr.length() - 1), time, player)));
+                return (float) Math.tan(Math.toRadians(evalFloat(expr.substring(9, expr.length() - 1), time, entity)));
             }
             if (lower.startsWith("math.abs(") && lower.endsWith(")")) {
-                return Math.abs(evalFloat(expr.substring(9, expr.length() - 1), time, player));
+                return Math.abs(evalFloat(expr.substring(9, expr.length() - 1), time, entity));
             }
             if (lower.startsWith("math.sqrt(") && lower.endsWith(")")) {
-                return (float) Math.sqrt(evalFloat(expr.substring(10, expr.length() - 1), time, player));
+                return (float) Math.sqrt(evalFloat(expr.substring(10, expr.length() - 1), time, entity));
             }
             if (lower.startsWith("math.pow(") && lower.endsWith(")")) {
                 String inner = expr.substring(9, expr.length() - 1);
                 int commaPos = findTopLevelComma(inner);
                 if (commaPos != -1) {
-                    float base = evalFloat(inner.substring(0, commaPos), time, player);
-                    float exp = evalFloat(inner.substring(commaPos + 1), time, player);
+                    float base = evalFloat(inner.substring(0, commaPos), time, entity);
+                    float exp = evalFloat(inner.substring(commaPos + 1), time, entity);
                     return (float) Math.pow(base, exp);
                 }
             }
@@ -481,14 +491,14 @@ public class PlayerAnimationAPI {
                 String inner = expr.substring(9, expr.length() - 1);
                 int commaPos = findTopLevelComma(inner);
                 if (commaPos != -1) {
-                    return Math.min(evalFloat(inner.substring(0, commaPos), time, player), evalFloat(inner.substring(commaPos + 1), time, player));
+                    return Math.min(evalFloat(inner.substring(0, commaPos), time, entity), evalFloat(inner.substring(commaPos + 1), time, entity));
                 }
             }
             if (lower.startsWith("math.max(") && lower.endsWith(")")) {
                 String inner = expr.substring(9, expr.length() - 1);
                 int commaPos = findTopLevelComma(inner);
                 if (commaPos != -1) {
-                    return Math.max(evalFloat(inner.substring(0, commaPos), time, player), evalFloat(inner.substring(commaPos + 1), time, player));
+                    return Math.max(evalFloat(inner.substring(0, commaPos), time, entity), evalFloat(inner.substring(commaPos + 1), time, entity));
                 }
             }
             if (lower.startsWith("math.clamp(") && lower.endsWith(")")) {
@@ -509,9 +519,9 @@ public class PlayerAnimationAPI {
                 }
                 parts.add(inner.substring(start));
                 if (parts.size() == 3) {
-                    float val = evalFloat(parts.get(0), time, player);
-                    float min = evalFloat(parts.get(1), time, player);
-                    float max = evalFloat(parts.get(2), time, player);
+                    float val = evalFloat(parts.get(0), time, entity);
+                    float min = evalFloat(parts.get(1), time, entity);
+                    float max = evalFloat(parts.get(2), time, entity);
                     return Math.max(min, Math.min(max, val));
                 }
             }
@@ -524,12 +534,12 @@ public class PlayerAnimationAPI {
                     depth--;
                 else if (depth == 0) {
                     if (c == '+') {
-                        return evalFloat(expr.substring(0, i), time, player) + evalFloat(expr.substring(i + 1), time, player);
+                        return evalFloat(expr.substring(0, i), time, entity) + evalFloat(expr.substring(i + 1), time, entity);
                     } else if (c == '-' && i > 0) {
                         char prev = expr.charAt(i - 1);
                         boolean isOperator = prev != '+' && prev != '-' && prev != '*' && prev != '/' && prev != '(' && prev != 'E' && prev != 'e';
                         if (isOperator) {
-                            return evalFloat(expr.substring(0, i), time, player) - evalFloat(expr.substring(i + 1), time, player);
+                            return evalFloat(expr.substring(0, i), time, entity) - evalFloat(expr.substring(i + 1), time, entity);
                         }
                     }
                 }
@@ -543,16 +553,16 @@ public class PlayerAnimationAPI {
                     depth--;
                 else if (depth == 0) {
                     if (c == '*') {
-                        return evalFloat(expr.substring(0, i), time, player) * evalFloat(expr.substring(i + 1), time, player);
+                        return evalFloat(expr.substring(0, i), time, entity) * evalFloat(expr.substring(i + 1), time, entity);
                     }
                     if (c == '/') {
-                        float denominator = evalFloat(expr.substring(i + 1), time, player);
-                        return denominator == 0 ? 0 : evalFloat(expr.substring(0, i), time, player) / denominator;
+                        float denominator = evalFloat(expr.substring(i + 1), time, entity);
+                        return denominator == 0 ? 0 : evalFloat(expr.substring(0, i), time, entity) / denominator;
                     }
                 }
             }
             if (expr.startsWith("-")) {
-                return -evalFloat(expr.substring(1), time, player);
+                return -evalFloat(expr.substring(1), time, entity);
             }
             try {
                 return Float.parseFloat(expr);
@@ -561,25 +571,25 @@ public class PlayerAnimationAPI {
             }
         }
 
-        private static String preprocessMolangQueries(String expr, float time, Player player) {
+        private static String preprocessMolangQueries(String expr, float time, LivingEntity entity) {
             java.util.function.Function<Float, String> fmt = (val) -> String.format(java.util.Locale.ROOT, "%.6f", val);
             Minecraft mc = Minecraft.getInstance();
-            return expr.replace("query.anim_time", fmt.apply(time)).replace("query.head_x_rotation", fmt.apply(Mth.wrapDegrees(player.getXRot()))).replace("query.head_y_rotation", fmt.apply(Mth.wrapDegrees(player.getYRot())))
-                    .replace("query.body_x_rotation", fmt.apply(Mth.wrapDegrees(Mth.lerp(mc.getTimer().getGameTimeDeltaPartialTick(false), player.xRotO, player.getXRot()))))
-                    .replace("query.body_y_rotation", fmt.apply(Mth.wrapDegrees(Mth.rotLerp(mc.getTimer().getGameTimeDeltaPartialTick(false), player.yBodyRotO, player.yBodyRot)))).replace("query.life_time", fmt.apply(player.tickCount / 20.0f))
-                    .replace("query.health", fmt.apply(player.getHealth())).replace("query.max_health", fmt.apply(player.getMaxHealth())).replace("query.is_on_ground", player.onGround() ? "1.0" : "0.0")
-                    .replace("query.is_in_water", player.isInWater() ? "1.0" : "0.0").replace("query.is_sneaking", player.isCrouching() ? "1.0" : "0.0").replace("query.is_sprinting", player.isSprinting() ? "1.0" : "0.0")
-                    .replace("query.is_swimming", player.isSwimming() ? "1.0" : "0.0").replace("query.is_riding", player.isPassenger() ? "1.0" : "0.0").replace("query.is_sleeping", player.isSleeping() ? "1.0" : "0.0")
-                    .replace("query.is_alive", player.isAlive() ? "1.0" : "0.0").replace("query.is_gliding", player.isFallFlying() ? "1.0" : "0.0")
-                    .replace("query.ground_speed", fmt.apply((float) Math.sqrt(player.getDeltaMovement().x * player.getDeltaMovement().x + player.getDeltaMovement().z * player.getDeltaMovement().z)))
-                    .replace("query.vertical_speed", fmt.apply((float) player.getDeltaMovement().y)).replace("query.speed", fmt.apply((float) player.getDeltaMovement().length())).replace("query.limb_swing", fmt.apply(player.walkAnimation.position()))
-                    .replace("query.limb_swing_amount", fmt.apply(player.walkAnimation.speed())).replace("query.modified_move_speed", fmt.apply(player.walkAnimation.speed())).replace("query.walk_anim_speed", fmt.apply(player.walkAnimation.speed()))
-                    .replace("query.modified_distance_moved", fmt.apply(player.walkAnimation.position())).replace("query.hurt_time", fmt.apply((float) player.hurtTime)).replace("query.death_time", fmt.apply((float) player.deathTime))
-                    .replace("query.swing_progress", fmt.apply(player.getAttackAnim(1.0f))).replace("query.is_using_item", player.isUsingItem() ? "1.0" : "0.0").replace("query.use_item_interval", fmt.apply((float) player.getUseItemRemainingTicks()))
+            return expr.replace("query.anim_time", fmt.apply(time)).replace("query.head_x_rotation", fmt.apply(Mth.wrapDegrees(entity.getXRot()))).replace("query.head_y_rotation", fmt.apply(Mth.wrapDegrees(entity.getYRot())))
+                    .replace("query.body_x_rotation", fmt.apply(Mth.wrapDegrees(Mth.lerp(mc.getTimer().getGameTimeDeltaPartialTick(false), entity.xRotO, entity.getXRot()))))
+                    .replace("query.body_y_rotation", fmt.apply(Mth.wrapDegrees(Mth.rotLerp(mc.getTimer().getGameTimeDeltaPartialTick(false), entity.yBodyRotO, entity.yBodyRot)))).replace("query.life_time", fmt.apply(entity.tickCount / 20.0f))
+                    .replace("query.health", fmt.apply(entity.getHealth())).replace("query.max_health", fmt.apply(entity.getMaxHealth())).replace("query.is_on_ground", entity.onGround() ? "1.0" : "0.0")
+                    .replace("query.is_in_water", entity.isInWater() ? "1.0" : "0.0").replace("query.is_sneaking", entity.isCrouching() ? "1.0" : "0.0").replace("query.is_sprinting", entity.isSprinting() ? "1.0" : "0.0")
+                    .replace("query.is_swimming", entity.isSwimming() ? "1.0" : "0.0").replace("query.is_riding", entity.isPassenger() ? "1.0" : "0.0").replace("query.is_sleeping", entity.isSleeping() ? "1.0" : "0.0")
+                    .replace("query.is_alive", entity.isAlive() ? "1.0" : "0.0").replace("query.is_gliding", entity.isFallFlying() ? "1.0" : "0.0")
+                    .replace("query.ground_speed", fmt.apply((float) Math.sqrt(entity.getDeltaMovement().x * entity.getDeltaMovement().x + entity.getDeltaMovement().z * entity.getDeltaMovement().z)))
+                    .replace("query.vertical_speed", fmt.apply((float) entity.getDeltaMovement().y)).replace("query.speed", fmt.apply((float) entity.getDeltaMovement().length())).replace("query.limb_swing", fmt.apply(entity.walkAnimation.position()))
+                    .replace("query.limb_swing_amount", fmt.apply(entity.walkAnimation.speed())).replace("query.modified_move_speed", fmt.apply(entity.walkAnimation.speed())).replace("query.walk_anim_speed", fmt.apply(entity.walkAnimation.speed()))
+                    .replace("query.modified_distance_moved", fmt.apply(entity.walkAnimation.position())).replace("query.hurt_time", fmt.apply((float) entity.hurtTime)).replace("query.death_time", fmt.apply((float) entity.deathTime))
+                    .replace("query.swing_progress", fmt.apply(entity.getAttackAnim(1.0f))).replace("query.is_using_item", entity.isUsingItem() ? "1.0" : "0.0").replace("query.use_item_interval", fmt.apply((float) entity.getUseItemRemainingTicks()))
                     .replace("query.is_first_person", mc.options.getCameraType().isFirstPerson() ? "1.0" : "0.0")
-                    .replace("query.main_hand_item_use_duration", player.isUsingItem() && player.getUsedItemHand() == InteractionHand.MAIN_HAND ? fmt.apply((float) player.getUseItemRemainingTicks()) : "0.0")
-                    .replace("query.yaw_speed", fmt.apply(Math.abs(Mth.wrapDegrees(player.getYRot() - player.yRotO)))).replace("query.position_delta_x", fmt.apply((float) player.getDeltaMovement().x))
-                    .replace("query.position_delta_y", fmt.apply((float) player.getDeltaMovement().y)).replace("query.position_delta_z", fmt.apply((float) player.getDeltaMovement().z));
+                    .replace("query.main_hand_item_use_duration", entity.isUsingItem() && entity.getUsedItemHand() == InteractionHand.MAIN_HAND ? fmt.apply((float) entity.getUseItemRemainingTicks()) : "0.0")
+                    .replace("query.yaw_speed", fmt.apply(Math.abs(Mth.wrapDegrees(entity.getYRot() - entity.yRotO)))).replace("query.position_delta_x", fmt.apply((float) entity.getDeltaMovement().x))
+                    .replace("query.position_delta_y", fmt.apply((float) entity.getDeltaMovement().y)).replace("query.position_delta_z", fmt.apply((float) entity.getDeltaMovement().z));
         }
 
         private static int findTopLevelComma(String expr) {

@@ -12,7 +12,6 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
@@ -45,26 +44,25 @@ public abstract class MixinItemInHandLayerAnimation {
                                            HumanoidArm arm, PoseStack poseStack, MultiBufferSource bufferSource,
                                            int light, CallbackInfo ci) {
         if (stack.isEmpty()) return;
-        if (!(entity instanceof Player player)) return;
-        PlayerAnimationAPI.PlayerAnimation animation = PlayerAnimationAPI.active_animations.get(player);
+        PlayerAnimationAPI.PlayerAnimation animation = PlayerAnimationAPI.active_animations.get(entity);
         if (animation == null) return;
 
         String boneName = arm == HumanoidArm.LEFT ? "left_item" : "right_item";
         PlayerAnimationAPI.PlayerBone bone = animation.bones.get(boneName);
         if (bone == null) return;
 
-        float animationProgress = PlayerAnimationAPI.state(player).progress;
-        Vec3 position = PlayerAnimationAPI.PlayerBone.interpolate(bone.positions, animationProgress, player);
+        float animationProgress = PlayerAnimationAPI.state(entity).progress;
+        Vec3 position = PlayerAnimationAPI.PlayerBone.interpolate(bone.positions, animationProgress, entity);
         if (position != null) poseStack.translate((float) position.x * 0.0625f, (float) -position.y * 0.0625f, (float) position.z * 0.0625f);
 
-        Vec3 rotation = PlayerAnimationAPI.PlayerBone.interpolate(bone.rotations, animationProgress, player);
+        Vec3 rotation = PlayerAnimationAPI.PlayerBone.interpolate(bone.rotations, animationProgress, entity);
         if (rotation != null) {
             poseStack.mulPose(Axis.ZP.rotationDegrees((float) rotation.z));
             poseStack.mulPose(Axis.YP.rotationDegrees((float) rotation.y));
             poseStack.mulPose(Axis.XP.rotationDegrees((float) rotation.x));
         }
 
-        Vec3 scale = PlayerAnimationAPI.PlayerBone.interpolate(bone.scales, animationProgress, player);
+        Vec3 scale = PlayerAnimationAPI.PlayerBone.interpolate(bone.scales, animationProgress, entity);
         if (scale != null) poseStack.scale((float) scale.x, (float) scale.y, (float) scale.z);
     }
 }

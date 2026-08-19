@@ -28,6 +28,7 @@ import net.minecraft.world.entity.animal.axolotl.Axolotl;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Slime;
 import net.minecraft.world.entity.monster.Spider;
+import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Arrow;
@@ -157,9 +158,12 @@ public class TestSkill extends ManasSkill {
         if (target instanceof Creeper creeper && skillConfig.instaKillCreeper) {
             creeper.hurt(owner.level().damageSources().dragonBreath(), 100F);
             ManasCoreTesting.LOG.info("No creeper");
+        } else if (target instanceof Zombie) {
+            PlayerAnimationHelper.play(target, "manascore:weird_hand");
         } else if (target instanceof IronGolem) {
             amount.set(amount.get() * skillConfig.ironGolemDamageMultiplier);
         } else if (target instanceof Axolotl) {
+            PlayerAnimationHelper.play(target, "manascore:weird_hand");
             amount.set(0F);
         } else if (target instanceof Player) amount.set(amount.get() * 10F);
         ManasCoreTesting.LOG.info("Dealt {} damage.", amount.get());
