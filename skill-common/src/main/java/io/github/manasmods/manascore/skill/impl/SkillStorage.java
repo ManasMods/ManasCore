@@ -89,7 +89,7 @@ public class SkillStorage extends Storage implements Skills {
         EntityEvents.LIVING_POST_TICK.register(entity -> {
             Level level = entity.level();
             if (level.isClientSide()) return;
-            SkillStorage storage = SkillAPI.getSkillsFrom(entity);
+            Skills storage = SkillAPI.getSkillsFrom(entity);
             handleSkillTick(entity, level, storage);
             handleSkillHeldTick(entity, storage);
         });
@@ -166,9 +166,9 @@ public class SkillStorage extends Storage implements Skills {
         }
     }
 
-    private static void handleSkillHeldTick(LivingEntity livingEntity, SkillStorage storage) {
-        if (storage.heldSkills.isEmpty()) return;
-        for (TickingSkill skill : List.copyOf(storage.heldSkills)) {
+    private static void handleSkillHeldTick(LivingEntity livingEntity, Skills storage) {
+        if (storage.getHeldSkills().isEmpty()) return;
+        for (TickingSkill skill : List.copyOf(storage.getHeldSkills())) {
             if (!skill.tick(storage, livingEntity)) {
                 Optional<ManasSkillInstance> instance = storage.getSkill(skill.getSkill());
                 instance.ifPresentOrElse(skillInstance -> {
@@ -176,7 +176,7 @@ public class SkillStorage extends Storage implements Skills {
                     skillInstance.onHeldStop(livingEntity, skill.getDuration(), skill.getMode());
                     storage.checkAndMarkDirty(skillInstance);
                 }, () -> skill.getSkill().onHeldStop(null, livingEntity, skill.getDuration(), skill.getMode()));
-                storage.heldSkills.remove(skill);
+                storage.getHeldSkills().remove(skill);
             } else storage.markDirty();
         }
     }
@@ -358,15 +358,15 @@ public class SkillStorage extends Storage implements Skills {
     }
 
     public static void removeTickingSkill(LivingEntity livingEntity) {
-        SkillStorage storage = SkillAPI.getSkillsFrom(livingEntity);
-        for (TickingSkill skill : List.copyOf(storage.heldSkills)) {
-            Optional<ManasSkillInstance> instance = SkillAPI.getSkillsFrom(livingEntity).getSkill(skill.getSkill());
+        Skills storage = SkillAPI.getSkillsFrom(livingEntity);
+        for (TickingSkill skill : List.copyOf(storage.getHeldSkills())) {
+            Optional<ManasSkillInstance> instance = storage.getSkill(skill.getSkill());
             instance.ifPresentOrElse(skillInstance -> {
                 skill.getSkill().removeAttributeModifiers(skillInstance, livingEntity, skill.getMode());
                 skillInstance.onHeldStop(livingEntity, skill.getDuration(), skill.getMode());
             }, () -> skill.getSkill().onHeldStop(null, livingEntity, skill.getDuration(), skill.getMode()));
         }
-        storage.heldSkills.clear();
+        storage.getHeldSkills().clear();
     }
 
     public void markActiveTick() {

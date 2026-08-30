@@ -7,6 +7,7 @@ package io.github.manasmods.manascore.animation.api;
 
 import dev.architectury.networking.NetworkManager;
 import io.github.manasmods.manascore.animation.network.PlayPlayerAnimationPayload;
+import io.github.manasmods.manascore.network.api.util.Changeable;
 import io.github.manasmods.manascore.network.api.util.PlayerLookup;
 import net.minecraft.world.entity.Entity;
 
@@ -23,7 +24,13 @@ public final class PlayerAnimationHelper {
      */
     public static void play(Entity entity, String animation, String nextAnimation, boolean override, boolean firstPerson) {
         if (entity.level().isClientSide()) return;
-        PlayPlayerAnimationPayload payload = new PlayPlayerAnimationPayload(entity.getId(), animation, nextAnimation, override, firstPerson);
+        Changeable<String> animationChangeable = Changeable.of(animation);
+        Changeable<String> nextAnimationChangeable = Changeable.of(nextAnimation);
+        Changeable<Boolean> overrideChangeable = Changeable.of(override);
+        Changeable<Boolean> firstPersonChangeable = Changeable.of(firstPerson);
+
+        if (AnimationEvents.TRIGGER_ANIMATION_EVENT_EVENT.invoker().trigger(entity, animationChangeable, nextAnimationChangeable, overrideChangeable, firstPersonChangeable).isFalse()) return;
+        PlayPlayerAnimationPayload payload = new PlayPlayerAnimationPayload(entity.getId(), animationChangeable.get(), nextAnimationChangeable.get(), overrideChangeable.get(), firstPersonChangeable.get());
         NetworkManager.sendToPlayers(PlayerLookup.trackingAndSelf(entity), payload);
     }
 

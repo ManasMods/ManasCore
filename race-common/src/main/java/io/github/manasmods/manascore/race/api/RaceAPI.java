@@ -8,6 +8,7 @@ package io.github.manasmods.manascore.race.api;
 import dev.architectury.platform.Platform;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.utils.Env;
+import io.github.manasmods.manascore.race.ManasCoreRace;
 import io.github.manasmods.manascore.race.impl.RaceRegistry;
 import io.github.manasmods.manascore.race.impl.RaceStorage;
 import io.github.manasmods.manascore.race.impl.network.InternalRacePacketActions;
@@ -15,9 +16,15 @@ import lombok.NonNull;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class RaceAPI {
+    private static final Set<EntityType<?>> MISSING_STORAGE_WARNED = ConcurrentHashMap.newKeySet();
+
     private RaceAPI() {
     }
 
@@ -41,7 +48,12 @@ public class RaceAPI {
      * Can be used to load the {@link RaceStorage} from an {@link LivingEntity}.
      */
     public static Races getRaceFrom(@NonNull LivingEntity entity) {
-        return entity.manasCore$getStorage(RaceStorage.getKey());
+        Races storage = entity.manasCore$getStorage(RaceStorage.getKey());
+        if (storage != null) return storage;
+        if (MISSING_STORAGE_WARNED.add(entity.getType())) {
+            ManasCoreRace.LOG.warn("Race storage is missing on entity type {} - falling back to a no-op storage. This usually means the storage failed to attach or sync.", EntityType.getKey(entity.getType()));
+        }
+        return Races.EMPTY;
     }
 
     /**

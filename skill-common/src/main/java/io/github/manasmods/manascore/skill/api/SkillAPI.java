@@ -8,6 +8,7 @@ package io.github.manasmods.manascore.skill.api;
 import dev.architectury.platform.Platform;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.utils.Env;
+import io.github.manasmods.manascore.skill.ManasCoreSkill;
 import io.github.manasmods.manascore.skill.impl.network.InternalSkillPacketActions;
 import io.github.manasmods.manascore.skill.impl.SkillRegistry;
 import io.github.manasmods.manascore.skill.impl.SkillStorage;
@@ -15,9 +16,15 @@ import lombok.NonNull;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class SkillAPI {
+    private static final Set<EntityType<?>> MISSING_STORAGE_WARNED = ConcurrentHashMap.newKeySet();
+
     private SkillAPI() {
     }
 
@@ -38,10 +45,15 @@ public class SkillAPI {
     }
 
     /**
-     * Can be used to load the {@link SkillStorage} from an {@link LivingEntity}.
+     * Can be used to load the {@link Skills} storage from an {@link LivingEntity}.
      */
-    public static SkillStorage getSkillsFrom(@NonNull LivingEntity entity) {
-        return entity.manasCore$getStorage(SkillStorage.getKey());
+    public static Skills getSkillsFrom(@NonNull LivingEntity entity) {
+        Skills storage = entity.manasCore$getStorage(SkillStorage.getKey());
+        if (storage != null) return storage;
+        if (MISSING_STORAGE_WARNED.add(entity.getType())) {
+            ManasCoreSkill.LOG.warn("Skill storage is missing on entity type {} - falling back to a no-op storage. This usually means the storage failed to attach or sync.", EntityType.getKey(entity.getType()));
+        }
+        return Skills.EMPTY;
     }
 
     /**

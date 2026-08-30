@@ -18,10 +18,85 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 
 public interface Skills {
+    /**
+     * No-op fallback used by {@link SkillAPI#getSkillsFrom(LivingEntity)} when an entity has no skill storage attached.
+     * Reads return empty results and writes are ignored.
+     */
+    Skills EMPTY = new Skills() {
+        @Override
+        public void markDirty() {
+        }
+
+        @Override
+        public void markActiveTick() {
+        }
+
+        @Override
+        public void clearActiveTick() {
+        }
+
+        @Override
+        public boolean shouldActiveTick() {
+            return false;
+        }
+
+        @Override
+        public LivingEntity getOwner() {
+            return null;
+        }
+
+        @Override
+        public boolean startHoldSkill(ResourceLocation skillId, int keyNumber, int mode) {
+            return false;
+        }
+
+        @Override
+        public boolean startHoldSkill(ManasSkillInstance skillInstance, int keyNumber, int mode) {
+            return false;
+        }
+
+        @Override
+        public ArrayList<TickingSkill> getHeldSkills() {
+            return new ArrayList<>(0);
+        }
+
+        @Override
+        public Collection<ManasSkillInstance> getLearnedSkills() {
+            return List.of();
+        }
+
+        @Override
+        public void updateSkill(ManasSkillInstance updatedInstance, boolean sync) {
+        }
+
+        @Override
+        public boolean learnSkill(ManasSkillInstance instance, MutableComponent component) {
+            return false;
+        }
+
+        @Override
+        public Optional<ManasSkillInstance> getSkill(@NotNull ResourceLocation skillId) {
+            return Optional.empty();
+        }
+
+        @Override
+        public void forgetSkill(@NotNull ResourceLocation skillId, @Nullable MutableComponent component) {
+        }
+
+        @Override
+        public void forEachSkill(BiConsumer<SkillStorage, ManasSkillInstance> skillInstanceConsumer) {
+        }
+
+        @Override
+        public void handleSkillRelease(ManasSkillInstance skillInstance, int keyNumber, int mode, boolean heldInterrupt) {
+        }
+    };
+
     void markDirty();
     /**
      * Marks this to start performing regular active ticks
@@ -200,4 +275,12 @@ public interface Skills {
      * Runs the provided {@link BiConsumer} over all {@link ManasSkillInstance} possessed by the storage.
      */
     void forEachSkill(BiConsumer<SkillStorage, ManasSkillInstance> skillInstanceConsumer);
+
+    /**
+     * Handles the release of a held skill: triggers {@link ManasSkillInstance#onRelease(LivingEntity, int, int, int)}
+     * and held-stop logic for matching {@link TickingSkill}s.
+     *
+     * @param heldInterrupt If true, the release is treated as an interruption of the held skill.
+     */
+    void handleSkillRelease(ManasSkillInstance skillInstance, int keyNumber, int mode, boolean heldInterrupt);
 }

@@ -16,6 +16,45 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 
 public interface Races {
+    /**
+     * No-op fallback used by {@link RaceAPI#getRaceFrom(LivingEntity)} when an entity has no race storage attached.
+     * Reads return empty results and writes are ignored.
+     */
+    Races EMPTY = new Races() {
+        @Override
+        public Optional<ManasRaceInstance> getRace() {
+            return Optional.empty();
+        }
+
+        @Override
+        public boolean startHeldAbility() {
+            return false;
+        }
+
+        @Override
+        public void interruptHeldAbility() {
+        }
+
+        @Override
+        public boolean releaseHeldAbility() {
+            return false;
+        }
+
+        @Override
+        public TickingRace getHeldAbility() {
+            return null;
+        }
+
+        @Override
+        public boolean setRace(ManasRaceInstance instance, boolean evolution, boolean teleportToSpawn, @Nullable MutableComponent component) {
+            return false;
+        }
+
+        @Override
+        public void markDirty() {
+        }
+    };
+
     Optional<ManasRaceInstance> getRace();
 
     /**

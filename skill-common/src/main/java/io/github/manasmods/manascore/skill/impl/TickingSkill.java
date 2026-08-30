@@ -8,6 +8,7 @@ package io.github.manasmods.manascore.skill.impl;
 import io.github.manasmods.manascore.skill.api.ManasSkill;
 import io.github.manasmods.manascore.skill.api.ManasSkillInstance;
 import io.github.manasmods.manascore.skill.api.SkillAPI;
+import io.github.manasmods.manascore.skill.api.Skills;
 import lombok.Getter;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -31,7 +32,7 @@ public class TickingSkill {
         this.keyNumber = keyNumber;
     }
 
-    public boolean tick(SkillStorage storage, LivingEntity entity) {
+    public boolean tick(Skills storage, LivingEntity entity) {
         if (!entity.isAlive()) return false;
         Optional<ManasSkillInstance> optional = storage.getSkill(skill);
         if (optional.isEmpty()) return false;
@@ -60,22 +61,22 @@ public class TickingSkill {
     }
 
     public static void addTickingSkill(LivingEntity livingEntity, ManasSkill skill, int mode, int keyNumber) {
-        SkillStorage storage = SkillAPI.getSkillsFrom(livingEntity);
-        for (TickingSkill tickingSkill : storage.heldSkills) if (tickingSkill.matches(skill, mode)) return;
-        storage.heldSkills.add(new TickingSkill(skill, mode, keyNumber));
+        Skills storage = SkillAPI.getSkillsFrom(livingEntity);
+        for (TickingSkill tickingSkill : storage.getHeldSkills()) if (tickingSkill.matches(skill, mode)) return;
+        storage.getHeldSkills().add(new TickingSkill(skill, mode, keyNumber));
     }
 
     public static boolean isTickingSkill(LivingEntity entity, ManasSkill skill, int mode) {
-        SkillStorage storage = SkillAPI.getSkillsFrom(entity);
-        for (TickingSkill tickingSkill : storage.heldSkills) {
+        Skills storage = SkillAPI.getSkillsFrom(entity);
+        for (TickingSkill tickingSkill : storage.getHeldSkills()) {
             if (tickingSkill.matches(skill, mode)) return true;
         }
         return false;
     }
 
     public static boolean isTickingSkill(LivingEntity entity, ManasSkill skill) {
-        SkillStorage storage = SkillAPI.getSkillsFrom(entity);
-        for (TickingSkill tickingSkill : storage.heldSkills) {
+        Skills storage = SkillAPI.getSkillsFrom(entity);
+        for (TickingSkill tickingSkill : storage.getHeldSkills()) {
             if (tickingSkill.getSkill() == skill) return true;
         }
         return false;
