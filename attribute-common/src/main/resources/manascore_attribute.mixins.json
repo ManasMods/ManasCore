@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "package": "io.github.manasmods.manascore.attribute.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "minVersion": "0.8",
+  "client": [
+    "MixinLocalPlayer"
+  ],
+  "mixins": [
+    "MixinLivingEntity"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

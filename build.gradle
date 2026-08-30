@@ -27,7 +27,7 @@ subprojects {
     apply plugin: 'architectury-plugin'
     apply plugin: 'io.freefair.lombok'
 
-    if (!project.name.startsWith("testing")) {
+    if (!project.name.startsWith("testing") && !project.name.startsWith("bundle")) {
         apply plugin: 'org.jreleaser'
         apply plugin: 'maven-publish'
     }
@@ -45,7 +45,7 @@ subprojects {
     }
 
     ext {
-        var nameSeparatorIndex = project.path.lastIndexOf('-');
+        var nameSeparatorIndex = project.path.lastIndexOf('-')
         var nameOffset = project.path.startsWith(':') && nameSeparatorIndex > 0 ? 1 : 0
 
         module_name = project.path.substring(nameOffset, nameSeparatorIndex == -1 ? project.path.length() : nameSeparatorIndex)
@@ -154,22 +154,28 @@ subprojects {
             modImplementation "net.fabricmc.fabric-api:fabric-api:$rootProject.fabric_api_version"
             modImplementation "dev.architectury:architectury-fabric:$rootProject.architectury_api_version"
 
-            common(project(path: ":$project.module_name-common", configuration: 'namedElements')) { transitive false }
-            shadowBundle project(path: ":$project.module_name-common", configuration: 'transformProductionFabric')
+            if(!project.name.startsWith("bundle")) {
+                common(project(path: ":$project.module_name-common", configuration: 'namedElements')) { transitive false }
+                shadowBundle project(path: ":$project.module_name-common", configuration: 'transformProductionFabric')
+            }
         }
 
         if (project.name.endsWith("neoforge")) {
             neoForge "net.neoforged:neoforge:$rootProject.neoforge_version"
             modImplementation "dev.architectury:architectury-neoforge:$rootProject.architectury_api_version"
 
-            common(project(path: ":$project.module_name-common", configuration: 'namedElements')) { transitive false }
-            shadowBundle project(path: ":$project.module_name-common", configuration: 'transformProductionNeoForge')
+            if(!project.name.startsWith("bundle")) {
+                common(project(path: ":$project.module_name-common", configuration: 'namedElements')) { transitive false }
+                shadowBundle project(path: ":$project.module_name-common", configuration: 'transformProductionNeoForge')
+            }
         }
     }
 
     java {
-        withSourcesJar()
-        withJavadocJar()
+        if (!project.name.startsWith("bundle")) {
+            withSourcesJar()
+            withJavadocJar()
+        }
 
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
@@ -180,7 +186,7 @@ subprojects {
         it.options.release = 21
     }
 
-    if (!project.name.startsWith("testing")) {
+    if (!project.name.startsWith("testing") && !project.name.startsWith("bundle")) {
         jreleaser {
             gitRootSearch = true
 
@@ -220,8 +226,8 @@ subprojects {
 
                         developers {
                             developer {
-                                id = 'Charismara'
-                                name = 'Christian Raoulis'
+                                id = 'minheragon'
+                                name = 'Minh Eragon'
                             }
                         }
 
@@ -236,7 +242,12 @@ subprojects {
 
             repositories {
                 maven {
-                    url layout.buildDirectory.dir('staging-deploy')
+                    name = "ManasCore"
+                    credentials {
+                        username System.getenv().getOrDefault("MANAS_REPO_USER", nexusUsername)
+                        password System.getenv().getOrDefault("MANAS_REPO_USER_PASSWORD", nexusPassword)
+                    }
+                    url "https://maven.manasmods.com/repository/manascore/"
                 }
             }
         }
@@ -249,25 +260,38 @@ subprojects {
 
     if (!project.name.endsWith("common")) {
         processResources {
-            def placeholders = [
-                    version              : project.version,
-                    mod_id               : project.mod_id,
-                    mod_name             : "$mod_display_name - ${project.module_name.capitalize()}",
-                    architectury_version : architectury_api_version,
-                    minecraft_version    : minecraft_version,
-                    fabric_loader_version: fabric_loader_version,
-                    license              : "GPLv3"
-            ]
-
-            placeholders.forEach { key, value ->
-                inputs.property key, value
-            }
-
             if (project.name.endsWith("neoforge")) {
+                def placeholders = [
+                        version              : project.version,
+                        mod_id               : project.mod_id,
+                        mod_name             : "$mod_display_name - ${project.module_name.capitalize()}",
+                        architectury_version : architectury_api_version,
+                        minecraft_version    : minecraft_version,
+                        license              : "GPLv3"
+                ]
+
+                placeholders.forEach { key, value ->
+                    inputs.property key, value
+                }
+
                 filesMatching('META-INF/neoforge.mods.toml') {
                     expand placeholders
                 }
             } else if (project.name.endsWith("fabric")) {
+                def placeholders = [
+                        version              : project.version,
+                        mod_id               : project.mod_id,
+                        mod_name             : "$mod_display_name - ${project.module_name.capitalize()}",
+                        architectury_version : architectury_api_version,
+                        minecraft_version    : minecraft_version,
+                        fabric_loader_version: fabric_loader_version,
+                        license              : "GPLv3"
+                ]
+
+                placeholders.forEach { key, value ->
+                    inputs.property key, value
+                }
+
                 filesMatching('fabric.mod.json') {
                     expand placeholders
 
@@ -307,7 +331,11 @@ subprojects {
     if (!project.name.endsWith("common")) {
         task copyJar(type: Copy) {
             from remapJar
-            into "${rootProject.projectDir}/build/${module_type}"
+            if (project.name.startsWith("bundle")) {
+                into "${rootProject.projectDir}/build"
+            } else {
+                into "${rootProject.projectDir}/build/${module_type}"
+            }
         }
         build.dependsOn copyJar
     }

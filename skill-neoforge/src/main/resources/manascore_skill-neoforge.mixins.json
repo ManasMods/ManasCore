@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "package": "io.github.manasmods.manascore.skill.neoforge.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "minVersion": "0.8",
+  "client": [
+  ],
+  "mixins": [
+    "MixinLivingEntity",
+    "MixinPlayer"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

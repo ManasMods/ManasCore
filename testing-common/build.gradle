@@ -1,14 +1,20 @@
 /*
- * Copyright (c) 2024. ManasMods
+ * Copyright (c) 2025. ManasMods
  * GNU General Public License 3
  */
 
 ext {
     includedProjects = [
-            ":network",
-            ":storage",
+            ":animation",
+            ":attribute",
+            ":command",
+            ":config",
             ":inventory",
-            ':command'
+            ":keybind",
+            ":network",
+            ":race",
+            ":storage",
+            ":skill"
     ]
 }
 

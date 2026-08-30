@@ -1,0 +1,43 @@
+/*
+ * Copyright (c) 2024-2025. ManasMods
+ * GNU General Public License 3
+ */
+
+ext {
+    includedProjects = [
+            ":animation",
+            ":attribute",
+            ":command",
+            ":config",
+            ":inventory",
+            ":keybind",
+            ":network",
+            ":race",
+            ":storage",
+            ":skill"
+    ]
+}
+
+base {
+    archivesName = "manascore-fabric"
+}
+
+loom {
+    mods {
+        includedProjects.forEach {
+            def moduleProject = project("$it-fabric")
+            register(moduleProject.name) {
+                sourceSet("main", moduleProject)
+            }
+        }
+    }
+}
+
+dependencies {
+    includedProjects.forEach {
+        common(project(path: "$it-common", configuration: 'namedElements'))
+        implementation(project(path: "$it-fabric", configuration: 'namedElements'))
+
+        include project(path: "$it-fabric")
+    }
+}

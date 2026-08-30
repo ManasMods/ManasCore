@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2024. ManasMods
+ * Copyright (c) 2025. ManasMods
  * GNU General Public License 3
  */
 
 package io.github.manasmods.manascore.storage.impl;
 
+import io.github.manasmods.manascore.storage.ManasCoreStorage;
 import io.github.manasmods.manascore.storage.api.*;
 import io.github.manasmods.manascore.storage.impl.network.s2c.StorageSyncPayload;
 import io.github.manasmods.manascore.storage.impl.network.s2c.SyncChunkStoragePayload;
@@ -40,6 +41,7 @@ public final class StorageManager {
             ServerLevel level = player.serverLevel();
             level.manasCore$sync(player);
         });
+
         // Synchronization on respawn and dimension change
         PlayerEvent.PLAYER_RESPAWN.register((player, b, removalReason) -> {
             player.manasCore$sync(player);
@@ -53,7 +55,11 @@ public final class StorageManager {
         });
 
         // Copy storage from old player to new player
-        PlayerEvent.PLAYER_CLONE.register((oldPlayer, newPlayer, wonGame) -> newPlayer.manasCore$setCombinedStorage(oldPlayer.manasCore$getCombinedStorage()));
+        PlayerEvent.PLAYER_CLONE.register((oldPlayer, newPlayer, wonGame) -> {
+            CombinedStorage newStorage = new CombinedStorage(newPlayer);
+            newStorage.load(oldPlayer.manasCore$getCombinedStorage().toNBT());
+            newPlayer.manasCore$setCombinedStorage(newStorage);
+        });
     }
 
     public static void initialStorageFilling(StorageHolder holder) {
@@ -106,11 +112,17 @@ public final class StorageManager {
 
     @Nullable
     public static Storage constructStorageFor(StorageType type, ResourceLocation id, StorageHolder holder) {
-        return switch (type) {
-            case ENTITY -> ENTITY_STORAGE_REGISTRY.registry.get(id).getSecond().create((Entity) holder);
-            case CHUNK -> CHUNK_STORAGE_REGISTRY.registry.get(id).getSecond().create((LevelChunk) holder);
-            case WORLD -> LEVEL_STORAGE_REGISTRY.registry.get(id).getSecond().create((Level) holder);
-        };
+        try {
+            return switch (type) {
+                case ENTITY -> ENTITY_STORAGE_REGISTRY.registry.get(id).getSecond().create((Entity) holder);
+                case CHUNK -> CHUNK_STORAGE_REGISTRY.registry.get(id).getSecond().create((LevelChunk) holder);
+                case WORLD -> LEVEL_STORAGE_REGISTRY.registry.get(id).getSecond().create((Level) holder);
+            };
+        }
+        catch (Exception e) {
+            ManasCoreStorage.LOG.warn("Failed to find storage in registry {}", id.toString());
+            return null;
+        }
     }
 
     @Nullable
@@ -119,10 +131,10 @@ public final class StorageManager {
     }
 
     private static class StorageRegistryImpl<T extends StorageHolder> implements StorageEvents.StorageRegistry<T> {
-        private final Map<ResourceLocation, Pair<Predicate<T>, StorageEvents.StoraceFactory<T, ?>>> registry = new HashMap<>();
+        private final Map<ResourceLocation, Pair<Predicate<T>, StorageEvents.StorageFactory<T, ?>>> registry = new HashMap<>();
 
         @Override
-        public <S extends Storage> StorageKey<S> register(ResourceLocation id, Class<S> storageClass, Predicate<T> attachCheck, StorageEvents.StoraceFactory<T, S> factory) {
+        public <S extends Storage> StorageKey<S> register(ResourceLocation id, Class<S> storageClass, Predicate<T> attachCheck, StorageEvents.StorageFactory<T, S> factory) {
             this.registry.put(id, Pair.of(attachCheck, factory));
             return new StorageKey<>(id, storageClass);
         }

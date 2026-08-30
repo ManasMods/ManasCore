@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. ManasMods
+ * Copyright (c) 2025. ManasMods
  * GNU General Public License 3
  */
 
@@ -14,8 +14,15 @@ pluginManagement {
 
 rootProject.name = 'manascore'
 
-["network", "storage", "testing", "inventory", "command"].forEach { module ->
+["animation", "attribute", "command", "config", "inventory", "keybind", "network", "race", "storage", "testing", "skill"].forEach { module ->
     include ":$module-common"
     include ":$module-fabric"
     include ":$module-neoforge"
 }
+
+include ":architectury-common"
+include ":architectury-neoforge"
+
+include ':bundle-fabric'
+include ':bundle-neoforge'
+

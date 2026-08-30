@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. ManasMods
+ * Copyright (c) 2025. ManasMods
  * GNU General Public License 3
  */
 
@@ -17,7 +17,7 @@ loom {
 repositories {
     maven {
         name = "Terraformers"
-        url = "https://maven.terraformersmc.com/"
+        url = "https://maven.terraformersmc.com/releases/"
     }
 }
 
@@ -27,6 +27,8 @@ dependencies {
         implementation(project(path: "$it-fabric", configuration: 'namedElements'))
     }
     modImplementation("com.terraformersmc:modmenu:11.0.2")
+    modImplementation("com.electronwill.night-config:toml:3.8.1")
+    modImplementation("com.electronwill.night-config:core:3.8.1")
 
     modImplementation("maven.modrinth:fabric-permissions-api:$fabric_permissions_api_version")
     modImplementation("maven.modrinth:luckperms:$fabric_luckperms_version")

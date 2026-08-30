@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. ManasMods
+ * Copyright (c) 2025. ManasMods
  * GNU General Public License 3
  */
 
@@ -12,7 +12,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.manasmods.manascore.command.api.Command;
 import io.github.manasmods.manascore.command.api.Execute;
 import io.github.manasmods.manascore.command.api.Permission;
-import io.github.manasmods.manascore.command.api.parameter.Sender;
+import io.github.manasmods.manascore.command.api.parameter.SenderArg;
 import io.github.manasmods.manascore.command.internal.CommandArgumentRegistry;
 import lombok.RequiredArgsConstructor;
 import net.minecraft.commands.CommandSourceStack;
@@ -125,7 +125,7 @@ public class CommandAnnotationHandler {
                                     continue;
                                 }
 
-                                if (parameterAnnotation instanceof Sender) {
+                                if (parameterAnnotation instanceof SenderArg) {
                                     isSenderArgument = true;
                                 }
 
