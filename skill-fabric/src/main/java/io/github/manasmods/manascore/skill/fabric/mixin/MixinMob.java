@@ -19,8 +19,7 @@ public class MixinMob {
     @WrapOperation(method = "setTarget", at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/Mob;target:Lnet/minecraft/world/entity/LivingEntity;"))
     private void onSetTarget(Mob instance, LivingEntity value, Operation<LivingEntity> original) {
         Changeable<LivingEntity> target = Changeable.of(value);
-        if (EntityEvents.LIVING_CHANGE_TARGET.invoker().changeTarget(instance, target).isFalse()) {
-            original.call(instance, value);
-        } else original.call(instance, target.get());
+        if (EntityEvents.LIVING_CHANGE_TARGET.invoker().changeTarget(instance, target).isFalse()) return;
+        original.call(instance, target.get());
     }
 }

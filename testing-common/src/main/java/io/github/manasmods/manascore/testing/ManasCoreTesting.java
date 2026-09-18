@@ -10,6 +10,7 @@ import io.github.manasmods.manascore.testing.client.ManasCoreTestingClient;
 import io.github.manasmods.manascore.testing.module.CommandModuleTest;
 import io.github.manasmods.manascore.testing.module.ConfigModuleTest;
 import io.github.manasmods.manascore.testing.module.StorageModuleTest;
+import io.github.manasmods.manascore.testing.module.TeamModuleTest;
 import io.github.manasmods.manascore.testing.registry.RegistryTest;
 import io.github.manasmods.manascore.testing.registry.TestAttributeRegistry;
 import net.fabricmc.api.EnvType;
@@ -25,6 +26,7 @@ public final class ManasCoreTesting {
         TestAttributeRegistry.init();
         RegistryTest.init();
         CommandModuleTest.init();
+        TeamModuleTest.init();
 
         if (Platform.getEnv() == EnvType.CLIENT) {
             ManasCoreTestingClient.init();

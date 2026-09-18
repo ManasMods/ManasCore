@@ -14,7 +14,8 @@ ext {
             ":network",
             ":race",
             ":storage",
-            ":skill"
+            ":skill",
+            ":team"
     ]
 }
 
