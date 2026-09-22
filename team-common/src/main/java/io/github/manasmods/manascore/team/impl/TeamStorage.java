@@ -118,6 +118,12 @@ public class TeamStorage extends Storage implements Teams {
         return changed;
     }
 
+    public void setRelated(ResourceLocation typeId, Collection<UUID> ids) {
+        if (ids.isEmpty()) this.relations.remove(typeId);
+        else this.relations.put(typeId, new LinkedHashSet<>(ids));
+        this.markDirty();
+    }
+
     public void clearAll() {
         this.groups.clear();
         this.relations.clear();

@@ -21,9 +21,9 @@ import java.util.UUID;
  */
 public abstract class TeamType<T extends Team> {
 
-    public abstract TeamShape shape();
+    public abstract TeamShape getShape();
 
-    public abstract Class<T> teamClass();
+    public abstract Class<T> getTeamClass();
 
     /**
      * GROUP only. Creates the team object. Override to return a subclass with custom data.
@@ -34,12 +34,20 @@ public abstract class TeamType<T extends Team> {
     }
 
     /** How many teams of this type one entity may belong to. */
-    public int maxTeamsPerMember() {
+    public int getMaxTeamsPerMember() {
         return 1;
     }
 
-    public int maxMembers() {
+    public int getMaxMembers() {
         return Integer.MAX_VALUE;
+    }
+
+    public int getMaxNameLength() {
+        return 32;
+    }
+
+    public boolean canRename(T team, LivingEntity entity) {
+        return team.isOwner(entity);
     }
 
     public LimitPolicy onLimitReached() {
@@ -51,12 +59,12 @@ public abstract class TeamType<T extends Team> {
         return true;
     }
 
-    public int inviteTimeoutTicks() {
+    public int getInviteTimeoutTicks() {
         return 20 * 60;
     }
 
     /** RELATION only. When true, adding a to b also adds b to a and checks look both ways. */
-    public boolean symmetricRelation() {
+    public boolean isSymmetricRelation() {
         return true;
     }
 
@@ -69,7 +77,7 @@ public abstract class TeamType<T extends Team> {
     }
 
     /** Higher priority types decide the folded relation first. */
-    public int priority() {
+    public int getPriority() {
         return 0;
     }
 
@@ -86,7 +94,7 @@ public abstract class TeamType<T extends Team> {
      * passed through {@link #resolveMember(LivingEntity)}.
      */
     public Relation getRelation(LivingEntity a, Teams aTeams, LivingEntity b, Teams bTeams) {
-        return switch (this.shape()) {
+        return switch (this.getShape()) {
             case GROUP -> {
                 Set<UUID> mine = aTeams.getTeamIds(this);
                 if (mine.isEmpty()) yield Relation.NEUTRAL;
@@ -97,7 +105,7 @@ public abstract class TeamType<T extends Team> {
             }
             case RELATION -> {
                 if (aTeams.getRelated(this).contains(b.getUUID())) yield Relation.ALLY;
-                if (this.symmetricRelation() && bTeams.getRelated(this).contains(a.getUUID())) yield Relation.ALLY;
+                if (this.isSymmetricRelation() && bTeams.getRelated(this).contains(a.getUUID())) yield Relation.ALLY;
                 yield Relation.NEUTRAL;
             }
         };

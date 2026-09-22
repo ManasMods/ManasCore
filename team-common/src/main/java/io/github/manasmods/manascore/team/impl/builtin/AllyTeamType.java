@@ -17,15 +17,15 @@ import net.minecraft.world.entity.OwnableEntity;
 public class AllyTeamType extends TeamType<Team> {
     private static final int MAX_OWNER_DEPTH = 4;
 
-    public TeamShape shape() {
+    public TeamShape getShape() {
         return TeamShape.RELATION;
     }
 
-    public Class<Team> teamClass() {
+    public Class<Team> getTeamClass() {
         return Team.class;
     }
 
-    public int priority() {
+    public int getPriority() {
         return 100;
     }
 
@@ -37,8 +37,12 @@ public class AllyTeamType extends TeamType<Team> {
         return TeamConfig.get().ally.blocksTargeting;
     }
 
-    public int inviteTimeoutTicks() {
-        return TeamConfig.get().ally.inviteTimeoutSeconds * 20;
+    public boolean isSymmetricRelation() {
+        return false;
+    }
+
+    public boolean requiresInvite() {
+        return false;
     }
 
     public LivingEntity resolveMember(LivingEntity entity) {

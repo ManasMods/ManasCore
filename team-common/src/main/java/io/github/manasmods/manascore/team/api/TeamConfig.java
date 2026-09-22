@@ -28,8 +28,6 @@ public class TeamConfig extends ManasConfig {
         public boolean blocksFriendlyFire = false;
         @Comment("Mobs never target their allies.")
         public boolean blocksTargeting = true;
-        @Comment("Seconds until a pending ally request expires.")
-        public int inviteTimeoutSeconds = 60;
     }
 
     @Comment("Settings of the built-in party team.")
@@ -43,5 +41,7 @@ public class TeamConfig extends ManasConfig {
         public int inviteTimeoutSeconds = 60;
         @Comment("Maximum members per party. 0 or less means unlimited.")
         public int maxMembers = 0;
+        @Comment("Any party member may invite. When false only the leader can.")
+        public boolean membersCanInvite = false;
     }
 }

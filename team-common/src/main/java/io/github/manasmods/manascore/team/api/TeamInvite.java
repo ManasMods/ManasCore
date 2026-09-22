@@ -12,8 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.UUID;
 
 /**
- * Pending invitation. For GROUP types {@code teamId} is the team id. For RELATION types
- * {@code teamId} is a unique id for this invite; the inviter is {@code inviter}.
+ * Pending invitation into a GROUP team.
  */
 public record TeamInvite(UUID teamId, ResourceLocation typeId, UUID inviter, UUID invitee, long expiresAtTick) {
     public boolean isExpired(long currentTick) {

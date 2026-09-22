@@ -8,7 +8,7 @@ package io.github.manasmods.manascore.team.api.template;
 import io.github.manasmods.manascore.team.api.TeamType;
 
 /**
- * What happens when an entity joins a team of a type it already holds {@link TeamType#maxTeamsPerMember()} of.
+ * What happens when an entity joins a team of a type it already holds {@link TeamType#getMaxTeamsPerMember()} of.
  */
 public enum LimitPolicy {
     REJECT,

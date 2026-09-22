@@ -6,24 +6,28 @@
 package io.github.manasmods.manascore.testing.module;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import dev.architectury.platform.Platform;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
+import dev.architectury.utils.Env;
 import io.github.manasmods.manascore.command.api.Command;
 import io.github.manasmods.manascore.command.api.CommandRegistry;
 import io.github.manasmods.manascore.command.api.Execute;
 import io.github.manasmods.manascore.command.api.parameter.EntityArg;
 import io.github.manasmods.manascore.command.api.parameter.SenderArg;
 import io.github.manasmods.manascore.command.api.parameter.ResourceLocationArg;
+import io.github.manasmods.manascore.command.api.parameter.UuidArg;
 import io.github.manasmods.manascore.command.api.parameter.primitive.LiteralArg;
-import io.github.manasmods.manascore.team.api.template.LeaveReason;
-import io.github.manasmods.manascore.team.api.template.Relation;
+import io.github.manasmods.manascore.command.api.parameter.primitive.TextArg;
 import io.github.manasmods.manascore.team.api.ResolvedRelation;
 import io.github.manasmods.manascore.team.api.Team;
 import io.github.manasmods.manascore.team.api.TeamAPI;
-import io.github.manasmods.manascore.team.api.template.TeamEvents;
 import io.github.manasmods.manascore.team.api.TeamInvite;
-import io.github.manasmods.manascore.team.api.template.TeamShape;
 import io.github.manasmods.manascore.team.api.TeamType;
+import io.github.manasmods.manascore.team.api.template.LeaveReason;
+import io.github.manasmods.manascore.team.api.template.Relation;
+import io.github.manasmods.manascore.team.api.template.TeamEvents;
+import io.github.manasmods.manascore.team.api.template.TeamShape;
 import io.github.manasmods.manascore.team.api.template.Teams;
 import io.github.manasmods.manascore.testing.ModuleConstants;
 import net.minecraft.commands.CommandSourceStack;
@@ -34,6 +38,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -56,22 +61,24 @@ public class TeamModuleTest {
         TeamEvents.INVITE_ACCEPTED.register(invite -> LOG.info("[team] invite accepted {}", invite));
         TeamEvents.INVITE_DECLINED.register(invite -> LOG.info("[team] invite declined {}", invite));
         TeamEvents.INVITE_EXPIRED.register(invite -> LOG.info("[team] invite expired {}", invite));
-        TeamEvents.RELATION_ADDED.register((type, a, b) -> LOG.info("[team] relation {} added {} <-> {}", type.getId(), a.getName().getString(), b.getName().getString()));
-        TeamEvents.RELATION_REMOVED.register((type, a, b) -> LOG.info("[team] relation {} removed {} <-> {}", type.getId(), a.getName().getString(), b.getName().getString()));
+        TeamEvents.RELATION_ADDED.register((type, a, b) -> LOG.info("[team] relation {} added {} <-> {}", type.getId(), a, b));
+        TeamEvents.RELATION_REMOVED.register((type, a, b) -> LOG.info("[team] relation {} removed {} <-> {}", type.getId(), a, b));
+
+        if (Platform.getEnvironment() == Env.CLIENT) TeamModuleTestClient.init();
     }
 
     /** Two members of different factions are enemies; same faction allies; up to two factions each. */
     public static class FactionTeamType extends TeamType<Team> {
-        public TeamShape shape() {
+        public TeamShape getShape() {
             return TeamShape.GROUP;
         }
-        public Class<Team> teamClass() {
+        public Class<Team> getTeamClass() {
             return Team.class;
         }
-        public int maxTeamsPerMember() {
+        public int getMaxTeamsPerMember() {
             return 2;
         }
-        public int priority() {
+        public int getPriority() {
             return 50;
         }
         public boolean blocksFriendlyFire() {
@@ -113,17 +120,17 @@ public class TeamModuleTest {
             TeamType<?> type = type(typeId);
             if (player == null || type == null) return false;
             ServerPlayer target = selector.findSinglePlayer(sender);
-            Optional<TeamInvite> invite;
-            if (type.shape() == TeamShape.RELATION) {
-                invite = TeamAPI.requestRelation(type, player, target);
-            } else {
-                Optional<? extends Team> team = TeamAPI.getTeam(player, type);
-                if (team.isEmpty()) {
-                    reply(sender, "You are not in a team of that type");
-                    return false;
-                }
-                invite = TeamAPI.invite(team.get(), player, target);
+            if (type.getShape() != TeamShape.GROUP) {
+                reply(sender, "Not a group type");
+                return false;
             }
+
+            Optional<? extends Team> team = TeamAPI.getTeam(player, type);
+            if (team.isEmpty()) {
+                reply(sender, "You are not in a team of that type");
+                return false;
+            }
+            Optional<TeamInvite> invite = TeamAPI.invite(team.get(), player, target);
             reply(sender, invite.map(i -> "Invited " + target.getName().getString() + " (expires tick " + i.expiresAtTick() + ")").orElse("Invite failed"));
             return true;
         }
@@ -198,9 +205,70 @@ public class TeamModuleTest {
             reply(sender, "Relations: " + teams.getAllRelated());
             reply(sender, "Invites: " + TeamAPI.getPendingInvites(player));
             for (Team team : TeamAPI.getAllTeams(player.server)) {
-                if (team.isMember(player)) reply(sender, team.toString());
+                if (team.isMember(player)) reply(sender, team + " (" + team.getDisplayName().getString() + ")");
             }
             return true;
+        }
+
+        @Execute
+        public boolean name(@SenderArg CommandSourceStack sender, @LiteralArg("name") String l, @ResourceLocationArg ResourceLocation typeId,
+                            @TextArg(value = TextArg.Type.GREEDY_STRING, name = "name") String name) {
+            ServerPlayer player = sender.getPlayer();
+            TeamType<?> type = type(typeId);
+            if (player == null || type == null) return false;
+            Optional<? extends Team> team = TeamAPI.getTeam(player, type);
+            String newName = "clear".equalsIgnoreCase(name) ? null : name;
+            boolean ok = team.isPresent() && TeamAPI.setTeamName(team.get(), player, newName);
+            reply(sender, ok ? "Renamed" : "Rename failed");
+            return ok;
+        }
+
+        @Execute
+        public boolean invitable(@SenderArg CommandSourceStack sender, @LiteralArg("invitable") String l, @ResourceLocationArg ResourceLocation typeId) {
+            ServerPlayer player = sender.getPlayer();
+            TeamType<?> type = type(typeId);
+            if (player == null || type == null) return false;
+            Optional<? extends Team> team = TeamAPI.getTeam(player, type);
+            if (team.isEmpty()) {
+                reply(sender, "You are not in a team of that type");
+                return false;
+            }
+            List<ServerPlayer> invitable = TeamAPI.getInvitable(team.get(), player);
+            reply(sender, "Invitable: " + invitable.stream().map(p -> p.getName().getString()).toList());
+            return true;
+        }
+
+        @Execute
+        public boolean outgoing(@SenderArg CommandSourceStack sender, @LiteralArg("outgoing") String l, @ResourceLocationArg ResourceLocation typeId) {
+            ServerPlayer player = sender.getPlayer();
+            TeamType<?> type = type(typeId);
+            if (player == null || type == null) return false;
+            Optional<? extends Team> team = TeamAPI.getTeam(player, type);
+            if (team.isEmpty()) {
+                reply(sender, "You are not in a team of that type");
+                return false;
+            }
+            List<TeamInvite> outgoing = TeamAPI.getOutgoingInvites(player.server, team.get());
+            reply(sender, "Outgoing: " + outgoing.stream().map(i -> i.invitee().toString()).toList());
+            return true;
+        }
+
+        @Execute
+        public boolean allyid(@SenderArg CommandSourceStack sender, @LiteralArg("allyid") String l, @UuidArg UUID uuid) {
+            ServerPlayer player = sender.getPlayer();
+            if (player == null) return false;
+            boolean ok = TeamAPI.addRelation(player.server, TeamAPI.ALLY.get(), player.getUUID(), uuid);
+            reply(sender, ok ? "Allied" : "Ally failed");
+            return ok;
+        }
+
+        @Execute
+        public boolean unallyid(@SenderArg CommandSourceStack sender, @LiteralArg("unallyid") String l, @UuidArg UUID uuid) {
+            ServerPlayer player = sender.getPlayer();
+            if (player == null) return false;
+            boolean ok = TeamAPI.removeRelation(player.server, TeamAPI.ALLY.get(), player.getUUID(), uuid);
+            reply(sender, ok ? "Un-allied" : "Un-ally failed");
+            return ok;
         }
 
         @Execute
@@ -235,6 +303,17 @@ public class TeamModuleTest {
             boolean ok = TeamAPI.removeRelation(TeamAPI.ALLY.get(), la, lb);
             reply(sender, ok ? "Un-allied" : "Un-ally failed");
             return ok;
+        }
+
+        @Execute
+        public boolean mutual(@SenderArg CommandSourceStack sender, @LiteralArg("mutual") String l,
+                              @EntityArg(name = "a") EntitySelector aSel, @EntityArg(name = "b") EntitySelector bSel) throws CommandSyntaxException {
+            Entity a = aSel.findSingleEntity(sender);
+            Entity b = bSel.findSingleEntity(sender);
+            if (!(a instanceof LivingEntity la) || !(b instanceof LivingEntity lb)) return false;
+            reply(sender, a.getName().getString() + " <-> " + b.getName().getString() + ": mutual ally " + TeamAPI.isMutuallyAllied(la, lb)
+                    + ", mutual ally relation " + TeamAPI.hasMutualRelation(TeamAPI.ALLY.get(), la, lb));
+            return true;
         }
     }
 }

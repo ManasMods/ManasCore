@@ -47,7 +47,7 @@ public class TeamRegistry {
         if (size != sortedCacheSize) {
             List<TeamType<?>> list = new ArrayList<>();
             for (TeamType<?> type : TEAM_TYPES) list.add(type);
-            list.sort(Comparator.comparingInt((TeamType<?> t) -> t.priority()).reversed());
+            list.sort(Comparator.comparingInt((TeamType<?> t) -> t.getPriority()).reversed());
             sortedCache = List.copyOf(list);
             sortedCacheSize = size;
         }

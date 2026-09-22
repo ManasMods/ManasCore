@@ -13,7 +13,9 @@ import io.github.manasmods.manascore.team.api.Team;
 import io.github.manasmods.manascore.team.api.TeamInvite;
 import io.github.manasmods.manascore.team.api.TeamType;
 import net.minecraft.world.entity.LivingEntity;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface TeamEvents {
@@ -30,6 +32,12 @@ public interface TeamEvents {
     Event<MemberLeaveEvent> MEMBER_LEAVE = EventFactory.createEventResult();
     Event<MemberLeftEvent> MEMBER_LEFT = EventFactory.createLoop();
     Event<OwnerChangedEvent> OWNER_CHANGED = EventFactory.createLoop();
+    Event<TeamRenamedEvent> TEAM_RENAMED = EventFactory.createLoop();
+
+    /** Fired on the client only. **/
+    Event<TeamEvent> CLIENT_TEAM_UPDATED = EventFactory.createLoop();
+    Event<TeamRemovedEvent> CLIENT_TEAM_REMOVED = EventFactory.createLoop();
+    Event<InvitesUpdatedEvent> CLIENT_INVITES_UPDATED = EventFactory.createLoop();
 
     Event<InviteSendEvent> INVITE_SEND = EventFactory.createEventResult();
     Event<InviteEvent> INVITE_ACCEPTED = EventFactory.createLoop();
@@ -56,6 +64,16 @@ public interface TeamEvents {
     @FunctionalInterface
     interface TeamEvent {
         void run(Team team);
+    }
+
+    @FunctionalInterface
+    interface TeamRemovedEvent {
+        void run(UUID teamId);
+    }
+
+    @FunctionalInterface
+    interface InvitesUpdatedEvent {
+        void run(List<TeamInvite> invites);
     }
 
     @FunctionalInterface
@@ -89,6 +107,11 @@ public interface TeamEvents {
     }
 
     @FunctionalInterface
+    interface TeamRenamedEvent {
+        void run(Team team, @Nullable String oldName, @Nullable String newName);
+    }
+
+    @FunctionalInterface
     interface InviteSendEvent {
         EventResult run(TeamInvite invite);
     }
@@ -100,12 +123,12 @@ public interface TeamEvents {
 
     @FunctionalInterface
     interface RelationAddEvent {
-        EventResult run(TeamType<?> type, LivingEntity a, LivingEntity b);
+        EventResult run(TeamType<?> type, UUID a, UUID b);
     }
 
     @FunctionalInterface
     interface RelationEvent {
-        void run(TeamType<?> type, LivingEntity a, LivingEntity b);
+        void run(TeamType<?> type, UUID a, UUID b);
     }
 
     @FunctionalInterface

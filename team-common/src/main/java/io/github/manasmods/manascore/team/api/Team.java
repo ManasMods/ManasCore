@@ -10,6 +10,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -31,6 +32,7 @@ import java.util.UUID;
 public class Team {
     public static final String OWNER_KEY = "owner";
     private static final String MEMBERS_KEY = "members";
+    private static final String NAME_KEY = "name";
 
     @Getter
     private final UUID id;
@@ -39,6 +41,9 @@ public class Team {
     @Getter
     private UUID owner;
     private final Set<UUID> members = new LinkedHashSet<>();
+    @Getter
+    @Nullable
+    private String name = null;
 
     public Team(UUID id, TeamType<?> type, UUID owner) {
         this.id = id;
@@ -71,6 +76,14 @@ public class Team {
         return this.isMember(entity.getUUID());
     }
 
+    public boolean hasName() {
+        return this.name != null;
+    }
+
+    public Component getDisplayName() {
+        return this.name != null ? Component.literal(this.name) : Component.literal(this.owner.toString().substring(0, 8));
+    }
+
     /**
      * Server only. Resolves members that are currently loaded: players via the player list,
      * other entities by scanning every level.
@@ -100,6 +113,7 @@ public class Team {
         ListTag list = new ListTag();
         for (UUID member : this.members) list.add(NbtUtils.createUUID(member));
         tag.put(MEMBERS_KEY, list);
+        if (this.name != null) tag.putString(NAME_KEY, this.name);
         return tag;
     }
 
@@ -109,6 +123,7 @@ public class Team {
         ListTag list = tag.getList(MEMBERS_KEY, Tag.TAG_INT_ARRAY);
         for (Tag t : list) this.members.add(NbtUtils.loadUUID(t));
         this.members.add(this.owner);
+        this.name = tag.contains(NAME_KEY, Tag.TAG_STRING) ? tag.getString(NAME_KEY) : null;
     }
 
     protected boolean addMemberInternal(UUID id) {
@@ -122,6 +137,10 @@ public class Team {
     protected void setOwnerInternal(UUID id) {
         this.owner = id;
         this.members.add(id);
+    }
+
+    protected void setNameInternal(@Nullable String name) {
+        this.name = name;
     }
 
     /**
@@ -143,9 +162,13 @@ public class Team {
         public static void setOwner(Team team, UUID id) {
             team.setOwnerInternal(id);
         }
+
+        public static void setName(Team team, @Nullable String name) {
+            team.setNameInternal(name);
+        }
     }
 
     public String toString() {
-        return "Team{" + "id=" + id + ", type=" + type + ", owner=" + owner + ", members=" + members + '}';
+        return "Team{" + "id=" + id + ", type=" + type + ", owner=" + owner + ", members=" + members + ", name=" + name + '}';
     }
 }

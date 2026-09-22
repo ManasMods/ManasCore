@@ -24,8 +24,10 @@ import lombok.NonNull;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -80,6 +82,14 @@ public class TeamAPI {
         return getRelation(a, b) == Relation.ALLY;
     }
 
+    /**
+     * Determine if both sides consider each other an ally.
+     * One-way relations such as the default ally type only count when they exist in both directions.
+     */
+    public static boolean isMutuallyAllied(@NonNull LivingEntity a, @NonNull LivingEntity b) {
+        return isAllied(a, b) && isAllied(b, a);
+    }
+
     public static boolean isEnemy(@NonNull LivingEntity a, @NonNull LivingEntity b) {
         return getRelation(a, b) == Relation.ENEMY;
     }
@@ -104,7 +114,7 @@ public class TeamAPI {
         LivingEntity resolved = type.resolveMember(entity);
         Set<T> result = new LinkedHashSet<>();
         for (UUID id : getTeamsFrom(resolved).getTeamIds(type)) {
-            getTeam(resolved, id).filter(type.teamClass()::isInstance).map(type.teamClass()::cast).ifPresent(result::add);
+            getTeam(resolved, id).filter(type.getTeamClass()::isInstance).map(type.getTeamClass()::cast).ifPresent(result::add);
         }
         return Collections.unmodifiableSet(result);
     }
@@ -149,6 +159,16 @@ public class TeamAPI {
         return TeamManager.setOwner(team, entity);
     }
 
+    /** Sanitizes and applies {@code name}, subject to {@link TeamType#canRename} and {@link TeamType#getMaxNameLength()}. */
+    public static boolean setTeamName(@NonNull Team team, @NonNull LivingEntity actor, @Nullable String name) {
+        return TeamManager.setTeamName(team, actor, name);
+    }
+
+    /** Server-authoritative variant, bypassing {@link TeamType#canRename}. */
+    public static boolean setTeamName(@NonNull MinecraftServer server, @NonNull Team team, @Nullable String name) {
+        return TeamManager.setTeamName(server, team, name);
+    }
+
     public static Optional<TeamInvite> invite(@NonNull Team team, @NonNull LivingEntity inviter, @NonNull LivingEntity invitee) {
         return TeamManager.invite(team, inviter, invitee);
     }
@@ -161,11 +181,22 @@ public class TeamAPI {
         return TeamManager.declineInvite(invitee, teamId);
     }
 
-    /*** RELATION ops (server only) ***/
-    public static Optional<TeamInvite> requestRelation(@NonNull TeamType<?> type, @NonNull LivingEntity a, @NonNull LivingEntity b) {
-        return TeamManager.requestRelation(type, a, b);
+    /** Server only. Online players this team may still invite, with every limit and hook applied. */
+    public static List<ServerPlayer> getInvitable(@NonNull Team team, @NonNull ServerPlayer requester) {
+        return TeamManager.getInvitable(team, requester);
     }
 
+    /** Server only. This team's pending outgoing invites. */
+    public static List<TeamInvite> getOutgoingInvites(@NonNull MinecraftServer server, @NonNull Team team) {
+        return TeamManager.getOutgoingInvites(server, team);
+    }
+
+    /** Server only. Whether the given player already has a pending invite into this team. */
+    public static boolean hasPendingInvite(@NonNull MinecraftServer server, @NonNull Team team, @NonNull UUID invitee) {
+        return TeamManager.hasPendingInvite(server, team, invitee);
+    }
+
+    /*** RELATION ops (server only) ***/
     public static boolean addRelation(@NonNull TeamType<?> type, @NonNull LivingEntity a, @NonNull LivingEntity b) {
         return TeamManager.addRelation(type, a, b);
     }
@@ -176,5 +207,43 @@ public class TeamAPI {
 
     public static boolean hasRelation(@NonNull TeamType<?> type, @NonNull LivingEntity a, @NonNull LivingEntity b) {
         return TeamManager.hasRelation(type, a, b);
+    }
+
+    /**
+     * Determine if the relation exists in both directions.
+     */
+    public static boolean hasMutualRelation(@NonNull TeamType<?> type, @NonNull LivingEntity a, @NonNull LivingEntity b) {
+        return TeamManager.hasRelation(type, a, b) && TeamManager.hasRelation(type, b, a);
+    }
+
+    /**
+     * Id-based RELATION op. Works for offline or unloaded entities.
+     * Players who have not logged in since the relation table was introduced are migrated
+     * on their next login; until then their old relations are not visible to this method.
+     */
+    public static boolean addRelation(@NonNull MinecraftServer server, @NonNull TeamType<?> type, @NonNull UUID a, @NonNull UUID b) {
+        return TeamManager.addRelation(server, type, a, b);
+    }
+
+    /**
+     * Id-based RELATION op. Works for offline or unloaded entities.
+     * Players who have not logged in since the relation table was introduced are migrated
+     * on their next login; until then their old relations are not visible to this method.
+     */
+    public static boolean removeRelation(@NonNull MinecraftServer server, @NonNull TeamType<?> type, @NonNull UUID a, @NonNull UUID b) {
+        return TeamManager.removeRelation(server, type, a, b);
+    }
+
+    /**
+     * Id-based RELATION op. Works for offline or unloaded entities.
+     * Players who have not logged in since the relation table was introduced are migrated
+     * on their next login; until then their old relations are not visible to this method.
+     */
+    public static boolean hasRelation(@NonNull MinecraftServer server, @NonNull TeamType<?> type, @NonNull UUID a, @NonNull UUID b) {
+        return TeamManager.hasRelation(server, type, a, b);
+    }
+
+    public static Set<UUID> getRelated(@NonNull MinecraftServer server, @NonNull TeamType<?> type, @NonNull UUID entity) {
+        return Collections.unmodifiableSet(new LinkedHashSet<>(TeamManager.getRelated(server, type, entity)));
     }
 }
