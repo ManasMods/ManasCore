@@ -6,8 +6,10 @@
 package io.github.manasmods.manascore.team.api;
 
 import dev.architectury.networking.NetworkManager;
+import dev.architectury.platform.Platform;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrySupplier;
+import dev.architectury.utils.Env;
 import dev.architectury.utils.GameInstance;
 import io.github.manasmods.manascore.team.ManasCoreTeam;
 import io.github.manasmods.manascore.team.api.template.LeaveReason;
@@ -146,12 +148,12 @@ public class TeamAPI {
 
     /**
      * Side-agnostic overload for code without a {@link Level}, e.g. GUI screens.
-     * Side is inferred from the current thread; on a dedicated server call this from the
-     * server thread or prefer the {@code Level} overloads.
+     * On a dedicated server this is always the server side; on a client the integrated
+     * server thread counts as server side. Prefer the {@code Level} overloads when possible.
      */
     public static Optional<MemberInfo> getMemberInfo(@NonNull UUID id) {
         MinecraftServer server = GameInstance.getServer();
-        boolean serverSide = server != null && server.isSameThread();
+        boolean serverSide = Platform.getEnvironment() == Env.SERVER || (server != null && server.isSameThread());
         return serverSide ? TeamManager.memberInfo(server, id) : ClientTeamCache.getMemberInfo(id);
     }
 
@@ -162,8 +164,8 @@ public class TeamAPI {
 
     /**
      * Falls back to the first 8 characters of the uuid when no name is known.
-     * Side is inferred from the current thread; on a dedicated server call this from the
-     * server thread or prefer the {@code Level} overloads.
+     * On a dedicated server this is always the server side; on a client the integrated
+     * server thread counts as server side. Prefer the {@code Level} overloads when possible.
      */
     public static Component getMemberName(@NonNull UUID id) {
         return getMemberInfo(id).map(MemberInfo::name).orElseGet(() -> Component.literal(id.toString().substring(0, 8)));
@@ -486,7 +488,7 @@ public class TeamAPI {
 
         private static boolean guard(String op) {
             MinecraftServer server = GameInstance.getServer();
-            if (server != null && server.isSameThread()) {
+            if (Platform.getEnvironment() == Env.SERVER || (server != null && server.isSameThread())) {
                 if (WARNED.add(op)) ManasCoreTeam.LOG.warn("TeamAPI.Client.{} called on the server thread.", op);
                 return true;
             }

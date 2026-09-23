@@ -134,6 +134,7 @@ public final class TeamManager {
 
         for (UUID member : new ArrayList<>(team.getMembers())) {
             Team.Internals.removeMember(team, member);
+            data.unindexMember(team.getId(), member);
             TeamStorage storage = storageOf(server, member);
 
             if (storage != null) storage.removeTeamId(typeId, team.getId());
@@ -169,6 +170,7 @@ public final class TeamManager {
         if (TeamSavedData.get(server).getTeam(team.getId()).isEmpty()) return TeamResult.NOT_FOUND;
 
         Team.Internals.addMember(team, resolved.getUUID());
+        TeamSavedData.get(server).indexMember(team.getId(), resolved.getUUID());
         storage.addTeamId(idOf(type), team.getId());
         TeamSavedData.get(server).setDirty();
         type.onMemberAdded(team, resolved.getUUID());
@@ -193,6 +195,7 @@ public final class TeamManager {
         TeamType<Team> type = typeOf(team);
         boolean wasOwner = team.isOwner(memberId);
         Team.Internals.removeMember(team, memberId);
+        TeamSavedData.get(server).unindexMember(team.getId(), memberId);
         TeamStorage storage = entity != null ? storageOf(entity) : storageOf(server, memberId);
         if (storage != null) storage.removeTeamId(idOf(type), team.getId());
         sendRemove(server, team, memberId);
@@ -211,6 +214,7 @@ public final class TeamManager {
                 return TeamResult.ACCEPTED;
             }
             Team.Internals.setOwner(team, newOwner);
+            TeamSavedData.get(server).indexMember(team.getId(), newOwner);
             Team.Internals.setOwnerName(team, nameOf(server, newOwner).orElse(null));
             TeamEvents.OWNER_CHANGED.invoker().run(team, memberId, newOwner);
         }
@@ -230,6 +234,7 @@ public final class TeamManager {
 
         UUID old = team.getOwner();
         Team.Internals.setOwner(team, target);
+        TeamSavedData.get(server).indexMember(team.getId(), target);
         Team.Internals.setOwnerName(team, nameOf(server, target).orElse(null));
         TeamSavedData.get(server).setDirty();
         TeamEvents.OWNER_CHANGED.invoker().run(team, old, target);
@@ -418,10 +423,12 @@ public final class TeamManager {
     public static void syncAllFor(ServerPlayer player) {
         MinecraftServer server = player.getServer();
         if (server == null) return;
-        for (Team team : TeamSavedData.get(server).getTeams()) {
-            if (!team.isMember(player)) continue;
-            SyncTeamPayload payload = new SyncTeamPayload(idOf(team.getType()), TeamSavedData.serialize(team), namesFor(server, namedMembers(team)));
-            NetworkManager.sendToPlayer(player, payload);
+        TeamSavedData data = TeamSavedData.get(server);
+        for (UUID teamId : data.getTeamIdsOf(player.getUUID())) {
+            data.getTeam(teamId).ifPresent(team -> {
+                SyncTeamPayload payload = new SyncTeamPayload(idOf(team.getType()), TeamSavedData.serialize(team), namesFor(server, namedMembers(team)));
+                NetworkManager.sendToPlayer(player, payload);
+            });
         }
     }
 
@@ -463,10 +470,10 @@ public final class TeamManager {
         TeamStorage storage = storageOf(player);
         if (server == null || storage == null) return;
 
+        TeamSavedData data = TeamSavedData.get(server);
         Map<ResourceLocation, List<UUID>> byType = new HashMap<>();
-        for (Team team : TeamSavedData.get(server).getTeams()) {
-            if (!team.isMember(player)) continue;
-            byType.computeIfAbsent(idOf(team.getType()), k -> new ArrayList<>()).add(team.getId());
+        for (UUID teamId : data.getTeamIdsOf(player.getUUID())) {
+            data.getTeam(teamId).ifPresent(team -> byType.computeIfAbsent(idOf(team.getType()), k -> new ArrayList<>()).add(team.getId()));
         }
 
         Map<ResourceLocation, Set<UUID>> existing = storage.getAllTeamIds();
@@ -684,10 +691,10 @@ public final class TeamManager {
         if (player == null) return;
         TeamSavedData data = TeamSavedData.get(server);
         List<TeamInvite> incoming = data.getInvitesFor(invitee);
+        Set<UUID> ownTeamIds = data.getTeamIdsOf(invitee);
         List<TeamInvite> outgoing = new ArrayList<>();
         for (TeamInvite invite : data.getInvites()) {
-            Optional<Team> team = data.getTeam(invite.teamId());
-            if (team.isPresent() && team.get().isMember(invitee)) outgoing.add(invite);
+            if (ownTeamIds.contains(invite.teamId())) outgoing.add(invite);
         }
 
         Set<UUID> named = new LinkedHashSet<>();
@@ -858,8 +865,8 @@ public final class TeamManager {
     /** Removes a dead non-player entity from every group and from every relation it is part of. */
     public static void removeEverywhere(MinecraftServer server, UUID entityId) {
         TeamSavedData data = TeamSavedData.get(server);
-        for (Team team : new ArrayList<>(data.getTeams())) {
-            if (team.isMember(entityId)) removeMember(server, team, entityId, null, LeaveReason.DEATH);
+        for (UUID teamId : new ArrayList<>(data.getTeamIdsOf(entityId))) {
+            data.getTeam(teamId).ifPresent(team -> removeMember(server, team, entityId, null, LeaveReason.DEATH));
         }
 
         Set<UUID> affected = new LinkedHashSet<>();
@@ -920,12 +927,14 @@ public final class TeamManager {
             if (server != null) {
                 TeamSavedData data = TeamSavedData.get(server);
                 data.putName(player.getUUID(), player.getGameProfile().getName());
-                for (Team team : data.getTeams()) {
-                    if (team.isOwner(player) && !player.getGameProfile().getName().equals(team.getOwnerName())) {
-                        Team.Internals.setOwnerName(team, player.getGameProfile().getName());
-                        data.setDirty();
-                        syncTeam(server, team);
-                    }
+                for (UUID teamId : data.getTeamIdsOf(player.getUUID())) {
+                    data.getTeam(teamId).ifPresent(team -> {
+                        if (team.isOwner(player) && !player.getGameProfile().getName().equals(team.getOwnerName())) {
+                            Team.Internals.setOwnerName(team, player.getGameProfile().getName());
+                            data.setDirty();
+                            syncTeam(server, team);
+                        }
+                    });
                 }
             }
             reconcile(player);

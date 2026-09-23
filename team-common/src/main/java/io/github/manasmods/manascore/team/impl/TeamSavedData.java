@@ -51,6 +51,7 @@ public class TeamSavedData extends SavedData {
     private final Map<ResourceLocation, Map<UUID, Set<UUID>>> relatedBy = new LinkedHashMap<>();
     private final Set<UUID> relationsMigrated = new LinkedHashSet<>();
     private final Map<UUID, String> names = new LinkedHashMap<>();
+    private final Map<UUID, Set<UUID>> memberTeams = new HashMap<>();
 
     /**
      * The LOADING flag makes the storage module's DataFixTypes mixin skip datafixing this
@@ -75,11 +76,36 @@ public class TeamSavedData extends SavedData {
 
     public void putTeam(Team team) {
         this.teams.put(team.getId(), team);
+        this.indexMember(team.getId(), team.getOwner());
+        for (UUID member : team.getMembers()) this.indexMember(team.getId(), member);
         this.setDirty();
     }
 
     public void removeTeam(UUID id) {
-        if (this.teams.remove(id) != null) this.setDirty();
+        Team team = this.teams.remove(id);
+        if (team == null) return;
+        this.unindexMember(id, team.getOwner());
+        for (UUID member : team.getMembers()) this.unindexMember(id, member);
+        this.setDirty();
+    }
+
+    /**
+     * Every team id {@code member} belongs to, as owner or member. Not persisted; rebuilt on load.
+     */
+    public Set<UUID> getTeamIdsOf(UUID member) {
+        Set<UUID> ids = this.memberTeams.get(member);
+        return ids == null ? Collections.emptySet() : Collections.unmodifiableSet(ids);
+    }
+
+    public void indexMember(UUID teamId, UUID member) {
+        this.memberTeams.computeIfAbsent(member, k -> new LinkedHashSet<>()).add(teamId);
+    }
+
+    public void unindexMember(UUID teamId, UUID member) {
+        Set<UUID> ids = this.memberTeams.get(member);
+        if (ids == null) return;
+        ids.remove(teamId);
+        if (ids.isEmpty()) this.memberTeams.remove(member);
     }
 
     public List<TeamInvite> getInvitesFor(UUID invitee) {
@@ -282,7 +308,16 @@ public class TeamSavedData extends SavedData {
         for (Tag t : tag.getList(RELATIONS_MIGRATED_KEY, Tag.TAG_INT_ARRAY)) data.relationsMigrated.add(NbtUtils.loadUUID(t));
         loadNames(tag.getCompound(NAMES_KEY), data.names);
         data.rebuildRelatedBy();
+        data.rebuildMemberIndex();
         return data;
+    }
+
+    private void rebuildMemberIndex() {
+        this.memberTeams.clear();
+        for (Team team : this.teams.values()) {
+            this.indexMember(team.getId(), team.getOwner());
+            for (UUID member : team.getMembers()) this.indexMember(team.getId(), member);
+        }
     }
 
     private void rebuildRelatedBy() {
