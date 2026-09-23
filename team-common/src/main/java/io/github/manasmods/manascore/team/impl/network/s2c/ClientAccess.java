@@ -22,6 +22,7 @@ class ClientAccess {
         }
 
         Team team = TeamSavedData.deserialize(type, packet.teamTag());
+        ClientTeamCache.putNames(packet.names());
         ClientTeamCache.put(team);
         TeamEvents.CLIENT_TEAM_UPDATED.invoker().run(team);
     }
@@ -32,7 +33,22 @@ class ClientAccess {
     }
 
     static void handle(SyncInvitesPayload packet) {
-        ClientTeamCache.setInvites(packet.invites());
-        TeamEvents.CLIENT_INVITES_UPDATED.invoker().run(packet.invites());
+        ClientTeamCache.putNames(packet.names());
+        ClientTeamCache.setInvites(packet.incoming(), packet.outgoing());
+        TeamEvents.CLIENT_INVITES_UPDATED.invoker().run(packet.incoming(), packet.outgoing());
+    }
+
+    static void handle(TeamActionResultPayload packet) {
+        TeamEvents.CLIENT_ACTION_RESULT.invoker().run(packet.action(), packet.teamId(), packet.result());
+    }
+
+    static void handle(SyncInvitablePayload packet) {
+        ClientTeamCache.putNames(packet.names());
+        ClientTeamCache.setInvitable(packet.teamId(), packet.players());
+        TeamEvents.CLIENT_INVITABLE_UPDATED.invoker().run(packet.teamId(), packet.players());
+    }
+
+    static void handle(SyncNamesPayload packet) {
+        ClientTeamCache.putNames(packet.names());
     }
 }

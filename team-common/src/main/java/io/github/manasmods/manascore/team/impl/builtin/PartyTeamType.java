@@ -40,7 +40,7 @@ public class PartyTeamType extends TeamType<Team> {
         return TeamConfig.get().party.inviteTimeoutSeconds * 20;
     }
 
-    public boolean canInvite(Team team, LivingEntity inviter, LivingEntity invitee) {
+    public boolean canInvite(Team team, LivingEntity inviter) {
         return team.isOwner(inviter) || (TeamConfig.get().party.membersCanInvite && team.isMember(inviter));
     }
 }

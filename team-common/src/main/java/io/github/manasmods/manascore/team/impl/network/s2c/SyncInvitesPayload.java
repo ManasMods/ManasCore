@@ -16,17 +16,21 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
-public record SyncInvitesPayload(List<TeamInvite> invites) implements CustomPacketPayload {
+public record SyncInvitesPayload(List<TeamInvite> incoming, List<TeamInvite> outgoing, Map<UUID, String> names) implements CustomPacketPayload {
     public static final Type<SyncInvitesPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "sync_invites"));
     public static final StreamCodec<FriendlyByteBuf, SyncInvitesPayload> STREAM_CODEC = CustomPacketPayload.codec(SyncInvitesPayload::encode, SyncInvitesPayload::new);
 
     public SyncInvitesPayload(FriendlyByteBuf buf) {
-        this(buf.readList(TeamInvite::read));
+        this(buf.readList(TeamInvite::read), buf.readList(TeamInvite::read), buf.readMap(b -> b.readUUID(), FriendlyByteBuf::readUtf));
     }
 
     public void encode(FriendlyByteBuf buf) {
-        buf.writeCollection(this.invites, (b, invite) -> invite.write(b));
+        buf.writeCollection(this.incoming, (b, invite) -> invite.write(b));
+        buf.writeCollection(this.outgoing, (b, invite) -> invite.write(b));
+        buf.writeMap(this.names, (b, id) -> b.writeUUID(id), FriendlyByteBuf::writeUtf);
     }
 
     public void handle(NetworkManager.PacketContext context) {

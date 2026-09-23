@@ -68,6 +68,11 @@ public abstract class TeamType<T extends Team> {
         return true;
     }
 
+    /** RELATION only. How many entities one entity may relate to under this type. */
+    public int getMaxRelations() {
+        return 64;
+    }
+
     public boolean blocksFriendlyFire() {
         return false;
     }
@@ -91,21 +96,34 @@ public abstract class TeamType<T extends Team> {
 
     /**
      * Relation of {@code a} towards {@code b} for this type only. Both entities are already
-     * passed through {@link #resolveMember(LivingEntity)}.
+     * passed through {@link #resolveMember(LivingEntity)}. RELATION's default also consults each
+     * side's inbound set as a fallback, so an offline or untracked outbound side is still caught.
+     * GROUP falls back to the team objects the querying side knows (server table, client cache),
+     * so a client can resolve its own party mates although their storage is not synced.
+     * <p>Types are skipped by the resolver when both sides have no team data at all
+     * ({@link Teams#isEmpty()}); a type that derives relations from something else must hook
+     * {@link TeamEvents#RESOLVE_RELATION}.
      */
     public Relation getRelation(LivingEntity a, Teams aTeams, LivingEntity b, Teams bTeams) {
         return switch (this.getShape()) {
             case GROUP -> {
+                boolean client = a.level().isClientSide();
                 Set<UUID> mine = aTeams.getTeamIds(this);
-                if (mine.isEmpty()) yield Relation.NEUTRAL;
-                for (UUID id : bTeams.getTeamIds(this)) {
-                    if (mine.contains(id)) yield Relation.ALLY;
+                Set<UUID> theirs = bTeams.getTeamIds(this);
+                for (UUID id : mine) {
+                    if (theirs.contains(id) || (client && TeamAPI.getTeam(a, id).map(team -> team.isMember(b)).orElse(false))) yield Relation.ALLY;
+                }
+                for (UUID id : theirs) {
+                    if (client && TeamAPI.getTeam(b, id).map(team -> team.isMember(a)).orElse(false)) yield Relation.ALLY;
                 }
                 yield Relation.NEUTRAL;
             }
             case RELATION -> {
                 if (aTeams.getRelated(this).contains(b.getUUID())) yield Relation.ALLY;
-                if (this.isSymmetricRelation() && bTeams.getRelated(this).contains(a.getUUID())) yield Relation.ALLY;
+                if (bTeams.getRelatedBy(this).contains(a.getUUID())) yield Relation.ALLY;
+                if (!this.isSymmetricRelation()) yield Relation.NEUTRAL;
+                if (bTeams.getRelated(this).contains(a.getUUID())) yield Relation.ALLY;
+                if (aTeams.getRelatedBy(this).contains(b.getUUID())) yield Relation.ALLY;
                 yield Relation.NEUTRAL;
             }
         };
@@ -115,8 +133,34 @@ public abstract class TeamType<T extends Team> {
         return true;
     }
 
-    public boolean canInvite(T team, LivingEntity inviter, LivingEntity invitee) {
+    /** Determine if the inviter may send invites at all, regardless of invitee. */
+    public boolean canInvite(T team, LivingEntity inviter) {
         return team.isOwner(inviter);
+    }
+
+    /** Determine if the inviter may invite this specific invitee. */
+    public boolean canInvite(T team, LivingEntity inviter, LivingEntity invitee) {
+        return this.canInvite(team, inviter);
+    }
+
+    /** Determine if the actor may kick the target member. */
+    public boolean canKick(T team, LivingEntity actor, UUID target) {
+        return team.isOwner(actor) && !team.isOwner(target);
+    }
+
+    /** Determine if the actor may promote the target member to owner. */
+    public boolean canPromote(T team, LivingEntity actor, UUID target) {
+        return team.isOwner(actor) && team.isMember(target) && !team.isOwner(target);
+    }
+
+    /** Determine if the actor may leave the team. */
+    public boolean canLeave(T team, LivingEntity actor) {
+        return true;
+    }
+
+    /** Determine if the actor may disband the team. */
+    public boolean canDisband(T team, LivingEntity actor) {
+        return team.isOwner(actor);
     }
 
     /** Called when the owner leaves and members remain. Return null to disband instead. */

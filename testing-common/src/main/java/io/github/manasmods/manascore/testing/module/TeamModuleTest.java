@@ -27,6 +27,7 @@ import io.github.manasmods.manascore.team.api.TeamType;
 import io.github.manasmods.manascore.team.api.template.LeaveReason;
 import io.github.manasmods.manascore.team.api.template.Relation;
 import io.github.manasmods.manascore.team.api.template.TeamEvents;
+import io.github.manasmods.manascore.team.api.template.TeamResult;
 import io.github.manasmods.manascore.team.api.template.TeamShape;
 import io.github.manasmods.manascore.team.api.template.Teams;
 import io.github.manasmods.manascore.testing.ModuleConstants;
@@ -37,8 +38,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -248,9 +251,144 @@ public class TeamModuleTest {
                 reply(sender, "You are not in a team of that type");
                 return false;
             }
-            List<TeamInvite> outgoing = TeamAPI.getOutgoingInvites(player.server, team.get());
-            reply(sender, "Outgoing: " + outgoing.stream().map(i -> i.invitee().toString()).toList());
+            List<TeamInvite> outgoing = TeamAPI.getOutgoingInvites(player, team.get());
+            reply(sender, "Outgoing: " + outgoing.stream().map(i -> TeamAPI.getMemberName(player.level(), i.invitee()).getString()).toList());
             return true;
+        }
+
+        @Execute
+        public boolean inbound(@SenderArg CommandSourceStack sender, @LiteralArg("inbound") String l, @ResourceLocationArg ResourceLocation typeId) {
+            ServerPlayer player = sender.getPlayer();
+            TeamType<?> type = type(typeId);
+            if (player == null || type == null) return false;
+            reply(sender, "Inbound: " + TeamAPI.getRelatedBy(player, type));
+            return true;
+        }
+
+        @Execute
+        public boolean tryInvite(@SenderArg CommandSourceStack sender, @LiteralArg("tryinvite") String l, @ResourceLocationArg ResourceLocation typeId,
+                                 @EntityArg(name = "target", value = EntityArg.Type.PLAYER) EntitySelector selector) throws CommandSyntaxException {
+            ServerPlayer player = sender.getPlayer();
+            TeamType<?> type = type(typeId);
+            if (player == null || type == null) return false;
+            ServerPlayer target = selector.findSinglePlayer(sender);
+            Optional<? extends Team> team = TeamAPI.getTeam(player, type);
+            if (team.isEmpty()) {
+                reply(sender, "You are not in a team of that type");
+                return false;
+            }
+            TeamResult result = TeamAPI.tryInvite(team.get(), player, target);
+            reply(sender, result.name());
+            return result.isAccepted();
+        }
+
+        @Execute
+        public boolean tryKick(@SenderArg CommandSourceStack sender, @LiteralArg("trykick") String l, @ResourceLocationArg ResourceLocation typeId,
+                               @EntityArg(name = "target", value = EntityArg.Type.PLAYER) EntitySelector selector) throws CommandSyntaxException {
+            ServerPlayer player = sender.getPlayer();
+            TeamType<?> type = type(typeId);
+            if (player == null || type == null) return false;
+            ServerPlayer target = selector.findSinglePlayer(sender);
+            Optional<? extends Team> team = TeamAPI.getTeam(player, type);
+            if (team.isEmpty()) {
+                reply(sender, "You are not in a team of that type");
+                return false;
+            }
+            TeamResult result = TeamAPI.tryKick(team.get(), player, target.getUUID());
+            reply(sender, result.name());
+            return result.isAccepted();
+        }
+
+        @Execute
+        public boolean tryPromote(@SenderArg CommandSourceStack sender, @LiteralArg("trypromote") String l, @ResourceLocationArg ResourceLocation typeId,
+                                  @EntityArg(name = "target", value = EntityArg.Type.PLAYER) EntitySelector selector) throws CommandSyntaxException {
+            ServerPlayer player = sender.getPlayer();
+            TeamType<?> type = type(typeId);
+            if (player == null || type == null) return false;
+            ServerPlayer target = selector.findSinglePlayer(sender);
+            Optional<? extends Team> team = TeamAPI.getTeam(player, type);
+            if (team.isEmpty()) {
+                reply(sender, "You are not in a team of that type");
+                return false;
+            }
+            TeamResult result = TeamAPI.tryPromote(team.get(), player, target.getUUID());
+            reply(sender, result.name());
+            return result.isAccepted();
+        }
+
+        @Execute
+        public boolean tryLeave(@SenderArg CommandSourceStack sender, @LiteralArg("tryleave") String l, @ResourceLocationArg ResourceLocation typeId) {
+            ServerPlayer player = sender.getPlayer();
+            TeamType<?> type = type(typeId);
+            if (player == null || type == null) return false;
+            Optional<? extends Team> team = TeamAPI.getTeam(player, type);
+            if (team.isEmpty()) {
+                reply(sender, "You are not in a team of that type");
+                return false;
+            }
+            TeamResult result = TeamAPI.tryLeave(team.get(), player);
+            reply(sender, result.name());
+            return result.isAccepted();
+        }
+
+        @Execute
+        public boolean tryDisband(@SenderArg CommandSourceStack sender, @LiteralArg("trydisband") String l, @ResourceLocationArg ResourceLocation typeId) {
+            ServerPlayer player = sender.getPlayer();
+            TeamType<?> type = type(typeId);
+            if (player == null || type == null) return false;
+            Optional<? extends Team> team = TeamAPI.getTeam(player, type);
+            if (team.isEmpty()) {
+                reply(sender, "You are not in a team of that type");
+                return false;
+            }
+            TeamResult result = TeamAPI.tryDisband(team.get(), player);
+            reply(sender, result.name());
+            return result.isAccepted();
+        }
+
+        private static boolean can(String action, Team team, ServerPlayer player, @Nullable UUID target) {
+            return switch (action.toLowerCase(Locale.ROOT)) {
+                case "invite" -> TeamAPI.canInvite(team, player);
+                case "kick" -> target != null && TeamAPI.canKick(team, player, target);
+                case "promote" -> target != null && TeamAPI.canPromote(team, player, target);
+                case "leave" -> TeamAPI.canLeave(team, player);
+                case "disband" -> TeamAPI.canDisband(team, player);
+                default -> false;
+            };
+        }
+
+        @Execute
+        public boolean can(@SenderArg CommandSourceStack sender, @LiteralArg("can") String l, @ResourceLocationArg ResourceLocation typeId,
+                           @TextArg(value = TextArg.Type.WORD, name = "action") String action) {
+            ServerPlayer player = sender.getPlayer();
+            TeamType<?> type = type(typeId);
+            if (player == null || type == null) return false;
+            Optional<? extends Team> team = TeamAPI.getTeam(player, type);
+            if (team.isEmpty()) {
+                reply(sender, "You are not in a team of that type");
+                return false;
+            }
+            boolean result = can(action, team.get(), player, null);
+            reply(sender, String.valueOf(result));
+            return result;
+        }
+
+        @Execute
+        public boolean can(@SenderArg CommandSourceStack sender, @LiteralArg("can") String l, @ResourceLocationArg ResourceLocation typeId,
+                           @TextArg(value = TextArg.Type.WORD, name = "action") String action,
+                           @EntityArg(name = "target", value = EntityArg.Type.PLAYER) EntitySelector selector) throws CommandSyntaxException {
+            ServerPlayer player = sender.getPlayer();
+            TeamType<?> type = type(typeId);
+            if (player == null || type == null) return false;
+            ServerPlayer target = selector.findSinglePlayer(sender);
+            Optional<? extends Team> team = TeamAPI.getTeam(player, type);
+            if (team.isEmpty()) {
+                reply(sender, "You are not in a team of that type");
+                return false;
+            }
+            boolean result = can(action, team.get(), player, target.getUUID());
+            reply(sender, String.valueOf(result));
+            return result;
         }
 
         @Execute

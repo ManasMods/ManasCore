@@ -36,13 +36,16 @@ public class RelationResolver {
 
     private static ResolvedRelation fold(LivingEntity a, LivingEntity b) {
         if (a == b || a.getUUID().equals(b.getUUID())) return ResolvedRelation.SELF;
-
         for (TeamType<?> type : TeamRegistry.sortedByPriority()) {
             LivingEntity ra = type.resolveMember(a);
             LivingEntity rb = type.resolveMember(b);
-            if (ra.getUUID().equals(rb.getUUID())) return new ResolvedRelation(Relation.ALLY, type);
 
-            Relation relation = type.getRelation(ra, teamsOf(ra), rb, teamsOf(rb));
+            if (ra.getUUID().equals(rb.getUUID())) return new ResolvedRelation(Relation.ALLY, type);
+            Teams ta = teamsOf(ra);
+            Teams tb = teamsOf(rb);
+            if (ta.isEmpty() && tb.isEmpty()) continue;
+
+            Relation relation = type.getRelation(ra, ta, rb, tb);
             if (relation != Relation.NEUTRAL) return new ResolvedRelation(relation, type);
         }
         return ResolvedRelation.NEUTRAL;

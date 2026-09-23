@@ -5,6 +5,7 @@
 
 package io.github.manasmods.manascore.team.impl;
 
+import com.mojang.authlib.GameProfile;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.EntityEvent;
 import dev.architectury.event.events.common.PlayerEvent;
@@ -13,16 +14,16 @@ import dev.architectury.networking.NetworkManager;
 import io.github.manasmods.manascore.skill.api.EntityEvents;
 import io.github.manasmods.manascore.team.ManasCoreTeam;
 import io.github.manasmods.manascore.team.api.*;
-import io.github.manasmods.manascore.team.api.template.LeaveReason;
-import io.github.manasmods.manascore.team.api.template.LimitPolicy;
-import io.github.manasmods.manascore.team.api.template.TeamEvents;
-import io.github.manasmods.manascore.team.api.template.TeamShape;
+import io.github.manasmods.manascore.team.api.template.*;
 import io.github.manasmods.manascore.team.impl.network.s2c.RemoveTeamPayload;
 import io.github.manasmods.manascore.team.impl.network.s2c.SyncInvitesPayload;
+import io.github.manasmods.manascore.team.impl.network.s2c.SyncNamesPayload;
 import io.github.manasmods.manascore.team.impl.network.s2c.SyncTeamPayload;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.GameProfileCache;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -81,37 +82,56 @@ public final class TeamManager {
         return id;
     }
 
-    public static <T extends Team> Optional<T> createTeam(TeamType<T> type, LivingEntity owner) {
-        if (!isServer(owner, "createTeam")) return Optional.empty();
-        if (type.getShape() != TeamShape.GROUP) return Optional.empty();
+    private record CreateOutcome<T extends Team>(TeamResult result, @Nullable T team) {
+    }
+
+    private static <T extends Team> CreateOutcome<T> createTeamInternal(TeamType<T> type, LivingEntity owner) {
+        if (!isServer(owner, "createTeam")) return new CreateOutcome<>(TeamResult.CLIENT_SIDE, null);
+        if (type.getShape() != TeamShape.GROUP) return new CreateOutcome<>(TeamResult.WRONG_SHAPE, null);
         LivingEntity resolved = type.resolveMember(owner);
         TeamStorage storage = storageOf(resolved);
-        if (storage == null) return Optional.empty();
+        if (storage == null) return new CreateOutcome<>(TeamResult.NOT_FOUND, null);
 
         MinecraftServer server = serverOf(resolved);
         List<UUID> evict = planEvictions(server, type, resolved, storage);
-        if (evict == null) return Optional.empty();
-        if (TeamEvents.TEAM_CREATE.invoker().create(type, resolved).isFalse()) return Optional.empty();
+        if (evict == null) return new CreateOutcome<>(TeamResult.LIMIT_REACHED, null);
+        if (TeamEvents.TEAM_CREATE.invoker().create(type, resolved).isFalse()) return new CreateOutcome<>(TeamResult.CANCELLED, null);
         applyEvictions(server, type, resolved, storage, evict);
 
         T team = type.createTeam(UUID.randomUUID(), resolved.getUUID());
+        Team.Internals.setOwnerName(team, nameOf(server, resolved.getUUID()).orElse(null));
         TeamSavedData.get(server).putTeam(team);
         storage.addTeamId(idOf(type), team.getId());
         type.onTeamCreated(team);
         TeamEvents.TEAM_CREATED.invoker().run(team);
         syncTeam(server, team);
-        return Optional.of(team);
+        return new CreateOutcome<>(TeamResult.ACCEPTED, team);
+    }
+
+    public static <T extends Team> TeamResult tryCreateTeam(TeamType<T> type, LivingEntity owner) {
+        return createTeamInternal(type, owner).result();
+    }
+
+    public static <T extends Team> Optional<T> createTeam(TeamType<T> type, LivingEntity owner) {
+        return Optional.ofNullable(createTeamInternal(type, owner).team());
+    }
+
+    public static TeamResult tryDisbandTeam(MinecraftServer server, Team team) {
+        if (TeamEvents.TEAM_DISBAND.invoker().run(team).isFalse()) return TeamResult.CANCELLED;
+        disbandInternal(server, team);
+        return TeamResult.ACCEPTED;
     }
 
     public static boolean disbandTeam(MinecraftServer server, Team team) {
-        if (TeamEvents.TEAM_DISBAND.invoker().run(team).isFalse()) return false;
-        disbandInternal(server, team);
-        return true;
+        return tryDisbandTeam(server, team).isAccepted();
     }
 
     private static void disbandInternal(MinecraftServer server, Team team) {
         TeamSavedData data = TeamSavedData.get(server);
         ResourceLocation typeId = idOf(team.getType());
+        data.getInvites().removeIf(invite -> invite.teamId().equals(team.getId()));
+        syncTeamInvites(server, team);
+
         for (UUID member : new ArrayList<>(team.getMembers())) {
             Team.Internals.removeMember(team, member);
             TeamStorage storage = storageOf(server, member);
@@ -122,28 +142,31 @@ public final class TeamManager {
             TeamEvents.MEMBER_LEFT.invoker().run(team, member, LeaveReason.DISBAND);
         }
 
-        data.getInvites().removeIf(invite -> invite.teamId().equals(team.getId()));
         data.removeTeam(team.getId());
         typeOf(team).onTeamDisbanded(cast(team));
         TeamEvents.TEAM_DISBANDED.invoker().run(team);
     }
 
-    public static boolean addMember(Team team, LivingEntity entity) {
-        if (!isServer(entity, "addMember")) return false;
+    /**
+     * Under LEAVE_OLDEST the evictions are applied before the final team check, so NOT_FOUND
+     * can be returned after the entity already left older teams.
+     */
+    public static TeamResult tryAddMember(Team team, LivingEntity entity) {
+        if (!isServer(entity, "addMember")) return TeamResult.CLIENT_SIDE;
         TeamType<Team> type = typeOf(team);
         LivingEntity resolved = type.resolveMember(entity);
         TeamStorage storage = storageOf(resolved);
-        if (storage == null) return false;
-        if (team.isMember(resolved)) return false;
-        if (team.size() >= type.getMaxMembers()) return false;
-        if (!type.canJoin(team, resolved)) return false;
+        if (storage == null) return TeamResult.NOT_FOUND;
+        if (team.isMember(resolved)) return TeamResult.ALREADY_MEMBER;
+        if (team.size() >= type.getMaxMembers()) return TeamResult.TEAM_FULL;
+        if (!type.canJoin(team, resolved)) return TeamResult.NOT_ALLOWED;
 
         MinecraftServer server = serverOf(resolved);
         List<UUID> evict = planEvictions(server, type, resolved, storage);
-        if (evict == null) return false;
-        if (TeamEvents.MEMBER_JOIN.invoker().run(team, resolved).isFalse()) return false;
+        if (evict == null) return TeamResult.LIMIT_REACHED;
+        if (TeamEvents.MEMBER_JOIN.invoker().run(team, resolved).isFalse()) return TeamResult.CANCELLED;
         applyEvictions(server, type, resolved, storage, evict);
-        if (TeamSavedData.get(server).getTeam(team.getId()).isEmpty()) return false;
+        if (TeamSavedData.get(server).getTeam(team.getId()).isEmpty()) return TeamResult.NOT_FOUND;
 
         Team.Internals.addMember(team, resolved.getUUID());
         storage.addTeamId(idOf(type), team.getId());
@@ -151,17 +174,21 @@ public final class TeamManager {
         type.onMemberAdded(team, resolved.getUUID());
         TeamEvents.MEMBER_JOINED.invoker().run(team, resolved);
         syncTeam(server, team);
-        return true;
+        return TeamResult.ACCEPTED;
+    }
+
+    public static boolean addMember(Team team, LivingEntity entity) {
+        return tryAddMember(team, entity).isAccepted();
     }
 
     /**
      * Removes a member. {@code entity} is the loaded entity when available; null for offline
      * or dead members. {@link TeamEvents#MEMBER_LEAVE} fires only for LEAVE and KICK.
      */
-    public static boolean removeMember(MinecraftServer server, Team team, UUID memberId, @Nullable LivingEntity entity, LeaveReason reason) {
-        if (!team.isMember(memberId)) return false;
+    public static TeamResult tryRemoveMember(MinecraftServer server, Team team, UUID memberId, @Nullable LivingEntity entity, LeaveReason reason) {
+        if (!team.isMember(memberId)) return TeamResult.NOT_MEMBER;
         boolean cancellable = reason == LeaveReason.LEAVE || reason == LeaveReason.KICK;
-        if (cancellable && entity != null && TeamEvents.MEMBER_LEAVE.invoker().run(team, entity, reason).isFalse()) return false;
+        if (cancellable && entity != null && TeamEvents.MEMBER_LEAVE.invoker().run(team, entity, reason).isFalse()) return TeamResult.CANCELLED;
 
         TeamType<Team> type = typeOf(team);
         boolean wasOwner = team.isOwner(memberId);
@@ -174,58 +201,140 @@ public final class TeamManager {
 
         if (team.size() == 0) {
             disbandInternal(server, team);
-            return true;
+            return TeamResult.ACCEPTED;
         }
 
         if (wasOwner) {
             UUID newOwner = type.pickNewOwner(team);
             if (newOwner == null || !team.isMember(newOwner)) {
                 disbandInternal(server, team);
-                return true;
+                return TeamResult.ACCEPTED;
             }
             Team.Internals.setOwner(team, newOwner);
+            Team.Internals.setOwnerName(team, nameOf(server, newOwner).orElse(null));
             TeamEvents.OWNER_CHANGED.invoker().run(team, memberId, newOwner);
         }
 
         TeamSavedData.get(server).setDirty();
         syncTeam(server, team);
-        return true;
+        return TeamResult.ACCEPTED;
+    }
+
+    public static boolean removeMember(MinecraftServer server, Team team, UUID memberId, @Nullable LivingEntity entity, LeaveReason reason) {
+        return tryRemoveMember(server, team, memberId, entity, reason).isAccepted();
+    }
+
+    public static TeamResult trySetOwner(MinecraftServer server, Team team, UUID target) {
+        if (!team.isMember(target)) return TeamResult.NOT_MEMBER;
+        if (team.isOwner(target)) return TeamResult.UNCHANGED;
+
+        UUID old = team.getOwner();
+        Team.Internals.setOwner(team, target);
+        Team.Internals.setOwnerName(team, nameOf(server, target).orElse(null));
+        TeamSavedData.get(server).setDirty();
+        TeamEvents.OWNER_CHANGED.invoker().run(team, old, target);
+        syncTeam(server, team);
+        return TeamResult.ACCEPTED;
+    }
+
+    public static TeamResult trySetOwner(Team team, LivingEntity entity) {
+        if (!isServer(entity, "setOwner")) return TeamResult.CLIENT_SIDE;
+        LivingEntity resolved = typeOf(team).resolveMember(entity);
+        return trySetOwner(serverOf(resolved), team, resolved.getUUID());
     }
 
     public static boolean setOwner(Team team, LivingEntity entity) {
-        if (!isServer(entity, "setOwner")) return false;
-        LivingEntity resolved = typeOf(team).resolveMember(entity);
-        if (!team.isMember(resolved)) return false;
-        if (team.isOwner(resolved)) return false;
-
-        UUID old = team.getOwner();
-        Team.Internals.setOwner(team, resolved.getUUID());
-        MinecraftServer server = serverOf(resolved);
-        TeamSavedData.get(server).setDirty();
-        TeamEvents.OWNER_CHANGED.invoker().run(team, old, resolved.getUUID());
-        syncTeam(server, team);
-        return true;
+        return trySetOwner(team, entity).isAccepted();
     }
 
-    public static boolean setTeamName(MinecraftServer server, Team team, @Nullable String name) {
+    public static TeamResult tryKick(Team team, LivingEntity actor, UUID target) {
+        if (!isServer(actor, "kick")) return TeamResult.CLIENT_SIDE;
+        TeamType<Team> type = typeOf(team);
+        LivingEntity resolvedActor = type.resolveMember(actor);
+        if (!type.canKick(team, resolvedActor, target)) {
+            ManasCoreTeam.LOG.debug("Kick refused ({}): team {} actor {} target {}", TeamResult.NOT_ALLOWED, team.getId(), resolvedActor.getUUID(), target);
+            return TeamResult.NOT_ALLOWED;
+        }
+        MinecraftServer server = serverOf(resolvedActor);
+        return tryRemoveMember(server, team, target, Team.findLoaded(server, target), LeaveReason.KICK);
+    }
+
+    public static boolean kick(Team team, LivingEntity actor, UUID target) {
+        return tryKick(team, actor, target).isAccepted();
+    }
+
+    public static TeamResult tryPromote(Team team, LivingEntity actor, UUID target) {
+        if (!isServer(actor, "promote")) return TeamResult.CLIENT_SIDE;
+        TeamType<Team> type = typeOf(team);
+        LivingEntity resolvedActor = type.resolveMember(actor);
+        if (!type.canPromote(team, resolvedActor, target)) {
+            ManasCoreTeam.LOG.debug("Promote refused ({}): team {} actor {} target {}", TeamResult.NOT_ALLOWED, team.getId(), resolvedActor.getUUID(), target);
+            return TeamResult.NOT_ALLOWED;
+        }
+        return trySetOwner(serverOf(resolvedActor), team, target);
+    }
+
+    public static boolean promote(Team team, LivingEntity actor, UUID target) {
+        return tryPromote(team, actor, target).isAccepted();
+    }
+
+    public static TeamResult tryLeave(Team team, LivingEntity actor) {
+        if (!isServer(actor, "leave")) return TeamResult.CLIENT_SIDE;
+        TeamType<Team> type = typeOf(team);
+        LivingEntity resolvedActor = type.resolveMember(actor);
+        if (!type.canLeave(team, resolvedActor)) {
+            ManasCoreTeam.LOG.debug("Leave refused ({}): team {} actor {}", TeamResult.NOT_ALLOWED, team.getId(), resolvedActor.getUUID());
+            return TeamResult.NOT_ALLOWED;
+        }
+        return tryRemoveMember(serverOf(resolvedActor), team, resolvedActor.getUUID(), resolvedActor, LeaveReason.LEAVE);
+    }
+
+    public static boolean leave(Team team, LivingEntity actor) {
+        return tryLeave(team, actor).isAccepted();
+    }
+
+    public static TeamResult tryDisband(Team team, LivingEntity actor) {
+        if (!isServer(actor, "disband")) return TeamResult.CLIENT_SIDE;
+        TeamType<Team> type = typeOf(team);
+        LivingEntity resolvedActor = type.resolveMember(actor);
+        if (!type.canDisband(team, resolvedActor)) {
+            ManasCoreTeam.LOG.debug("Disband refused ({}): team {} actor {}", TeamResult.NOT_ALLOWED, team.getId(), resolvedActor.getUUID());
+            return TeamResult.NOT_ALLOWED;
+        }
+        return tryDisbandTeam(serverOf(resolvedActor), team);
+    }
+
+    public static boolean disband(Team team, LivingEntity actor) {
+        return tryDisband(team, actor).isAccepted();
+    }
+
+    public static TeamResult trySetTeamName(MinecraftServer server, Team team, @Nullable String name) {
         String sanitized = sanitizeName(name);
         String old = team.getName();
-        if (Objects.equals(old, sanitized)) return false;
-        if (sanitized != null && sanitized.length() > typeOf(team).getMaxNameLength()) return false;
+        if (Objects.equals(old, sanitized)) return TeamResult.UNCHANGED;
+        if (sanitized != null && sanitized.length() > typeOf(team).getMaxNameLength()) return TeamResult.INVALID;
 
         Team.Internals.setName(team, sanitized);
         TeamSavedData.get(server).setDirty();
         TeamEvents.TEAM_RENAMED.invoker().run(team, old, sanitized);
         syncTeam(server, team);
-        return true;
+        return TeamResult.ACCEPTED;
+    }
+
+    public static boolean setTeamName(MinecraftServer server, Team team, @Nullable String name) {
+        return trySetTeamName(server, team, name).isAccepted();
+    }
+
+    public static TeamResult trySetTeamName(Team team, LivingEntity actor, @Nullable String name) {
+        if (!isServer(actor, "setTeamName")) return TeamResult.CLIENT_SIDE;
+        TeamType<Team> type = typeOf(team);
+        LivingEntity resolved = type.resolveMember(actor);
+        if (!type.canRename(team, resolved)) return TeamResult.NOT_ALLOWED;
+        return trySetTeamName(serverOf(resolved), team, name);
     }
 
     public static boolean setTeamName(Team team, LivingEntity actor, @Nullable String name) {
-        if (!isServer(actor, "setTeamName")) return false;
-        TeamType<Team> type = typeOf(team);
-        LivingEntity resolved = type.resolveMember(actor);
-        if (!type.canRename(team, resolved)) return false;
-        return setTeamName(serverOf(resolved), team, name);
+        return trySetTeamName(team, actor, name).isAccepted();
     }
 
     @Nullable
@@ -294,7 +403,7 @@ public final class TeamManager {
     }
 
     public static void syncTeam(MinecraftServer server, Team team) {
-        SyncTeamPayload payload = new SyncTeamPayload(idOf(team.getType()), TeamSavedData.serialize(team));
+        SyncTeamPayload payload = new SyncTeamPayload(idOf(team.getType()), TeamSavedData.serialize(team), namesFor(server, namedMembers(team)));
         for (LivingEntity member : team.getOnlineMembers(server)) {
             if (member instanceof ServerPlayer player) NetworkManager.sendToPlayer(player, payload);
         }
@@ -311,9 +420,37 @@ public final class TeamManager {
         if (server == null) return;
         for (Team team : TeamSavedData.get(server).getTeams()) {
             if (!team.isMember(player)) continue;
-            SyncTeamPayload payload = new SyncTeamPayload(idOf(team.getType()), TeamSavedData.serialize(team));
+            SyncTeamPayload payload = new SyncTeamPayload(idOf(team.getType()), TeamSavedData.serialize(team), namesFor(server, namedMembers(team)));
             NetworkManager.sendToPlayer(player, payload);
         }
+    }
+
+    private static Set<UUID> namedMembers(Team team) {
+        Set<UUID> ids = new LinkedHashSet<>(team.getMembers());
+        ids.add(team.getOwner());
+        return ids;
+    }
+
+    /** Online player's profile name, else the last-known saved name, else the profile cache. */
+    public static Optional<String> nameOf(MinecraftServer server, UUID id) {
+        ServerPlayer online = server.getPlayerList().getPlayer(id);
+        if (online != null) return Optional.of(online.getGameProfile().getName());
+
+        Optional<String> saved = TeamSavedData.get(server).getName(id);
+        if (saved.isPresent()) return saved;
+
+        GameProfileCache cache = server.getProfileCache();
+        return cache == null ? Optional.empty() : cache.get(id).map(GameProfile::getName);
+    }
+
+    public static Optional<MemberInfo> memberInfo(MinecraftServer server, UUID id) {
+        return nameOf(server, id).map(name -> new MemberInfo(id, Component.literal(name), server.getPlayerList().getPlayer(id) != null));
+    }
+
+    public static Map<UUID, String> namesFor(MinecraftServer server, Collection<UUID> ids) {
+        Map<UUID, String> result = new LinkedHashMap<>();
+        for (UUID id : ids) nameOf(server, id).ifPresent(name -> result.put(id, name));
+        return result;
     }
 
     /**
@@ -349,6 +486,18 @@ public final class TeamManager {
         }
 
         reconcileRelations(server, player.getUUID(), storage);
+        syncRelationNames(server, player);
+    }
+
+    /** Sends last-known names for every relation the player has, in either direction, across every type. */
+    public static void syncRelationNames(MinecraftServer server, ServerPlayer player) {
+        TeamSavedData data = TeamSavedData.get(server);
+        UUID uuid = player.getUUID();
+        Set<UUID> ids = new LinkedHashSet<>();
+        for (Set<UUID> related : data.getAllRelated(uuid).values()) ids.addAll(related);
+        for (Set<UUID> related : data.getAllRelatedBy(uuid).values()) ids.addAll(related);
+        if (ids.isEmpty()) return;
+        sendNames(server, player, ids);
     }
 
     /**
@@ -372,22 +521,41 @@ public final class TeamManager {
         Set<ResourceLocation> relationTypes = new LinkedHashSet<>(storage.getAllRelated().keySet());
         relationTypes.addAll(data.getAllRelated(uuid).keySet());
         for (ResourceLocation typeId : relationTypes) storage.setRelated(typeId, data.getRelated(typeId, uuid));
+
+        Set<ResourceLocation> inboundTypes = new LinkedHashSet<>(storage.getAllRelatedBy().keySet());
+        inboundTypes.addAll(data.getAllRelatedBy(uuid).keySet());
+        for (ResourceLocation typeId : inboundTypes) storage.setInbound(typeId, data.getRelatedBy(typeId, uuid));
     }
 
-    public static Optional<TeamInvite> invite(Team team, LivingEntity inviter, LivingEntity invitee) {
-        if (!isServer(inviter, "invite")) return Optional.empty();
+    private record InviteOutcome(TeamResult result, @Nullable TeamInvite invite) {
+    }
+
+    private static InviteOutcome inviteInternal(Team team, LivingEntity inviter, LivingEntity invitee) {
+        if (!isServer(inviter, "invite")) return new InviteOutcome(TeamResult.CLIENT_SIDE, null);
         TeamType<Team> type = typeOf(team);
         LivingEntity resolvedInviter = type.resolveMember(inviter);
         LivingEntity resolvedInvitee = type.resolveMember(invitee);
         if (team.isMember(resolvedInvitee)) {
-            ManasCoreTeam.LOG.debug("Invite refused ({}): team {} inviter {} invitee {}", "already-member", team.getId(), resolvedInviter.getUUID(), resolvedInvitee.getUUID());
-            return Optional.empty();
+            ManasCoreTeam.LOG.debug("Invite refused ({}): team {} inviter {} invitee {}", TeamResult.ALREADY_MEMBER, team.getId(), resolvedInviter.getUUID(), resolvedInvitee.getUUID());
+            return new InviteOutcome(TeamResult.ALREADY_MEMBER, null);
+        }
+        if (team.size() >= type.getMaxMembers()) {
+            ManasCoreTeam.LOG.debug("Invite refused ({}): team {} inviter {} invitee {}", TeamResult.TEAM_FULL, team.getId(), resolvedInviter.getUUID(), resolvedInvitee.getUUID());
+            return new InviteOutcome(TeamResult.TEAM_FULL, null);
         }
         if (!type.canInvite(team, resolvedInviter, resolvedInvitee)) {
-            ManasCoreTeam.LOG.debug("Invite refused ({}): team {} inviter {} invitee {}", "not-allowed", team.getId(), resolvedInviter.getUUID(), resolvedInvitee.getUUID());
-            return Optional.empty();
+            ManasCoreTeam.LOG.debug("Invite refused ({}): team {} inviter {} invitee {}", TeamResult.NOT_ALLOWED, team.getId(), resolvedInviter.getUUID(), resolvedInvitee.getUUID());
+            return new InviteOutcome(TeamResult.NOT_ALLOWED, null);
         }
         return createInvite(serverOf(inviter), team.getId(), idOf(type), resolvedInviter, resolvedInvitee, type.getInviteTimeoutTicks());
+    }
+
+    public static TeamResult tryInvite(Team team, LivingEntity inviter, LivingEntity invitee) {
+        return inviteInternal(team, inviter, invitee).result();
+    }
+
+    public static Optional<TeamInvite> invite(Team team, LivingEntity inviter, LivingEntity invitee) {
+        return Optional.ofNullable(inviteInternal(team, inviter, invitee).invite());
     }
 
     /** Server only. Online players this team may still invite, with every limit and hook applied. */
@@ -396,13 +564,18 @@ public final class TeamManager {
         TeamType<Team> type = typeOf(team);
         if (team.size() >= type.getMaxMembers()) return List.of();
 
+        Set<UUID> pending = new HashSet<>();
+        for (TeamInvite invite : TeamSavedData.get(server).getInvites()) {
+            if (invite.teamId().equals(team.getId())) pending.add(invite.invitee());
+        }
+
         LivingEntity resolvedRequester = type.resolveMember(requester);
         List<ServerPlayer> result = new ArrayList<>();
         for (ServerPlayer p : server.getPlayerList().getPlayers()) {
             LivingEntity candidate = type.resolveMember(p);
             if (candidate.getUUID().equals(resolvedRequester.getUUID())) continue;
             if (team.isMember(candidate)) continue;
-            if (hasPendingInvite(server, team, candidate.getUUID())) continue;
+            if (pending.contains(candidate.getUUID())) continue;
             if (!type.canInvite(team, resolvedRequester, candidate)) continue;
             if (!type.canJoin(team, candidate)) continue;
             TeamStorage storage = storageOf(candidate);
@@ -426,61 +599,80 @@ public final class TeamManager {
         return TeamSavedData.get(server).findInvite(invitee, team.getId()).isPresent();
     }
 
-    private static Optional<TeamInvite> createInvite(MinecraftServer server, UUID teamId, ResourceLocation typeId, LivingEntity inviter, LivingEntity invitee, int timeoutTicks) {
+    private static InviteOutcome createInvite(MinecraftServer server, UUID teamId, ResourceLocation typeId, LivingEntity inviter, LivingEntity invitee, int timeoutTicks) {
         TeamSavedData data = TeamSavedData.get(server);
         if (data.findInvite(invitee.getUUID(), teamId).isPresent()) {
-            ManasCoreTeam.LOG.debug("Invite refused ({}): team {} inviter {} invitee {}", "pending", teamId, inviter.getUUID(), invitee.getUUID());
-            return Optional.empty();
+            ManasCoreTeam.LOG.debug("Invite refused ({}): team {} inviter {} invitee {}", TeamResult.INVITE_PENDING, teamId, inviter.getUUID(), invitee.getUUID());
+            return new InviteOutcome(TeamResult.INVITE_PENDING, null);
         }
         TeamInvite invite = new TeamInvite(teamId, typeId, inviter.getUUID(), invitee.getUUID(), server.getTickCount() + timeoutTicks);
         if (TeamEvents.INVITE_SEND.invoker().run(invite).isFalse()) {
-            ManasCoreTeam.LOG.debug("Invite refused ({}): team {} inviter {} invitee {}", "cancelled", teamId, inviter.getUUID(), invitee.getUUID());
-            return Optional.empty();
+            ManasCoreTeam.LOG.debug("Invite refused ({}): team {} inviter {} invitee {}", TeamResult.CANCELLED, teamId, inviter.getUUID(), invitee.getUUID());
+            return new InviteOutcome(TeamResult.CANCELLED, null);
         }
 
         data.getInvites().add(invite);
         syncInvites(server, invite.invitee());
-        return Optional.of(invite);
+        data.getTeam(teamId).ifPresent(team -> syncTeamInvites(server, team));
+        return new InviteOutcome(TeamResult.ACCEPTED, invite);
     }
 
     /**
-     * Returns false when the invite does not exist, the type is unknown or the join was rejected.
+     * An invite of an unregistered type is removed and synced before NOT_FOUND is returned;
+     * the join result (for example TEAM_FULL) is propagated as-is.
      */
-    public static boolean acceptInvite(LivingEntity invitee, UUID teamId) {
-        if (!isServer(invitee, "acceptInvite")) return false;
+    public static TeamResult tryAcceptInvite(LivingEntity invitee, UUID teamId) {
+        if (!isServer(invitee, "acceptInvite")) return TeamResult.CLIENT_SIDE;
         MinecraftServer server = serverOf(invitee);
         TeamSavedData data = TeamSavedData.get(server);
         Optional<TeamInvite> optional = data.findInvite(invitee.getUUID(), teamId);
-        if (optional.isEmpty()) return false;
+        if (optional.isEmpty()) return TeamResult.NOT_FOUND;
 
         TeamInvite invite = optional.get();
         TeamType<?> type = TeamRegistry.TEAM_TYPES.get(invite.typeId());
         if (type == null) {
             data.getInvites().remove(invite);
             syncInvites(server, invitee.getUUID());
-            return false;
+            data.getTeam(invite.teamId()).ifPresent(team -> syncTeamInvites(server, team));
+            return TeamResult.NOT_FOUND;
         }
 
         Optional<Team> team = data.getTeam(invite.teamId());
-        if (team.isEmpty() || !addMember(team.get(), invitee)) return false;
+        if (team.isEmpty()) return TeamResult.NOT_FOUND;
+        TeamResult joinResult = tryAddMember(team.get(), invitee);
+        if (!joinResult.isAccepted()) return joinResult;
 
         data.getInvites().remove(invite);
         TeamEvents.INVITE_ACCEPTED.invoker().run(invite);
         syncInvites(server, invitee.getUUID());
-        return true;
+        syncTeamInvites(server, team.get());
+        return TeamResult.ACCEPTED;
     }
 
-    public static boolean declineInvite(LivingEntity invitee, UUID teamId) {
-        if (!isServer(invitee, "declineInvite")) return false;
+    /**
+     * Returns false when the invite does not exist, the type is unknown or the join was rejected.
+     */
+    public static boolean acceptInvite(LivingEntity invitee, UUID teamId) {
+        return tryAcceptInvite(invitee, teamId).isAccepted();
+    }
+
+    public static TeamResult tryDeclineInvite(LivingEntity invitee, UUID teamId) {
+        if (!isServer(invitee, "declineInvite")) return TeamResult.CLIENT_SIDE;
         MinecraftServer server = serverOf(invitee);
         TeamSavedData data = TeamSavedData.get(server);
         Optional<TeamInvite> optional = data.findInvite(invitee.getUUID(), teamId);
 
-        if (optional.isEmpty()) return false;
-        data.getInvites().remove(optional.get());
-        TeamEvents.INVITE_DECLINED.invoker().run(optional.get());
+        if (optional.isEmpty()) return TeamResult.NOT_FOUND;
+        TeamInvite invite = optional.get();
+        data.getInvites().remove(invite);
+        TeamEvents.INVITE_DECLINED.invoker().run(invite);
         syncInvites(server, invitee.getUUID());
-        return true;
+        data.getTeam(invite.teamId()).ifPresent(team -> syncTeamInvites(server, team));
+        return TeamResult.ACCEPTED;
+    }
+
+    public static boolean declineInvite(LivingEntity invitee, UUID teamId) {
+        return tryDeclineInvite(invitee, teamId).isAccepted();
     }
 
     public static List<TeamInvite> getPendingInvites(MinecraftServer server, UUID invitee) {
@@ -490,8 +682,24 @@ public final class TeamManager {
     public static void syncInvites(MinecraftServer server, UUID invitee) {
         ServerPlayer player = server.getPlayerList().getPlayer(invitee);
         if (player == null) return;
-        List<TeamInvite> invites = getPendingInvites(server, invitee);
-        NetworkManager.sendToPlayer(player, new SyncInvitesPayload(invites));
+        TeamSavedData data = TeamSavedData.get(server);
+        List<TeamInvite> incoming = data.getInvitesFor(invitee);
+        List<TeamInvite> outgoing = new ArrayList<>();
+        for (TeamInvite invite : data.getInvites()) {
+            Optional<Team> team = data.getTeam(invite.teamId());
+            if (team.isPresent() && team.get().isMember(invitee)) outgoing.add(invite);
+        }
+
+        Set<UUID> named = new LinkedHashSet<>();
+        for (TeamInvite invite : incoming) named.add(invite.inviter());
+        for (TeamInvite invite : outgoing) named.add(invite.invitee());
+        NetworkManager.sendToPlayer(player, new SyncInvitesPayload(incoming, outgoing, namesFor(server, named)));
+    }
+
+    private static void syncTeamInvites(MinecraftServer server, Team team) {
+        for (LivingEntity member : team.getOnlineMembers(server)) {
+            if (member instanceof ServerPlayer player) syncInvites(server, player.getUUID());
+        }
     }
 
     public static void expireInvites(MinecraftServer server) {
@@ -507,44 +715,64 @@ public final class TeamManager {
         data.getInvites().removeAll(expired);
 
         Set<UUID> affected = new LinkedHashSet<>();
+        Set<UUID> affectedTeams = new LinkedHashSet<>();
         for (TeamInvite invite : expired) {
             affected.add(invite.invitee());
+            affectedTeams.add(invite.teamId());
             TeamEvents.INVITE_EXPIRED.invoker().run(invite);
         }
         for (UUID invitee : affected) syncInvites(server, invitee);
+        for (UUID teamId : affectedTeams) data.getTeam(teamId).ifPresent(team -> syncTeamInvites(server, team));
     }
 
-    public static boolean addRelation(MinecraftServer server, TeamType<?> type, UUID a, UUID b) {
-        if (type.getShape() != TeamShape.RELATION) return false;
-        if (a.equals(b)) return false;
-        if (TeamEvents.RELATION_ADD.invoker().run(type, a, b).isFalse()) return false;
+    public static TeamResult tryAddRelation(MinecraftServer server, TeamType<?> type, UUID a, UUID b) {
+        if (type.getShape() != TeamShape.RELATION) return TeamResult.WRONG_SHAPE;
+        if (a.equals(b)) return TeamResult.INVALID;
 
         ResourceLocation typeId = idOf(type);
         TeamSavedData data = TeamSavedData.get(server);
+        if (data.getRelated(typeId, a).size() >= type.getMaxRelations()) {
+            ManasCoreTeam.LOG.debug("Add relation refused ({}): type {} a {} b {}", TeamResult.LIMIT_REACHED, typeId, a, b);
+            return TeamResult.LIMIT_REACHED;
+        }
+        if (type.isSymmetricRelation() && !data.getRelated(typeId, b).contains(a) && data.getRelated(typeId, b).size() >= type.getMaxRelations()) {
+            ManasCoreTeam.LOG.debug("Add relation refused ({}): type {} a {} b {}", TeamResult.LIMIT_REACHED, typeId, a, b);
+            return TeamResult.LIMIT_REACHED;
+        }
+        if (TeamEvents.RELATION_ADD.invoker().run(type, a, b).isFalse()) return TeamResult.CANCELLED;
+
         boolean changed = data.addRelated(typeId, a, b);
         if (type.isSymmetricRelation()) changed |= data.addRelated(typeId, b, a);
-        if (!changed) return false;
+        if (!changed) return TeamResult.UNCHANGED;
 
         mirrorAdd(server, typeId, a, b);
         if (type.isSymmetricRelation()) mirrorAdd(server, typeId, b, a);
         TeamEvents.RELATION_ADDED.invoker().run(type, a, b);
-        return true;
+        return TeamResult.ACCEPTED;
     }
 
-    public static boolean removeRelation(MinecraftServer server, TeamType<?> type, UUID a, UUID b) {
-        if (type.getShape() != TeamShape.RELATION) return false;
-        if (a.equals(b)) return false;
+    public static boolean addRelation(MinecraftServer server, TeamType<?> type, UUID a, UUID b) {
+        return tryAddRelation(server, type, a, b).isAccepted();
+    }
+
+    public static TeamResult tryRemoveRelation(MinecraftServer server, TeamType<?> type, UUID a, UUID b) {
+        if (type.getShape() != TeamShape.RELATION) return TeamResult.WRONG_SHAPE;
+        if (a.equals(b)) return TeamResult.INVALID;
 
         ResourceLocation typeId = idOf(type);
         TeamSavedData data = TeamSavedData.get(server);
         boolean changed = data.removeRelated(typeId, a, b);
         if (type.isSymmetricRelation()) changed |= data.removeRelated(typeId, b, a);
-        if (!changed) return false;
+        if (!changed) return TeamResult.UNCHANGED;
 
         mirrorRemove(server, typeId, a, b);
         if (type.isSymmetricRelation()) mirrorRemove(server, typeId, b, a);
         TeamEvents.RELATION_REMOVED.invoker().run(type, a, b);
-        return true;
+        return TeamResult.ACCEPTED;
+    }
+
+    public static boolean removeRelation(MinecraftServer server, TeamType<?> type, UUID a, UUID b) {
+        return tryRemoveRelation(server, type, a, b).isAccepted();
     }
 
     public static boolean hasRelation(MinecraftServer server, TeamType<?> type, UUID a, UUID b) {
@@ -557,30 +785,63 @@ public final class TeamManager {
         return TeamSavedData.get(server).getRelated(idOf(type), entity);
     }
 
-    /** Adds {@code other} to {@code entity}'s loaded storage, if any, without touching the rest of its set. */
+    public static Set<UUID> getRelatedBy(MinecraftServer server, TeamType<?> type, UUID entity) {
+        return TeamSavedData.get(server).getRelatedBy(idOf(type), entity);
+    }
+
+    /**
+     * Adds {@code other} to {@code entity}'s loaded storage, if any, without touching the rest of
+     * its set; mirrors the inbound side onto {@code other}'s loaded storage as well.
+     */
     private static void mirrorAdd(MinecraftServer server, ResourceLocation typeId, UUID entity, UUID other) {
         TeamStorage storage = storageOf(server, entity);
         if (storage != null) storage.addRelated(typeId, other);
+        TeamStorage otherStorage = storageOf(server, other);
+        if (otherStorage != null) otherStorage.addInbound(typeId, entity);
+
+        ServerPlayer entityPlayer = server.getPlayerList().getPlayer(entity);
+        if (entityPlayer != null) sendNames(server, entityPlayer, List.of(other));
+        ServerPlayer otherPlayer = server.getPlayerList().getPlayer(other);
+        if (otherPlayer != null) sendNames(server, otherPlayer, List.of(entity));
     }
 
-    /** Removes {@code other} from {@code entity}'s loaded storage, if any, without touching the rest of its set. */
+    /** Sends last-known names for {@code ids} to {@code target}, if any resolve. */
+    private static void sendNames(MinecraftServer server, ServerPlayer target, Collection<UUID> ids) {
+        Map<UUID, String> names = namesFor(server, ids);
+        if (!names.isEmpty()) NetworkManager.sendToPlayer(target, new SyncNamesPayload(names));
+    }
+
+    /**
+     * Removes {@code other} from {@code entity}'s loaded storage, if any, without touching the
+     * rest of its set; mirrors the inbound side off {@code other}'s loaded storage as well.
+     */
     private static void mirrorRemove(MinecraftServer server, ResourceLocation typeId, UUID entity, UUID other) {
         TeamStorage storage = storageOf(server, entity);
         if (storage != null) storage.removeRelated(typeId, other);
+        TeamStorage otherStorage = storageOf(server, other);
+        if (otherStorage != null) otherStorage.removeInbound(typeId, entity);
+    }
+
+    public static TeamResult tryAddRelation(TeamType<?> type, LivingEntity a, LivingEntity b) {
+        if (!isServer(a, "addRelation")) return TeamResult.CLIENT_SIDE;
+        LivingEntity ra = type.resolveMember(a);
+        LivingEntity rb = type.resolveMember(b);
+        return tryAddRelation(serverOf(ra), type, ra.getUUID(), rb.getUUID());
     }
 
     public static boolean addRelation(TeamType<?> type, LivingEntity a, LivingEntity b) {
-        if (!isServer(a, "addRelation")) return false;
+        return tryAddRelation(type, a, b).isAccepted();
+    }
+
+    public static TeamResult tryRemoveRelation(TeamType<?> type, LivingEntity a, LivingEntity b) {
+        if (!isServer(a, "removeRelation")) return TeamResult.CLIENT_SIDE;
         LivingEntity ra = type.resolveMember(a);
         LivingEntity rb = type.resolveMember(b);
-        return addRelation(serverOf(ra), type, ra.getUUID(), rb.getUUID());
+        return tryRemoveRelation(serverOf(ra), type, ra.getUUID(), rb.getUUID());
     }
 
     public static boolean removeRelation(TeamType<?> type, LivingEntity a, LivingEntity b) {
-        if (!isServer(a, "removeRelation")) return false;
-        LivingEntity ra = type.resolveMember(a);
-        LivingEntity rb = type.resolveMember(b);
-        return removeRelation(serverOf(ra), type, ra.getUUID(), rb.getUUID());
+        return tryRemoveRelation(type, a, b).isAccepted();
     }
 
     public static boolean hasRelation(TeamType<?> type, LivingEntity a, LivingEntity b) {
@@ -588,10 +849,13 @@ public final class TeamManager {
         LivingEntity ra = type.resolveMember(a);
         LivingEntity rb = type.resolveMember(b);
         if (RelationResolver.teamsOf(ra).getRelated(type).contains(rb.getUUID())) return true;
-        return type.isSymmetricRelation() && RelationResolver.teamsOf(rb).getRelated(type).contains(ra.getUUID());
+        if (RelationResolver.teamsOf(rb).getRelatedBy(type).contains(ra.getUUID())) return true;
+        if (!type.isSymmetricRelation()) return false;
+        if (RelationResolver.teamsOf(rb).getRelated(type).contains(ra.getUUID())) return true;
+        return RelationResolver.teamsOf(ra).getRelatedBy(type).contains(rb.getUUID());
     }
 
-    /** Removes a dead non-player entity from every group and from every online player's relation sets. */
+    /** Removes a dead non-player entity from every group and from every relation it is part of. */
     public static void removeEverywhere(MinecraftServer server, UUID entityId) {
         TeamSavedData data = TeamSavedData.get(server);
         for (Team team : new ArrayList<>(data.getTeams())) {
@@ -599,23 +863,27 @@ public final class TeamManager {
         }
 
         Set<UUID> affected = new LinkedHashSet<>();
+        Set<UUID> affectedTeams = new LinkedHashSet<>();
         Iterator<TeamInvite> it = data.getInvites().iterator();
         while (it.hasNext()) {
             TeamInvite invite = it.next();
             if (!invite.invitee().equals(entityId) && !invite.inviter().equals(entityId)) continue;
             it.remove();
             affected.add(invite.invitee());
+            affectedTeams.add(invite.teamId());
         }
 
         affected.remove(entityId);
         for (UUID uuid : affected) syncInvites(server, uuid);
+        for (UUID teamId : affectedTeams) data.getTeam(teamId).ifPresent(team -> syncTeamInvites(server, team));
 
-        data.removeRelatedEverywhere(entityId);
-        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            TeamStorage storage = storageOf(player);
-            if (storage == null) continue;
-            for (ResourceLocation typeId : storage.getAllRelated().keySet()) storage.removeRelated(typeId, entityId);
+        for (ResourceLocation typeId : data.getAllRelatedBy(entityId).keySet()) {
+            for (UUID a : new ArrayList<>(data.getRelatedBy(typeId, entityId))) mirrorRemove(server, typeId, a, entityId);
         }
+        for (ResourceLocation typeId : data.getAllRelated(entityId).keySet()) {
+            for (UUID b : new ArrayList<>(data.getRelated(typeId, entityId))) mirrorRemove(server, typeId, entityId, b);
+        }
+        data.removeRelatedEverywhere(entityId);
     }
 
     public static void init() {
@@ -649,6 +917,17 @@ public final class TeamManager {
 
         PlayerEvent.PLAYER_JOIN.register(player -> {
             MinecraftServer server = player.getServer();
+            if (server != null) {
+                TeamSavedData data = TeamSavedData.get(server);
+                data.putName(player.getUUID(), player.getGameProfile().getName());
+                for (Team team : data.getTeams()) {
+                    if (team.isOwner(player) && !player.getGameProfile().getName().equals(team.getOwnerName())) {
+                        Team.Internals.setOwnerName(team, player.getGameProfile().getName());
+                        data.setDirty();
+                        syncTeam(server, team);
+                    }
+                }
+            }
             reconcile(player);
             syncAllFor(player);
             if (server != null) syncInvites(server, player.getUUID());
@@ -668,6 +947,12 @@ public final class TeamManager {
 
         TickEvent.SERVER_POST.register(server -> {
             if (server.getTickCount() % 20 == 0) expireInvites(server);
+            if (server.getTickCount() % 6000 == 0) {
+                TeamSavedData data = TeamSavedData.get(server);
+                Set<UUID> keep = data.referencedIds();
+                for (ServerPlayer player : server.getPlayerList().getPlayers()) keep.add(player.getUUID());
+                data.pruneNames(keep);
+            }
         });
     }
 

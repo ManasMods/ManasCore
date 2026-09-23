@@ -1,0 +1,15 @@
+{
+  "manascore.team.result.accepted": "Done",
+  "manascore.team.result.client_side": "Server only",
+  "manascore.team.result.not_found": "Not found",
+  "manascore.team.result.wrong_shape": "Wrong team type",
+  "manascore.team.result.not_allowed": "Not allowed",
+  "manascore.team.result.not_member": "Not a member",
+  "manascore.team.result.already_member": "Already a member",
+  "manascore.team.result.team_full": "Team is full",
+  "manascore.team.result.limit_reached": "Limit reached",
+  "manascore.team.result.invite_pending": "Invite already pending",
+  "manascore.team.result.invalid": "Invalid",
+  "manascore.team.result.unchanged": "Nothing changed",
+  "manascore.team.result.cancelled": "Cancelled"
+}

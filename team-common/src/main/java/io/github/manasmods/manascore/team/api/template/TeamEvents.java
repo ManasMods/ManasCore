@@ -38,6 +38,9 @@ public interface TeamEvents {
     Event<TeamEvent> CLIENT_TEAM_UPDATED = EventFactory.createLoop();
     Event<TeamRemovedEvent> CLIENT_TEAM_REMOVED = EventFactory.createLoop();
     Event<InvitesUpdatedEvent> CLIENT_INVITES_UPDATED = EventFactory.createLoop();
+    Event<ActionResultEvent> CLIENT_ACTION_RESULT = EventFactory.createLoop();
+    Event<RelationsUpdatedEvent> CLIENT_RELATIONS_UPDATED = EventFactory.createLoop();
+    Event<InvitableUpdatedEvent> CLIENT_INVITABLE_UPDATED = EventFactory.createLoop();
 
     Event<InviteSendEvent> INVITE_SEND = EventFactory.createEventResult();
     Event<InviteEvent> INVITE_ACCEPTED = EventFactory.createLoop();
@@ -73,7 +76,22 @@ public interface TeamEvents {
 
     @FunctionalInterface
     interface InvitesUpdatedEvent {
-        void run(List<TeamInvite> invites);
+        void run(List<TeamInvite> incoming, List<TeamInvite> outgoing);
+    }
+
+    @FunctionalInterface
+    interface ActionResultEvent {
+        void run(TeamAction action, @Nullable UUID teamId, TeamResult result);
+    }
+
+    @FunctionalInterface
+    interface RelationsUpdatedEvent {
+        void run(LivingEntity owner, TeamType<?> type);
+    }
+
+    @FunctionalInterface
+    interface InvitableUpdatedEvent {
+        void run(UUID teamId, List<UUID> players);
     }
 
     @FunctionalInterface

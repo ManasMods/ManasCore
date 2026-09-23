@@ -33,6 +33,7 @@ public class Team {
     public static final String OWNER_KEY = "owner";
     private static final String MEMBERS_KEY = "members";
     private static final String NAME_KEY = "name";
+    private static final String OWNER_NAME_KEY = "ownerName";
 
     @Getter
     private final UUID id;
@@ -44,6 +45,9 @@ public class Team {
     @Getter
     @Nullable
     private String name = null;
+    @Getter
+    @Nullable
+    private String ownerName = null;
 
     public Team(UUID id, TeamType<?> type, UUID owner) {
         this.id = id;
@@ -81,7 +85,7 @@ public class Team {
     }
 
     public Component getDisplayName() {
-        return this.name != null ? Component.literal(this.name) : Component.literal(this.owner.toString().substring(0, 8));
+        return this.name != null ? Component.literal(this.name) : this.ownerName != null ? Component.literal(this.ownerName) : Component.literal(this.owner.toString().substring(0, 8));
     }
 
     /**
@@ -114,6 +118,7 @@ public class Team {
         for (UUID member : this.members) list.add(NbtUtils.createUUID(member));
         tag.put(MEMBERS_KEY, list);
         if (this.name != null) tag.putString(NAME_KEY, this.name);
+        if (this.ownerName != null) tag.putString(OWNER_NAME_KEY, this.ownerName);
         return tag;
     }
 
@@ -124,6 +129,7 @@ public class Team {
         for (Tag t : list) this.members.add(NbtUtils.loadUUID(t));
         this.members.add(this.owner);
         this.name = tag.contains(NAME_KEY, Tag.TAG_STRING) ? tag.getString(NAME_KEY) : null;
+        this.ownerName = tag.contains(OWNER_NAME_KEY, Tag.TAG_STRING) ? tag.getString(OWNER_NAME_KEY) : null;
     }
 
     protected boolean addMemberInternal(UUID id) {
@@ -141,6 +147,10 @@ public class Team {
 
     protected void setNameInternal(@Nullable String name) {
         this.name = name;
+    }
+
+    protected void setOwnerNameInternal(@Nullable String ownerName) {
+        this.ownerName = ownerName;
     }
 
     /**
@@ -166,9 +176,13 @@ public class Team {
         public static void setName(Team team, @Nullable String name) {
             team.setNameInternal(name);
         }
+
+        public static void setOwnerName(Team team, @Nullable String name) {
+            team.setOwnerNameInternal(name);
+        }
     }
 
     public String toString() {
-        return "Team{" + "id=" + id + ", type=" + type + ", owner=" + owner + ", members=" + members + ", name=" + name + '}';
+        return "Team{" + "id=" + id + ", type=" + type + ", owner=" + owner + ", members=" + members + ", name=" + name + ", ownerName=" + ownerName + '}';
     }
 }

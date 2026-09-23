@@ -35,6 +35,7 @@ public class TeamSavedData extends SavedData {
     private static final String DATA_KEY = "data";
     private static final String RELATIONS_KEY = "relations";
     private static final String RELATIONS_MIGRATED_KEY = "relationsMigrated";
+    private static final String NAMES_KEY = "names";
     private static final Set<ResourceLocation> UNKNOWN_TYPE_WARNED = new HashSet<>();
 
     private static final Factory<TeamSavedData> FACTORY = new Factory<>(
@@ -47,7 +48,9 @@ public class TeamSavedData extends SavedData {
     @Getter
     private final List<TeamInvite> invites = new ArrayList<>();
     private final Map<ResourceLocation, Map<UUID, Set<UUID>>> relations = new LinkedHashMap<>();
+    private final Map<ResourceLocation, Map<UUID, Set<UUID>>> relatedBy = new LinkedHashMap<>();
     private final Set<UUID> relationsMigrated = new LinkedHashSet<>();
+    private final Map<UUID, String> names = new LinkedHashMap<>();
 
     /**
      * The LOADING flag makes the storage module's DataFixTypes mixin skip datafixing this
@@ -113,10 +116,34 @@ public class TeamSavedData extends SavedData {
         return result;
     }
 
+    /**
+     * Determine what is related to {@code entity} under {@code typeId}, i.e. every {@code a} for
+     * which {@code addRelated(typeId, a, entity)} was called.
+     */
+    public Set<UUID> getRelatedBy(ResourceLocation typeId, UUID entity) {
+        Map<UUID, Set<UUID>> byEntity = this.relatedBy.get(typeId);
+        if (byEntity == null) return Collections.emptySet();
+        Set<UUID> related = byEntity.get(entity);
+        return related == null ? Collections.emptySet() : Collections.unmodifiableSet(related);
+    }
+
+    public Map<ResourceLocation, Set<UUID>> getAllRelatedBy(UUID entity) {
+        Map<ResourceLocation, Set<UUID>> result = new LinkedHashMap<>();
+        for (Map.Entry<ResourceLocation, Map<UUID, Set<UUID>>> entry : this.relatedBy.entrySet()) {
+            Set<UUID> related = entry.getValue().get(entity);
+            if (related != null && !related.isEmpty()) result.put(entry.getKey(), new LinkedHashSet<>(related));
+        }
+        return result;
+    }
+
     public boolean addRelated(ResourceLocation typeId, UUID a, UUID b) {
         boolean changed = this.relations.computeIfAbsent(typeId, k -> new LinkedHashMap<>())
                 .computeIfAbsent(a, k -> new LinkedHashSet<>()).add(b);
-        if (changed) this.setDirty();
+        if (changed) {
+            this.relatedBy.computeIfAbsent(typeId, k -> new LinkedHashMap<>())
+                    .computeIfAbsent(b, k -> new LinkedHashSet<>()).add(a);
+            this.setDirty();
+        }
         return changed;
     }
 
@@ -128,8 +155,21 @@ public class TeamSavedData extends SavedData {
         boolean changed = related.remove(b);
         if (related.isEmpty()) byEntity.remove(a);
         if (byEntity.isEmpty()) this.relations.remove(typeId);
-        if (changed) this.setDirty();
+        if (changed) {
+            this.unindexRelatedBy(typeId, b, a);
+            this.setDirty();
+        }
         return changed;
+    }
+
+    private void unindexRelatedBy(ResourceLocation typeId, UUID entity, UUID source) {
+        Map<UUID, Set<UUID>> byEntity = this.relatedBy.get(typeId);
+        if (byEntity == null) return;
+        Set<UUID> sources = byEntity.get(entity);
+        if (sources == null) return;
+        sources.remove(source);
+        if (sources.isEmpty()) byEntity.remove(entity);
+        if (byEntity.isEmpty()) this.relatedBy.remove(typeId);
     }
 
     /**
@@ -137,18 +177,31 @@ public class TeamSavedData extends SavedData {
      */
     public void removeRelatedEverywhere(UUID entity) {
         boolean changed = false;
-        Iterator<Map<UUID, Set<UUID>>> typeIt = this.relations.values().iterator();
+        Iterator<Map.Entry<ResourceLocation, Map<UUID, Set<UUID>>>> typeIt = this.relations.entrySet().iterator();
         while (typeIt.hasNext()) {
-            Map<UUID, Set<UUID>> byEntity = typeIt.next();
-            if (byEntity.remove(entity) != null) changed = true;
+            Map.Entry<ResourceLocation, Map<UUID, Set<UUID>>> typeEntry = typeIt.next();
+            ResourceLocation typeId = typeEntry.getKey();
+            Map<UUID, Set<UUID>> byEntity = typeEntry.getValue();
 
-            Iterator<Set<UUID>> entityIt = byEntity.values().iterator();
+            Set<UUID> ownRelated = byEntity.remove(entity);
+            if (ownRelated != null) {
+                changed = true;
+                for (UUID target : ownRelated) this.unindexRelatedBy(typeId, target, entity);
+            }
+
+            Iterator<Map.Entry<UUID, Set<UUID>>> entityIt = byEntity.entrySet().iterator();
             while (entityIt.hasNext()) {
-                Set<UUID> related = entityIt.next();
-                if (related.remove(entity)) changed = true;
-                if (related.isEmpty()) entityIt.remove();
+                Map.Entry<UUID, Set<UUID>> entry = entityIt.next();
+                if (entry.getValue().remove(entity)) changed = true;
+                if (entry.getValue().isEmpty()) entityIt.remove();
             }
             if (byEntity.isEmpty()) typeIt.remove();
+
+            Map<UUID, Set<UUID>> byEntityBy = this.relatedBy.get(typeId);
+            if (byEntityBy != null) {
+                byEntityBy.remove(entity);
+                if (byEntityBy.isEmpty()) this.relatedBy.remove(typeId);
+            }
         }
         if (changed) this.setDirty();
     }
@@ -159,6 +212,15 @@ public class TeamSavedData extends SavedData {
 
     public void markRelationsMigrated(UUID entity) {
         if (this.relationsMigrated.add(entity)) this.setDirty();
+    }
+
+    public void putName(UUID id, String name) {
+        String previous = this.names.put(id, name);
+        if (!name.equals(previous)) this.setDirty();
+    }
+
+    public Optional<String> getName(UUID id) {
+        return Optional.ofNullable(this.names.get(id));
     }
 
     public CompoundTag save(CompoundTag tag, HolderLookup.Provider provider) {
@@ -176,6 +238,13 @@ public class TeamSavedData extends SavedData {
         ListTag migrated = new ListTag();
         for (UUID id : this.relationsMigrated) migrated.add(NbtUtils.createUUID(id));
         tag.put(RELATIONS_MIGRATED_KEY, migrated);
+        tag.put(NAMES_KEY, this.saveNames());
+        return tag;
+    }
+
+    private CompoundTag saveNames() {
+        CompoundTag tag = new CompoundTag();
+        this.names.forEach((id, name) -> tag.putString(id.toString(), name));
         return tag;
     }
 
@@ -211,7 +280,30 @@ public class TeamSavedData extends SavedData {
 
         loadRelations(tag.getCompound(RELATIONS_KEY), data.relations);
         for (Tag t : tag.getList(RELATIONS_MIGRATED_KEY, Tag.TAG_INT_ARRAY)) data.relationsMigrated.add(NbtUtils.loadUUID(t));
+        loadNames(tag.getCompound(NAMES_KEY), data.names);
+        data.rebuildRelatedBy();
         return data;
+    }
+
+    private void rebuildRelatedBy() {
+        this.relatedBy.clear();
+        for (Map.Entry<ResourceLocation, Map<UUID, Set<UUID>>> typeEntry : this.relations.entrySet()) {
+            ResourceLocation typeId = typeEntry.getKey();
+            for (Map.Entry<UUID, Set<UUID>> entry : typeEntry.getValue().entrySet()) {
+                UUID a = entry.getKey();
+                for (UUID b : entry.getValue()) {
+                    this.relatedBy.computeIfAbsent(typeId, k -> new LinkedHashMap<>())
+                            .computeIfAbsent(b, k -> new LinkedHashSet<>()).add(a);
+                }
+            }
+        }
+    }
+
+    private static void loadNames(CompoundTag tag, Map<UUID, String> target) {
+        for (String key : tag.getAllKeys()) {
+            UUID id = parseUuid(key);
+            if (id != null) target.put(id, tag.getString(key));
+        }
     }
 
     private static void loadRelations(CompoundTag tag, Map<ResourceLocation, Map<UUID, Set<UUID>>> target) {
@@ -256,5 +348,41 @@ public class TeamSavedData extends SavedData {
         entry.putUUID(ID_KEY, team.getId());
         entry.put(DATA_KEY, team.save(new CompoundTag()));
         return entry;
+    }
+
+    /**
+     * Used to get every entity id referenced by teams, relations or invites.
+     */
+    public Set<UUID> referencedIds() {
+        Set<UUID> result = new HashSet<>();
+        for (Team team : this.teams.values()) {
+            result.add(team.getOwner());
+            result.addAll(team.getMembers());
+        }
+        for (Map.Entry<ResourceLocation, Map<UUID, Set<UUID>>> typeEntry : this.relations.entrySet()) {
+            Map<UUID, Set<UUID>> byEntity = typeEntry.getValue();
+            result.addAll(byEntity.keySet());
+            for (Set<UUID> related : byEntity.values()) result.addAll(related);
+        }
+        for (TeamInvite invite : this.invites) {
+            result.add(invite.inviter());
+            result.add(invite.invitee());
+        }
+        return result;
+    }
+
+    /**
+     * Drops last-known names of entities not in {@code keep}.
+     */
+    public void pruneNames(Set<UUID> keep) {
+        boolean changed = false;
+        Iterator<UUID> it = this.names.keySet().iterator();
+        while (it.hasNext()) {
+            if (!keep.contains(it.next())) {
+                it.remove();
+                changed = true;
+            }
+        }
+        if (changed) this.setDirty();
     }
 }

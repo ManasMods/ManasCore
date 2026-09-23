@@ -21,6 +21,11 @@ public class TeamConfig extends ManasConfig {
         return ConfigRegistry.getConfig(TeamConfig.class);
     }
 
+    @Comment("Minimum ticks between two client team actions of the same kind per player.")
+    public int actionCooldownTicks = 5;
+    @Comment("Minimum ticks between two client team queries of the same kind per player.")
+    public int queryCooldownTicks = 20;
+
     @Comment("Settings of the built-in ally relation.")
     public AllyConfig ally = new AllyConfig();
     public static class AllyConfig extends ManasSubConfig {

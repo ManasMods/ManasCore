@@ -36,7 +36,13 @@ public interface Teams {
         public Map<ResourceLocation, Set<UUID>> getAllRelated() {
             return new HashMap<>();
         }
+        public Set<UUID> getRelatedBy(TeamType<?> type) {
+            return Collections.emptySet();
+        }
         public void markDirty() {
+        }
+        public boolean isEmpty() {
+            return true;
         }
     };
 
@@ -52,5 +58,13 @@ public interface Teams {
     /** Copy of all RELATION sets keyed by type id. */
     Map<ResourceLocation, Set<UUID>> getAllRelated();
 
+    /** Entities that list this one under the given RELATION type. */
+    Set<UUID> getRelatedBy(TeamType<?> type);
+
     void markDirty();
+
+    /** Determine if this entity has no team data at all. */
+    default boolean isEmpty() {
+        return false;
+    }
 }

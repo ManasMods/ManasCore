@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025. ManasMods
+ * Copyright (c) 2025-2026. ManasMods
  * GNU General Public License 3
  */
 
@@ -8,7 +8,6 @@ package io.github.manasmods.manascore.team.impl.network.s2c;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.utils.Env;
 import io.github.manasmods.manascore.team.ModuleConstants;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -18,17 +17,15 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 import java.util.UUID;
 
-public record SyncTeamPayload(ResourceLocation typeId, CompoundTag teamTag, Map<UUID, String> names) implements CustomPacketPayload {
-    public static final Type<SyncTeamPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "sync_team"));
-    public static final StreamCodec<FriendlyByteBuf, SyncTeamPayload> STREAM_CODEC = CustomPacketPayload.codec(SyncTeamPayload::encode, SyncTeamPayload::new);
+public record SyncNamesPayload(Map<UUID, String> names) implements CustomPacketPayload {
+    public static final Type<SyncNamesPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "sync_names"));
+    public static final StreamCodec<FriendlyByteBuf, SyncNamesPayload> STREAM_CODEC = CustomPacketPayload.codec(SyncNamesPayload::encode, SyncNamesPayload::new);
 
-    public SyncTeamPayload(FriendlyByteBuf buf) {
-        this(buf.readResourceLocation(), buf.readNbt(), buf.readMap(b -> b.readUUID(), FriendlyByteBuf::readUtf));
+    public SyncNamesPayload(FriendlyByteBuf buf) {
+        this(buf.readMap(b -> b.readUUID(), FriendlyByteBuf::readUtf));
     }
 
     public void encode(FriendlyByteBuf buf) {
-        buf.writeResourceLocation(this.typeId);
-        buf.writeNbt(this.teamTag);
         buf.writeMap(this.names, (b, id) -> b.writeUUID(id), FriendlyByteBuf::writeUtf);
     }
 
@@ -37,7 +34,7 @@ public record SyncTeamPayload(ResourceLocation typeId, CompoundTag teamTag, Map<
         context.queue(() -> ClientAccess.handle(this));
     }
 
-    public @NotNull Type<SyncTeamPayload> type() {
+    public @NotNull Type<SyncNamesPayload> type() {
         return TYPE;
     }
 }
