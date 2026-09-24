@@ -831,9 +831,7 @@ public final class TeamManager {
 
     public static TeamResult tryAddRelation(TeamType<?> type, LivingEntity a, LivingEntity b) {
         if (!isServer(a, "addRelation")) return TeamResult.CLIENT_SIDE;
-        LivingEntity ra = type.resolveMember(a);
-        LivingEntity rb = type.resolveMember(b);
-        return tryAddRelation(serverOf(ra), type, ra.getUUID(), rb.getUUID());
+        return tryAddRelation(serverOf(a), type, type.resolveMemberId(a), type.resolveMemberId(b));
     }
 
     public static boolean addRelation(TeamType<?> type, LivingEntity a, LivingEntity b) {
@@ -842,9 +840,7 @@ public final class TeamManager {
 
     public static TeamResult tryRemoveRelation(TeamType<?> type, LivingEntity a, LivingEntity b) {
         if (!isServer(a, "removeRelation")) return TeamResult.CLIENT_SIDE;
-        LivingEntity ra = type.resolveMember(a);
-        LivingEntity rb = type.resolveMember(b);
-        return tryRemoveRelation(serverOf(ra), type, ra.getUUID(), rb.getUUID());
+        return tryRemoveRelation(serverOf(a), type, type.resolveMemberId(a), type.resolveMemberId(b));
     }
 
     public static boolean removeRelation(TeamType<?> type, LivingEntity a, LivingEntity b) {
@@ -853,13 +849,16 @@ public final class TeamManager {
 
     public static boolean hasRelation(TeamType<?> type, LivingEntity a, LivingEntity b) {
         if (type.getShape() != TeamShape.RELATION) return false;
-        LivingEntity ra = type.resolveMember(a);
-        LivingEntity rb = type.resolveMember(b);
-        if (RelationResolver.teamsOf(ra).getRelated(type).contains(rb.getUUID())) return true;
-        if (RelationResolver.teamsOf(rb).getRelatedBy(type).contains(ra.getUUID())) return true;
+        UUID ra = type.resolveMemberId(a);
+        UUID rb = type.resolveMemberId(b);
+        Teams ta = RelationResolver.teamsOf(a.level(), ra);
+        Teams tb = RelationResolver.teamsOf(b.level(), rb);
+
+        if (ta.getRelated(type).contains(rb)) return true;
+        if (tb.getRelatedBy(type).contains(ra)) return true;
         if (!type.isSymmetricRelation()) return false;
-        if (RelationResolver.teamsOf(rb).getRelated(type).contains(ra.getUUID())) return true;
-        return RelationResolver.teamsOf(ra).getRelatedBy(type).contains(rb.getUUID());
+        if (tb.getRelated(type).contains(ra)) return true;
+        return ta.getRelatedBy(type).contains(rb);
     }
 
     /** Removes a dead non-player entity from every group and from every relation it is part of. */

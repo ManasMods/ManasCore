@@ -38,6 +38,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -51,10 +52,12 @@ import static io.github.manasmods.manascore.testing.ManasCoreTesting.LOG;
 public class TeamModuleTest {
     private static final DeferredRegister<TeamType<?>> TEAM_TYPES = DeferredRegister.create(ModuleConstants.MOD_ID, TeamAPI.getTeamTypeRegistryKey());
     public static final RegistrySupplier<FactionTeamType> FACTION = TEAM_TYPES.register("test_faction", FactionTeamType::new);
+    private static final String OWNER_TAG = "manas_owner:";
 
     public static void init() {
         TEAM_TYPES.register();
         CommandRegistry.registerCommand(TeamCommand.class);
+        TeamAPI.registerOwnerResolver(TeamModuleTest::tagOwner);
 
         TeamEvents.TEAM_CREATED.register(team -> LOG.info("[team] created {}", team));
         TeamEvents.TEAM_DISBANDED.register(team -> LOG.info("[team] disbanded {}", team.getId()));
@@ -68,6 +71,20 @@ public class TeamModuleTest {
         TeamEvents.RELATION_REMOVED.register((type, a, b) -> LOG.info("[team] relation {} removed {} <-> {}", type.getId(), a, b));
 
         if (Platform.getEnvironment() == Env.CLIENT) TeamModuleTestClient.init();
+    }
+
+    /** Test resolver: an entity tag {@code manas_owner:<uuid>} makes any mob answer to that id. */
+    @Nullable
+    private static UUID tagOwner(LivingEntity entity) {
+        for (String tag : entity.getTags()) {
+            if (!tag.startsWith(OWNER_TAG)) continue;
+            try {
+                return UUID.fromString(tag.substring(OWNER_TAG.length()));
+            } catch (IllegalArgumentException ignored) {
+                return null;
+            }
+        }
+        return null;
     }
 
     /** Two members of different factions are enemies; same faction allies; up to two factions each. */
@@ -87,7 +104,7 @@ public class TeamModuleTest {
         public boolean blocksFriendlyFire() {
             return true;
         }
-        public Relation getRelation(LivingEntity a, Teams aTeams, LivingEntity b, Teams bTeams) {
+        public Relation getRelation(Level level, UUID a, Teams aTeams, UUID b, Teams bTeams) {
             Set<UUID> mine = aTeams.getTeamIds(this);
             Set<UUID> theirs = bTeams.getTeamIds(this);
             if (mine.isEmpty() || theirs.isEmpty()) return Relation.NEUTRAL;
@@ -451,6 +468,45 @@ public class TeamModuleTest {
             if (!(a instanceof LivingEntity la) || !(b instanceof LivingEntity lb)) return false;
             reply(sender, a.getName().getString() + " <-> " + b.getName().getString() + ": mutual ally " + TeamAPI.isMutuallyAllied(la, lb)
                     + ", mutual ally relation " + TeamAPI.hasMutualRelation(TeamAPI.ALLY.get(), la, lb));
+            return true;
+        }
+
+        @Execute
+        public boolean getOwner(@SenderArg CommandSourceStack sender, @LiteralArg("owner") String l, @EntityArg(name = "target") EntitySelector sel) throws CommandSyntaxException {
+            Entity target = sel.findSingleEntity(sender);
+            if (!(target instanceof LivingEntity living)) return false;
+            UUID owner = TeamAPI.resolveOwner(living);
+            reply(sender, target.getName().getString() + " -> " + owner + " (" + TeamAPI.getMemberName(sender.getLevel(), owner).getString() + ")"
+                    + (owner.equals(living.getUUID()) ? " [self]" : ""));
+            return true;
+        }
+
+        @Execute
+        public boolean setOwner(@SenderArg CommandSourceStack sender, @LiteralArg("setowner") String l,
+                                @EntityArg(name = "target") EntitySelector targetSel, @EntityArg(name = "owner") EntitySelector ownerSel) throws CommandSyntaxException {
+            Entity target = targetSel.findSingleEntity(sender);
+            Entity owner = ownerSel.findSingleEntity(sender);
+            target.getTags().removeIf(tag -> tag.startsWith(OWNER_TAG));
+            target.addTag(OWNER_TAG + owner.getUUID());
+            reply(sender, target.getName().getString() + " now answers to " + owner.getName().getString());
+            return true;
+        }
+
+        @Execute
+        public boolean clearOwner(@SenderArg CommandSourceStack sender, @LiteralArg("clearowner") String l, @EntityArg(name = "target") EntitySelector sel) throws CommandSyntaxException {
+            Entity target = sel.findSingleEntity(sender);
+            boolean removed = target.getTags().removeIf(tag -> tag.startsWith(OWNER_TAG));
+            reply(sender, removed ? "Owner tag removed" : "No owner tag");
+            return removed;
+        }
+
+        @Execute
+        public boolean alliedTo(@SenderArg CommandSourceStack sender, @LiteralArg("alliedto") String l,
+                                @EntityArg(name = "a") EntitySelector aSel, @EntityArg(name = "b") EntitySelector bSel) throws CommandSyntaxException {
+            Entity a = aSel.findSingleEntity(sender);
+            Entity b = bSel.findSingleEntity(sender);
+            reply(sender, a.getName().getString() + ".isAlliedTo(" + b.getName().getString() + ") = " + a.isAlliedTo(b)
+                    + ", reverse = " + b.isAlliedTo(a));
             return true;
         }
     }

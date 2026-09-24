@@ -1,1 +1,2 @@
 accessWidener v2 named
+accessible method net/minecraft/world/level/Level getEntities ()Lnet/minecraft/world/level/entity/LevelEntityGetter;

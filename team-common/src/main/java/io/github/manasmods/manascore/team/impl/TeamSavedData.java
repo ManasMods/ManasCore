@@ -153,6 +153,20 @@ public class TeamSavedData extends SavedData {
         return related == null ? Collections.emptySet() : Collections.unmodifiableSet(related);
     }
 
+    /** Determine if {@code entity} relates to or is related by anything under any type. */
+    public boolean hasAnyRelation(UUID entity) {
+        for (Map<UUID, Set<UUID>> byEntity : this.relations.values()) {
+            Set<UUID> set = byEntity.get(entity);
+            if (set != null && !set.isEmpty()) return true;
+        }
+
+        for (Map<UUID, Set<UUID>> byEntity : this.relatedBy.values()) {
+            Set<UUID> set = byEntity.get(entity);
+            if (set != null && !set.isEmpty()) return true;
+        }
+        return false;
+    }
+
     public Map<ResourceLocation, Set<UUID>> getAllRelatedBy(UUID entity) {
         Map<ResourceLocation, Set<UUID>> result = new LinkedHashMap<>();
         for (Map.Entry<ResourceLocation, Map<UUID, Set<UUID>>> entry : this.relatedBy.entrySet()) {

@@ -7,16 +7,12 @@ package io.github.manasmods.manascore.team.impl.builtin;
 
 import io.github.manasmods.manascore.team.api.*;
 import io.github.manasmods.manascore.team.api.template.TeamShape;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.OwnableEntity;
 
 /**
- * Symmetric pairwise alliance. A tamed or owned entity counts as its owner
- * (owner chain followed up to four steps).
+ * One-way personal alliance. A tamed or owned entity counts as its root owner through the
+ * registered {@link OwnerResolver}s.
  */
 public class AllyTeamType extends TeamType<Team> {
-    private static final int MAX_OWNER_DEPTH = 4;
-
     public TeamShape getShape() {
         return TeamShape.RELATION;
     }
@@ -43,16 +39,5 @@ public class AllyTeamType extends TeamType<Team> {
 
     public boolean requiresInvite() {
         return false;
-    }
-
-    public LivingEntity resolveMember(LivingEntity entity) {
-        LivingEntity current = entity;
-        for (int i = 0; i < MAX_OWNER_DEPTH; i++) {
-            if (!(current instanceof OwnableEntity ownable)) break;
-            LivingEntity owner = ownable.getOwner();
-            if (owner == null || owner == current) break;
-            current = owner;
-        }
-        return current;
     }
 }

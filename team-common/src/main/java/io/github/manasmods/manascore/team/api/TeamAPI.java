@@ -18,7 +18,9 @@ import io.github.manasmods.manascore.team.api.template.TeamAction;
 import io.github.manasmods.manascore.team.api.template.TeamEvents;
 import io.github.manasmods.manascore.team.api.template.TeamResult;
 import io.github.manasmods.manascore.team.api.template.Teams;
+import io.github.manasmods.manascore.team.impl.OwnerResolvers;
 import io.github.manasmods.manascore.team.impl.RelationResolver;
+import io.github.manasmods.manascore.team.impl.SavedDataTeams;
 import io.github.manasmods.manascore.team.impl.TeamManager;
 import io.github.manasmods.manascore.team.impl.TeamRegistry;
 import io.github.manasmods.manascore.team.impl.TeamSavedData;
@@ -84,6 +86,27 @@ public class TeamAPI {
         return Teams.EMPTY;
     }
 
+    /** Server only. Team data of any id, loaded or not, read from the saved table. */
+    public static Teams getTeamsFrom(@NonNull MinecraftServer server, @NonNull UUID id) {
+        return new SavedDataTeams(TeamSavedData.get(server), id);
+    }
+
+    /**
+     * Register an {@link OwnerResolver}. Resolvers are asked in registration order, the vanilla
+     * {@link net.minecraft.world.entity.OwnableEntity} fallback last; the first non-null answer wins.
+     */
+    public static void registerOwnerResolver(@NonNull OwnerResolver resolver) {
+        OwnerResolvers.register(resolver);
+    }
+
+    /**
+     * Root owner id of the entity through every registered resolver, or its own id when it has
+     * no owner. Works on both sides. See {@link OwnerResolver} for the chain rules.
+     */
+    public static UUID resolveOwner(@NonNull LivingEntity entity) {
+        return OwnerResolvers.resolveId(entity);
+    }
+
     public static ResolvedRelation resolveRelation(@NonNull LivingEntity a, @NonNull LivingEntity b) {
         return RelationResolver.resolve(a, b);
     }
@@ -119,6 +142,13 @@ public class TeamAPI {
         return TeamSavedData.get(server).getTeam(id);
     }
 
+    /** Server level: the saved table. Client level: the local cache (own teams only). */
+    public static Optional<Team> getTeam(@NonNull Level level, @NonNull UUID id) {
+        MinecraftServer server = level.getServer();
+        if (server != null && !level.isClientSide()) return TeamSavedData.get(server).getTeam(id);
+        return ClientTeamCache.getTeam(id);
+    }
+
     public static <T extends Team> Optional<T> getTeam(@NonNull LivingEntity entity, @NonNull TeamType<T> type) {
         Set<T> teams = getTeams(entity, type);
         return teams.isEmpty() ? Optional.empty() : Optional.of(teams.iterator().next());
@@ -146,10 +176,17 @@ public class TeamAPI {
         return server == null ? Optional.empty() : TeamManager.memberInfo(server, id);
     }
 
+    /** Server only. Safe from any thread. Online profile name, last-known saved name, or the profile cache. */
+    public static Optional<MemberInfo> getMemberInfo(@NonNull MinecraftServer server, @NonNull UUID id) {
+        return TeamManager.memberInfo(server, id);
+    }
+
     /**
-     * Side-agnostic overload for code without a {@link Level}, e.g. GUI screens.
-     * On a dedicated server this is always the server side; on a client the integrated
-     * server thread counts as server side. Prefer the {@code Level} overloads when possible.
+     * Client / GUI use only, for code without a {@link Level} or {@link MinecraftServer} in hand.
+     * The side is guessed from the environment and the current thread: a dedicated server always
+     * counts as server side, on a client only the integrated server thread does. Server code on a
+     * worker thread of an integrated server would be misread as the client, so server code must use
+     * the {@link MinecraftServer} or {@link Level} overloads.
      */
     public static Optional<MemberInfo> getMemberInfo(@NonNull UUID id) {
         MinecraftServer server = GameInstance.getServer();
@@ -162,10 +199,14 @@ public class TeamAPI {
         return getMemberInfo(level, id).map(MemberInfo::name).orElseGet(() -> Component.literal(id.toString().substring(0, 8)));
     }
 
+    /** Server only. Safe from any thread. Falls back to the first 8 characters of the uuid when no name is known. */
+    public static Component getMemberName(@NonNull MinecraftServer server, @NonNull UUID id) {
+        return getMemberInfo(server, id).map(MemberInfo::name).orElseGet(() -> Component.literal(id.toString().substring(0, 8)));
+    }
+
     /**
+     * Client / GUI use only, see {@link #getMemberInfo(UUID)} for the side rule.
      * Falls back to the first 8 characters of the uuid when no name is known.
-     * On a dedicated server this is always the server side; on a client the integrated
-     * server thread counts as server side. Prefer the {@code Level} overloads when possible.
      */
     public static Component getMemberName(@NonNull UUID id) {
         return getMemberInfo(id).map(MemberInfo::name).orElseGet(() -> Component.literal(id.toString().substring(0, 8)));

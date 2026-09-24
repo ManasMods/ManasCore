@@ -6,8 +6,10 @@
 package io.github.manasmods.manascore.team.api;
 
 import io.github.manasmods.manascore.team.api.template.*;
+import io.github.manasmods.manascore.team.impl.OwnerResolvers;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
@@ -87,43 +89,68 @@ public abstract class TeamType<T extends Team> {
     }
 
     /**
-     * Maps an entity to the entity whose membership counts. Default: identity.
-     * Ally maps a tamed animal to its owner.
+     * Whether an owned entity counts as its root owner under this type, both in relation checks
+     * and in membership ops. Ownership comes from the registered {@link OwnerResolver}s and the
+     * vanilla {@link net.minecraft.world.entity.OwnableEntity} fallback. Default: true.
      */
-    public LivingEntity resolveMember(LivingEntity entity) {
-        return entity;
+    public boolean inheritsOwnership() {
+        return true;
     }
 
     /**
-     * Relation of {@code a} towards {@code b} for this type only. Both entities are already
-     * passed through {@link #resolveMember(LivingEntity)}. RELATION's default also consults each
-     * side's inbound set as a fallback, so an offline or untracked outbound side is still caught.
-     * GROUP falls back to the team objects the querying side knows (server table, client cache),
-     * so a client can resolve its own party mates although their storage is not synced.
+     * Id whose membership counts for this entity: the root owner when {@link #inheritsOwnership()},
+     * otherwise the entity itself. Resolves even when the owner is offline or unloaded.
+     */
+    public UUID resolveMemberId(LivingEntity entity) {
+        return this.inheritsOwnership() ? OwnerResolvers.resolveId(entity) : entity.getUUID();
+    }
+
+    /**
+     * Loaded entity behind {@link #resolveMemberId(LivingEntity)}, used by membership ops that need
+     * an entity. Falls back to the entity itself when the owner is not loaded. The relation fold
+     * does not call this; it works on ids through {@link #inheritsOwnership()}.
+     */
+    public LivingEntity resolveMember(LivingEntity entity) {
+        return this.inheritsOwnership() ? OwnerResolvers.resolveEntity(entity) : entity;
+    }
+
+    /** Delegates to {@link #getRelation(Level, UUID, Teams, UUID, Teams)}. */
+    public Relation getRelation(LivingEntity a, Teams aTeams, LivingEntity b, Teams bTeams) {
+        return this.getRelation(a.level(), a.getUUID(), aTeams, b.getUUID(), bTeams);
+    }
+
+    /**
+     * Relation of {@code a} towards {@code b} for this type only. Both ids are already resolved
+     * through ownership and {@code aTeams}/{@code bTeams} are their team data, read from the loaded
+     * entity or, on the server, from the saved table when the id is not loaded. Override this form;
+     * the resolver calls it. RELATION's default also consults each side's inbound set as a
+     * fallback, so an offline or untracked outbound side is still caught. GROUP falls back to the
+     * team objects the querying side knows (server table, client cache), so a client can resolve
+     * its own party mates although their storage is not synced.
      * <p>Types are skipped by the resolver when both sides have no team data at all
      * ({@link Teams#isEmpty()}); a type that derives relations from something else must hook
      * {@link TeamEvents#RESOLVE_RELATION}.
      */
-    public Relation getRelation(LivingEntity a, Teams aTeams, LivingEntity b, Teams bTeams) {
+    public Relation getRelation(Level level, UUID a, Teams aTeams, UUID b, Teams bTeams) {
         return switch (this.getShape()) {
             case GROUP -> {
-                boolean client = a.level().isClientSide();
+                boolean client = level.isClientSide();
                 Set<UUID> mine = aTeams.getTeamIds(this);
                 Set<UUID> theirs = bTeams.getTeamIds(this);
                 for (UUID id : mine) {
-                    if (theirs.contains(id) || (client && TeamAPI.getTeam(a, id).map(team -> team.isMember(b)).orElse(false))) yield Relation.ALLY;
+                    if (theirs.contains(id) || (client && TeamAPI.getTeam(level, id).map(team -> team.isMember(b)).orElse(false))) yield Relation.ALLY;
                 }
                 for (UUID id : theirs) {
-                    if (client && TeamAPI.getTeam(b, id).map(team -> team.isMember(a)).orElse(false)) yield Relation.ALLY;
+                    if (client && TeamAPI.getTeam(level, id).map(team -> team.isMember(a)).orElse(false)) yield Relation.ALLY;
                 }
                 yield Relation.NEUTRAL;
             }
             case RELATION -> {
-                if (aTeams.getRelated(this).contains(b.getUUID())) yield Relation.ALLY;
-                if (bTeams.getRelatedBy(this).contains(a.getUUID())) yield Relation.ALLY;
+                if (aTeams.getRelated(this).contains(b)) yield Relation.ALLY;
+                if (bTeams.getRelatedBy(this).contains(a)) yield Relation.ALLY;
                 if (!this.isSymmetricRelation()) yield Relation.NEUTRAL;
-                if (bTeams.getRelated(this).contains(a.getUUID())) yield Relation.ALLY;
-                if (aTeams.getRelatedBy(this).contains(b.getUUID())) yield Relation.ALLY;
+                if (bTeams.getRelated(this).contains(a)) yield Relation.ALLY;
+                if (aTeams.getRelatedBy(this).contains(b)) yield Relation.ALLY;
                 yield Relation.NEUTRAL;
             }
         };

@@ -16,8 +16,9 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Entity-side view of team membership. Implemented by the team storage.
- * Reads are safe on both sides; the data is synced to tracking players.
+ * Entity-side view of team membership. Implemented by the team storage and, on the server, by a
+ * read-only view over the saved table for ids that are not loaded. Reads are safe on both sides;
+ * the storage is synced to its holder only.
  */
 public interface Teams {
     /**
