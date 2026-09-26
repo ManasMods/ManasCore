@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. ManasMods
+ * Copyright (c) 2025. ManasMods
  * GNU General Public License 3
  */
 
@@ -10,6 +10,15 @@ loom {
             register(moduleProject.name) {
                 sourceSet("main", moduleProject)
             }
+        }
+    }
+
+    runs {
+        data {
+            data()
+            programArgs "--all", "--mod", "manascore-testing"
+            programArgs "--output", project(':testing-common').file('src/generated/resources').absolutePath
+            programArgs "--existing", project(':testing-common').file('src/main/resources').absolutePath
         }
     }
 }

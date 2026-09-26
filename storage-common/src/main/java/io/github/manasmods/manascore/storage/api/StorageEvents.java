@@ -20,11 +20,11 @@ public interface StorageEvents {
     }
 
     @FunctionalInterface
-    interface StoraceFactory<T extends StorageHolder, S extends Storage> {
+    interface StorageFactory<T extends StorageHolder, S extends Storage> {
         S create(T target);
     }
 
     interface StorageRegistry<T extends StorageHolder> {
-        <S extends Storage> StorageKey<S> register(ResourceLocation id, Class<S> storageClass, Predicate<T> attachCheck, StoraceFactory<T, S> factory);
+        <S extends Storage> StorageKey<S> register(ResourceLocation id, Class<S> storageClass, Predicate<T> attachCheck, StorageFactory<T, S> factory);
     }
 }

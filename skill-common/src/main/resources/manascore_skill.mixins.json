@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "io.github.manasmods.manascore.skill.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "minVersion": "0.8",
+  "client": [
+  ],
+  "mixins": [
+    "MixinLivingEntity"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

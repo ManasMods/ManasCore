@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. ManasMods
+ * Copyright (c) 2025. ManasMods
  * GNU General Public License 3
  */
 
@@ -12,5 +12,5 @@ import net.minecraft.commands.CommandSourceStack;
 import java.util.function.BiFunction;
 
 public class FabricPermissionsApiIntegration {
-    public static BiFunction<CommandSourceStack, Permission, Boolean> PERMISSION_CHECK = (commandSourceStack, permission) -> Permissions.check(commandSourceStack, permission.value());
+    public static BiFunction<CommandSourceStack, Permission, Boolean> PERMISSION_CHECK = (commandSourceStack, permission) -> Permissions.check(commandSourceStack, permission.value(), permission.permissionLevel().getLevel());
 }

@@ -1,5 +1,7 @@
 package io.github.manasmods.manascore.storage.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.github.manasmods.manascore.network.api.util.PlayerLookup;
 import io.github.manasmods.manascore.storage.api.Storage;
 import io.github.manasmods.manascore.storage.api.StorageHolder;
@@ -21,7 +23,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Entity.class)
 public class MixinEntity implements StorageHolder {
@@ -74,10 +75,10 @@ public class MixinEntity implements StorageHolder {
         StorageManager.initialStorageFilling(this);
     }
 
-    @Inject(method = "saveWithoutId", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;addAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V", shift = At.Shift.AFTER), cancellable = true)
-    void saveStorage(CompoundTag compound, CallbackInfoReturnable<CompoundTag> cir) {
-        compound.put("ManasCoreStorage", this.storage.toNBT());
-        cir.setReturnValue(compound);
+    @WrapOperation(method = "saveWithoutId", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;addAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V"))
+    void saveStorage(Entity instance, CompoundTag tag, Operation<Void> original) {
+        tag.put("ManasCoreStorage", this.storage.toNBT());
+        original.call(instance, tag);
     }
 
     @Inject(method = "load", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;readAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V", shift = At.Shift.AFTER))

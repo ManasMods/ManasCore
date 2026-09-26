@@ -67,4 +67,12 @@ public abstract class Storage {
     public void clearDirty() {
         this.dirty = false;
     }
+
+    /**
+     * Determine if this entity storage is synced only to the holder itself. Other tracking
+     * players receive an empty instance. Chunk and world storages ignore this.
+     */
+    public boolean isOwnerOnly() {
+        return false;
+    }
 }

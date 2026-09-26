@@ -1,0 +1,23 @@
+{
+  "required": true,
+  "package": "io.github.manasmods.manascore.skill.fabric.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "minVersion": "0.8",
+  "client": [
+  ],
+  "mixins": [
+    "MixinAbstractArrow",
+    "MixinAbstractHurtingProjectile",
+    "MixinFireworkRocketEntity",
+    "MixinFishingHook",
+    "MixinLivingEntity",
+    "MixinLlamaSpit",
+    "MixinMob",
+    "MixinPlayer",
+    "MixinShulkerBullet",
+    "MixinThrowableProjectile"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

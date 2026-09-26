@@ -24,13 +24,17 @@ public class CombinedStorage {
     }
 
     public CompoundTag toNBT() {
+        return this.toNBT(true);
+    }
+
+    public CompoundTag toNBT(boolean includeOwnerOnly) {
         CompoundTag tag = new CompoundTag();
 
         ListTag entriesTag = new ListTag();
         this.storages.forEach((id, storage) -> {
             CompoundTag entryTag = new CompoundTag();
             entryTag.putString(STORAGE_ID_KEY, id.toString());
-            storage.save(entryTag);
+            if (includeOwnerOnly || !storage.isOwnerOnly()) storage.save(entryTag);
             entriesTag.add(entryTag);
         });
 
@@ -85,11 +89,20 @@ public class CombinedStorage {
     }
 
     public CompoundTag createUpdatePacket(boolean clean) {
+        return this.createUpdatePacket(clean, true);
+    }
+
+    public CompoundTag createUpdatePacket(boolean clean, boolean includeOwnerOnly) {
         CompoundTag tag = new CompoundTag();
 
         ListTag entriesTag = new ListTag();
         this.storages.forEach((id, storage) -> {
             if (!storage.isDirty()) return;
+            if (!includeOwnerOnly && storage.isOwnerOnly()) {
+                if (clean) storage.clearDirty();
+                return;
+            }
+
             CompoundTag entryTag = new CompoundTag();
             entryTag.putString(STORAGE_ID_KEY, id.toString());
             storage.saveOutdated(entryTag);
@@ -99,6 +112,25 @@ public class CombinedStorage {
 
         tag.put(STORAGE_LIST_KEY, entriesTag);
         return tag;
+    }
+
+    /**
+     * Copy of an update packet created by {@link #createUpdatePacket(boolean, boolean)} without the owner-only entries.
+     */
+    public CompoundTag stripOwnerOnly(CompoundTag updatePacket) {
+        ListTag entriesTag = new ListTag();
+        for (Tag e : updatePacket.getList(STORAGE_LIST_KEY, Tag.TAG_COMPOUND)) {
+            Storage storage = this.storages.get(ResourceLocation.tryParse(((CompoundTag) e).getString(STORAGE_ID_KEY)));
+            if (storage == null || !storage.isOwnerOnly()) entriesTag.add(e);
+        }
+
+        CompoundTag tag = new CompoundTag();
+        tag.put(STORAGE_LIST_KEY, entriesTag);
+        return tag;
+    }
+
+    public static boolean hasEntries(CompoundTag packet) {
+        return !packet.getList(STORAGE_LIST_KEY, Tag.TAG_COMPOUND).isEmpty();
     }
 
     public boolean isDirty() {

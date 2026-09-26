@@ -1,0 +1,7 @@
+{
+  "manascore.attribute.critical_damage_multiplier": "Critical Damage Multiplier",
+  "manascore.attribute.critical_attack_chance": "Critical Attack Chance",
+  "manascore.attribute.glide_speed_multiplier": "Glide Speed Multiplier",
+  "manascore.attribute.lava_speed_multiplier": "Lava Speed Multiplier",
+  "manascore.attribute.swim_speed_multiplier": "Swim Speed Multiplier"
+}

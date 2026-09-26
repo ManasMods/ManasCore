@@ -1,0 +1,9 @@
+loom {
+    accessWidenerPath = file('src/main/resources/manascore_race.accesswidener')
+}
+
+dependencies {
+    implementation(project(path: ":skill-common", configuration: 'namedElements')) { transitive false }
+    implementation(project(path: ":network-common", configuration: 'namedElements')) { transitive false }
+    implementation(project(path: ":storage-common", configuration: 'namedElements')) { transitive false }
+}

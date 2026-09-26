@@ -1,0 +1,14 @@
+/*
+ * Copyright (c) 2025. ManasMods
+ * GNU General Public License 3
+ */
+
+loom {
+    accessWidenerPath = project(":race-common").loom.accessWidenerPath
+}
+
+dependencies {
+    implementation project(path: ":skill-common", configuration: 'transformProductionFabric')
+    implementation project(path: ":network-common", configuration: 'transformProductionFabric')
+    implementation project(path: ":storage-common", configuration: 'transformProductionFabric')
+}
