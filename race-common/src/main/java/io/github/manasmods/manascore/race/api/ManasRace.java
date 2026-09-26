@@ -150,6 +150,17 @@ public class ManasRace {
     }
 
     /**
+     * Determine if a mode of this race's ability can still be activated when on cooldown
+     *
+     * @param instance Affected {@link ManasRaceInstance}
+     * @param entity   Affected {@link LivingEntity}.
+     * @return false if this race cannot ignore cooldown.
+     */
+    public boolean canIgnoreCoolDown(ManasRaceInstance instance, LivingEntity entity) {
+        return false;
+    }
+
+    /**
      * Adds an attribute modifier to this skillId. This method can be called for more than one attribute.
      * The attributes are applied to an entity when the race is set.
      * </p>

@@ -10,8 +10,6 @@ import dev.architectury.registry.registries.RegistrySupplier;
 import io.github.manasmods.manascore.skill.api.ManasSkill;
 import io.github.manasmods.manascore.network.api.util.Changeable;
 import io.github.manasmods.manascore.skill.api.SkillAPI;
-import io.github.manasmods.manascore.storage.api.Storage;
-import io.github.manasmods.manascore.storage.impl.StorageManager;
 import lombok.Getter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
@@ -37,8 +35,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
-import static io.github.manasmods.manascore.storage.ManasCoreStorage.LOG;
 
 public class ManasRaceInstance {
     @Nullable
@@ -221,6 +217,16 @@ public class ManasRaceInstance {
      */
     public boolean canTick(LivingEntity entity) {
         return this.getRace().canTick(this, entity);
+    }
+
+    /**
+     * Determine if a mode of this race's ability can still be activated when on cooldown
+     *
+     * @param entity   Affected {@link LivingEntity}.
+     * @return false if this race cannot ignore cooldown.
+     */
+    public boolean canIgnoreCoolDown(LivingEntity entity) {
+        return this.getRace().canIgnoreCoolDown(this, entity);
     }
 
     /**

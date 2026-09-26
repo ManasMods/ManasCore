@@ -112,9 +112,11 @@ public class RaceStorage extends Storage implements Races {
         Optional<ManasRaceInstance> optional = this.getRace();
         if (optional.isEmpty()) return false;
         this.raceInstance = optional.get();
-        if (RaceEvents.ACTIVATE_ABILITY.invoker().activateAbility(this.raceInstance, this.getOwner()).isFalse()) return false;
-        if (!this.raceInstance.canActivateAbility(this.getOwner()) || this.raceInstance.isOnCooldown()) return false;
-        this.raceInstance.onActivateAbility(this.getOwner());
+        LivingEntity owner = this.getOwner();
+
+        if (RaceEvents.ACTIVATE_ABILITY.invoker().activateAbility(this.raceInstance, owner).isFalse()) return false;
+        if (!this.raceInstance.canActivateAbility(owner) || (this.raceInstance.isOnCooldown() && !this.raceInstance.canIgnoreCoolDown(owner))) return false;
+        this.raceInstance.onActivateAbility(owner);
         this.raceHeldAbility = new TickingRace();
         this.checkAndMarkDirty(this.raceInstance);
         return true;
@@ -128,12 +130,14 @@ public class RaceStorage extends Storage implements Races {
         Optional<ManasRaceInstance> optional = this.getRace();
         if (optional.isEmpty() || this.raceHeldAbility == null) return false;
         this.raceInstance = optional.get();
+
+        LivingEntity owner = this.getOwner();
         Changeable<Integer> heldTicks = Changeable.of(this.raceHeldAbility.getDuration());
-        if (RaceEvents.RELEASE_ABILITY.invoker().releaseAbility(this.raceInstance, this.getOwner(), heldTicks).isFalse()) return false;
+        if (RaceEvents.RELEASE_ABILITY.invoker().releaseAbility(this.raceInstance, owner, heldTicks).isFalse()) return false;
 
         boolean result = false;
-        if (this.raceInstance.canActivateAbility(this.getOwner()) && !this.raceInstance.isOnCooldown()) {
-            this.raceInstance.onReleaseAbility(this.getOwner(), heldTicks.get());
+        if (this.raceInstance.canActivateAbility(owner) && (!this.raceInstance.isOnCooldown() || this.raceInstance.canIgnoreCoolDown(owner))) {
+            this.raceInstance.onReleaseAbility(owner, heldTicks.get());
             result = true;
             this.checkAndMarkDirty(this.raceInstance);
         }
