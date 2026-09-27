@@ -6,6 +6,7 @@
 package io.github.manasmods.manascore.animation.api;
 
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,13 +25,22 @@ import java.util.function.Predicate;
 public final class ConditionalAnimations {
     private ConditionalAnimations() {}
 
-    public record ConditionalAnimation(Predicate<LivingEntity> condition, String key, int priority, boolean firstPerson) {}
+    /**
+     * @param nonPlayers whether this conditional is also evaluated for entities that are not a {@link Player}.
+     *                   Anything posed through a {@code PlayerModel} reaches {@link #evaluate}, including mobs,
+     *                   so predicates are player-only unless they opt in.
+     */
+    public record ConditionalAnimation(Predicate<LivingEntity> condition, String key, int priority, boolean firstPerson, boolean nonPlayers) {}
 
     private static final List<ConditionalAnimation> REGISTRY = new ArrayList<>();
 
-    public static void register(Predicate<LivingEntity> condition, String key, int priority, boolean firstPerson) {
-        REGISTRY.add(new ConditionalAnimation(condition, key, priority, firstPerson));
+    public static void register(Predicate<LivingEntity> condition, String key, int priority, boolean firstPerson, boolean nonPlayers) {
+        REGISTRY.add(new ConditionalAnimation(condition, key, priority, firstPerson, nonPlayers));
         REGISTRY.sort((a, b) -> Integer.compare(b.priority(), a.priority()));
+    }
+
+    public static void register(Predicate<LivingEntity> condition, String key, int priority, boolean firstPerson) {
+        register(condition, key, priority, firstPerson, false);
     }
 
     public static void register(Predicate<LivingEntity> condition, String key) {
@@ -39,7 +49,9 @@ public final class ConditionalAnimations {
 
     /** Highest-priority conditional whose predicate matches the entity, or {@code null}. */
     public static ConditionalAnimation evaluate(LivingEntity entity) {
+        boolean player = entity instanceof Player;
         for (ConditionalAnimation conditional : REGISTRY) {
+            if (!player && !conditional.nonPlayers()) continue;
             if (conditional.condition().test(entity)) return conditional;
         }
         return null;

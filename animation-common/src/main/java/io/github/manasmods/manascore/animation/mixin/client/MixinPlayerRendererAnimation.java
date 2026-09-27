@@ -98,31 +98,21 @@ public abstract class MixinPlayerRendererAnimation extends LivingEntityRenderer<
     @Inject(method = "setupRotations(Lnet/minecraft/client/player/AbstractClientPlayer;Lcom/mojang/blaze3d/vertex/PoseStack;FFFF)V", at = @At("RETURN"))
     private void setupRotations(AbstractClientPlayer player, PoseStack poseStack, float f, float bodyYaw,
                                           float deltaTick, float g, CallbackInfo ci) {
+        if (!manascore$isFirstPerson(player)) {
+            PlayerAnimationAPI.applyRootBone(player, poseStack);
+            return;
+        }
+
         PlayerAnimationAPI.PlayerAnimation animation = PlayerAnimationAPI.active_animations.get(player);
         if (animation == null) return;
         PlayerAnimationAPI.PlayerBone bone = animation.bones.get("body");
         if (bone == null) return;
 
-        PlayerAnimationAPI.PlayerAnimationState data = PlayerAnimationAPI.state(player);
-        boolean firstPerson = manascore$isFirstPerson(player);
-        float animationProgress = data.progress;
+        float animationProgress = PlayerAnimationAPI.state(player).progress;
         Vec3 scale = PlayerAnimationAPI.PlayerBone.interpolate(bone.scales, animationProgress, player);
         if (scale != null) poseStack.scale((float) scale.x, (float) scale.y, (float) scale.z);
 
-        Vec3 position = PlayerAnimationAPI.PlayerBone.interpolate(bone.positions, animationProgress, player);
-        if (position != null) {
-            if (!firstPerson) poseStack.translate((float) -position.x * 0.0625f, (float) (position.y * 0.0625f) + 0.75f, (float) position.z * 0.0625f);
-        }
-
         Vec3 rotation = PlayerAnimationAPI.PlayerBone.interpolate(bone.rotations, animationProgress, player);
-        if (rotation != null) {
-            if (!firstPerson) poseStack.mulPose(Axis.ZP.rotationDegrees((float) rotation.z));
-            poseStack.mulPose(Axis.YP.rotationDegrees((float) -rotation.y));
-            if (!firstPerson) poseStack.mulPose(Axis.XP.rotationDegrees((float) -rotation.x));
-        }
-
-        if (position != null) {
-            if (!firstPerson) poseStack.translate(0, -0.75f, 0);
-        }
+        if (rotation != null) poseStack.mulPose(Axis.YP.rotationDegrees((float) -rotation.y));
     }
 }

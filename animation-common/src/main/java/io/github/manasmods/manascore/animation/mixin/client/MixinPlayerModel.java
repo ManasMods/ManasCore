@@ -33,6 +33,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
 
     @Inject(method = "setupAnim*", at = @At(value = "HEAD"))
     public void setupPivot(T entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
+        if (PlayerAnimationAPI.isSuppressed()) return;
         PlayerModel<T> model = (PlayerModel<T>) (Object) this;
         manascore$resetModelPose(model);
 
@@ -62,8 +63,17 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
         return animation.bones.get(boneName) != null && !animation.additiveBones.contains(boneName);
     }
 
+    /**
+     * Poses the model from the entity's animation and, during the level pass only, advances its playback.
+     * <p>
+     * Progress, sounds and end-of-animation transitions are driven solely by {@link PlayerAnimationAPI#renderingLevel}
+     * renders. The same entity is often drawn again in the same frame outside the level pass - inventory preview,
+     * GUI widgets - with a different partial tick, and advancing there too made progress jitter or run backwards
+     * and replayed sounds. Those renders read the stored progress and leave it alone.
+     */
     @Inject(method = "setupAnim*", at = @At(value = "TAIL"))
     public void setupAnim(T entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
+        if (PlayerAnimationAPI.isSuppressed()) return;
         if (ageInTicks <= 0) return;
         PlayerModel<T> model = (PlayerModel<T>) (Object) this;
 
@@ -119,19 +129,22 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
             PlayerAnimationAPI.active_animations.put(entityIn, animation);
         }
 
+        boolean advance = PlayerAnimationAPI.renderingLevel;
         float animationProgress;
         float lastAnimationProgress = data.lastAnimationProgress;
-        if (!data.hasProgress) {
+        if (!advance) {
+            animationProgress = data.hasProgress ? data.progress : 0f;
+        } else if (!data.hasProgress) {
             animationProgress = 0f;
             data.hasProgress = true;
             data.progress = animationProgress;
             data.lastTickTime = ageInTicks;
             data.lastAnimationProgress = 0f;
-        } else {
 
+        } else {
             animationProgress = data.progress;
             float lastTickTime = data.lastTickTime;
-            float deltaTime = (ageInTicks - lastTickTime) / 20f;
+            float deltaTime = Math.max(0f, (ageInTicks - lastTickTime) / 20f);
             animationProgress += deltaTime;
             data.progress = animationProgress;
             data.lastTickTime = ageInTicks;
@@ -168,7 +181,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
             }
         }
 
-        if (!animation.soundEffects.isEmpty()) {
+        if (advance && !animation.soundEffects.isEmpty()) {
             for (Map.Entry<Float, String> soundEntry : animation.soundEffects.entrySet()) {
                 float soundTime = soundEntry.getKey();
                 String soundId = soundEntry.getValue();

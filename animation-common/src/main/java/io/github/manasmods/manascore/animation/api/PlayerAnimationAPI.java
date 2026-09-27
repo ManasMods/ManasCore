@@ -10,6 +10,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
@@ -99,6 +101,61 @@ public class PlayerAnimationAPI {
         if (animation == null || animation.requiresAnimation.isEmpty()) return true;
         if (currentAnimation.isEmpty()) return animation.requiresAnimation.contains(NO_ANIMATION);
         return animation.requiresAnimation.contains(currentAnimation);
+    }
+
+    /**
+     * Applies the active animation's {@code body} bone to {@code poseStack} as a whole-entity transform.
+     * Call at the point the entity has just been oriented (after body-yaw rotation, before the model scale flip).
+     * <p>
+     * {@code body} is the rig's root rather than a {@link net.minecraft.client.model.geom.ModelPart}, so it has
+     * to land on the pose stack. Public so renderers that are not a {@code LivingEntityRenderer} (GeckoLib) can
+     * apply root motion too.
+     *
+     * @return whether a root transform was applied
+     */
+    public static boolean applyRootBone(LivingEntity entity, PoseStack poseStack) {
+        PlayerAnimation animation = active_animations.get(entity);
+        if (animation == null) return false;
+        PlayerBone bone = animation.bones.get("body");
+        if (bone == null) return false;
+
+        float progress = state(entity).progress;
+        Vec3 boneScale = PlayerBone.interpolate(bone.scales, progress, entity);
+        if (boneScale != null) poseStack.scale((float) boneScale.x, (float) boneScale.y, (float) boneScale.z);
+
+        Vec3 position = PlayerBone.interpolate(bone.positions, progress, entity);
+        if (position != null) poseStack.translate((float) -position.x * 0.0625f, (float) (position.y * 0.0625f) + 0.75f, (float) position.z * 0.0625f);
+
+        Vec3 rotation = PlayerBone.interpolate(bone.rotations, progress, entity);
+        if (rotation != null) {
+            poseStack.mulPose(Axis.ZP.rotationDegrees((float) rotation.z));
+            poseStack.mulPose(Axis.YP.rotationDegrees((float) -rotation.y));
+            poseStack.mulPose(Axis.XP.rotationDegrees((float) -rotation.x));
+        }
+
+        if (position != null) poseStack.translate(0, -0.75f, 0);
+        return true;
+    }
+
+    private static int suppressDepth = 0;
+
+    /**
+     * Runs {@code action} with ManasCore player animations disabled for any {@code PlayerModel#setupAnim} call it
+     * makes: the model gets the pure vanilla pose and no animation state is read or advanced - no progress, no
+     * sounds, no conditional evaluation. Re-entrant. Client render thread only.
+     */
+    public static void withoutAnimations(Runnable action) {
+        suppressDepth++;
+        try {
+            action.run();
+        } finally {
+            suppressDepth--;
+        }
+    }
+
+    /** Whether the current code is running inside {@link #withoutAnimations}. */
+    public static boolean isSuppressed() {
+        return suppressDepth > 0;
     }
 
     public static class PlayerAnimationState {

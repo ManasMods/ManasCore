@@ -8,7 +8,6 @@ package io.github.manasmods.manascore.animation.mixin.client;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
 import io.github.manasmods.manascore.animation.api.PlayerAnimationAPI;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
@@ -19,7 +18,6 @@ import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -54,11 +52,7 @@ public abstract class MixinLivingEntityRendererAnimation<T extends LivingEntity,
 
     /**
      * Applies the animation's {@code body} bone as a whole-entity transform, for everything that is not a
-     * player.
-     * <p>
-     * {@code body} is the rig's root rather than a {@link net.minecraft.client.model.geom.ModelPart}, so
-     * {@code MixinPlayerModel} cannot reach it - it has to land on the pose stack, at the same point vanilla
-     * finishes orienting the entity.
+     * player, at the point vanilla finishes orienting the entity. See {@link PlayerAnimationAPI#applyRootBone}.
      * <p>
      * Players are excluded because {@code MixinPlayerRendererAnimation} already does this at the return of
      * {@code PlayerRenderer#setupRotations}, which calls this method as its super - without the guard a player
@@ -69,26 +63,7 @@ public abstract class MixinLivingEntityRendererAnimation<T extends LivingEntity,
     private void manascore$applyRootBone(T entity, PoseStack poseStack, float bob, float yBodyRot, float partialTick,
                                          float scale, CallbackInfo ci) {
         if (entity instanceof Player) return;
-        PlayerAnimationAPI.PlayerAnimation animation = PlayerAnimationAPI.active_animations.get(entity);
-        if (animation == null) return;
-        PlayerAnimationAPI.PlayerBone bone = animation.bones.get("body");
-        if (bone == null) return;
-
-        float animationProgress = PlayerAnimationAPI.state(entity).progress;
-        Vec3 boneScale = PlayerAnimationAPI.PlayerBone.interpolate(bone.scales, animationProgress, entity);
-        if (boneScale != null) poseStack.scale((float) boneScale.x, (float) boneScale.y, (float) boneScale.z);
-
-        Vec3 position = PlayerAnimationAPI.PlayerBone.interpolate(bone.positions, animationProgress, entity);
-        if (position != null) poseStack.translate((float) -position.x * 0.0625f, (float) (position.y * 0.0625f) + 0.75f, (float) position.z * 0.0625f);
-
-        Vec3 rotation = PlayerAnimationAPI.PlayerBone.interpolate(bone.rotations, animationProgress, entity);
-        if (rotation != null) {
-            poseStack.mulPose(Axis.ZP.rotationDegrees((float) rotation.z));
-            poseStack.mulPose(Axis.YP.rotationDegrees((float) -rotation.y));
-            poseStack.mulPose(Axis.XP.rotationDegrees((float) -rotation.x));
-        }
-
-        if (position != null) poseStack.translate(0, -0.75f, 0);
+        PlayerAnimationAPI.applyRootBone(entity, poseStack);
     }
 
     /**
