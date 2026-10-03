@@ -102,10 +102,11 @@ public class SkillStorage extends Storage implements Skills {
         MinecraftServer server = level.getServer();
         if (server == null) return;
 
-        boolean shouldPassiveConsume = server.getTickCount() % INSTANCE_UPDATE == 0;
+        int phase = server.getTickCount() + entity.getId();
+        boolean shouldPassiveConsume = phase % INSTANCE_UPDATE == 0;
         if (shouldPassiveConsume) checkSkillTimers(entity, storage);
 
-        boolean passiveSkillActivate = server.getTickCount() % PASSIVE_SKILL == 0;
+        boolean passiveSkillActivate = phase % PASSIVE_SKILL == 0;
         if (passiveSkillActivate) tickSkills(entity, storage);
     }
 
@@ -177,7 +178,7 @@ public class SkillStorage extends Storage implements Skills {
                     storage.checkAndMarkDirty(skillInstance);
                 }, () -> skill.getSkill().onHeldStop(null, livingEntity, skill.getDuration(), skill.getMode()));
                 storage.getHeldSkills().remove(skill);
-            } else storage.markDirty();
+            }
         }
     }
 

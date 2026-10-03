@@ -69,6 +69,7 @@ public final class StorageManager {
             case CHUNK -> CHUNK_STORAGE_REGISTRY.attach((LevelChunk) holder);
             case WORLD -> LEVEL_STORAGE_REGISTRY.attach((Level) holder);
         }
+        holder.manasCore$getCombinedStorage().clearDirty();
     }
 
     public static void syncTracking(StorageHolder source) {

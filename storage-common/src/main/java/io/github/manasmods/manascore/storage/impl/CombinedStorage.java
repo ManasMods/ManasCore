@@ -139,4 +139,10 @@ public class CombinedStorage {
         }
         return false;
     }
+
+    public void clearDirty() {
+        for (Storage storage : this.storages.values()) {
+            storage.clearDirty();
+        }
+    }
 }

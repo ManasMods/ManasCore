@@ -30,7 +30,9 @@ public class TickingRace {
         ManasRaceInstance instance = optional.get();
         if (this.reachedMaxDuration(instance, entity)) return false;
         if (!instance.canActivateAbility(entity) || (instance.isOnCooldown() && !instance.canIgnoreCoolDown(entity))) return false;
-        return instance.onHeldAbility(entity, this.duration++);
+        boolean holding = instance.onHeldAbility(entity, this.duration++);
+        storage.checkAndMarkDirty(instance);
+        return holding;
     }
 
     public boolean reachedMaxDuration(ManasRaceInstance instance, LivingEntity entity) {

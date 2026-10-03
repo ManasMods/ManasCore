@@ -68,7 +68,7 @@ public class RaceStorage extends Storage implements Races {
         MinecraftServer server = level.getServer();
         if (server == null) return;
 
-        boolean shouldTickRace = server.getTickCount() % INSTANCE_UPDATE == 0;
+        boolean shouldTickRace = (server.getTickCount() + entity.getId()) % INSTANCE_UPDATE == 0;
         if (!shouldTickRace) return;
         tickRace(entity, storage);
     }
@@ -76,7 +76,6 @@ public class RaceStorage extends Storage implements Races {
     private static void handleRaceHeldTick(LivingEntity entity, Races storage) {
         if (!storage.hasHeldAbility()) return;
         if (!storage.getHeldAbility().tick(storage, entity)) storage.interruptHeldAbility();
-        storage.markDirty();
     }
 
     private static void tickRace(LivingEntity entity, Races storage) {
@@ -189,6 +188,11 @@ public class RaceStorage extends Storage implements Races {
     public void load(CompoundTag data) {
         if (!data.contains(RACE_KEY)) return;
         this.raceInstance = ManasRaceInstance.fromNBT(data.getCompound(RACE_KEY));
+    }
+
+    public void saveOutdated(CompoundTag data) {
+        super.saveOutdated(data);
+        if (this.raceInstance != null) this.raceInstance.resetDirty();
     }
 
     protected LivingEntity getOwner() {

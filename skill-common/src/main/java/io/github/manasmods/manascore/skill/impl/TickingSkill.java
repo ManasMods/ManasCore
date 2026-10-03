@@ -54,7 +54,9 @@ public class TickingSkill {
             return false;
         }
         if (this.target != null) this.target.aim(entity);
-        return instance.onHeld(entity, this.duration++, this.mode);
+        boolean holding = instance.onHeld(entity, this.duration++, this.mode);
+        storage.checkAndMarkDirty(instance);
+        return holding;
     }
 
     public boolean reachedMaxDuration(ManasSkillInstance instance, LivingEntity entity) {
