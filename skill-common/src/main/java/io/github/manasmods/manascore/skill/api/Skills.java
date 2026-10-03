@@ -56,8 +56,12 @@ public interface Skills {
         }
 
         @Override
-        public boolean startHoldSkill(ManasSkillInstance skillInstance, int keyNumber, int mode) {
+        public boolean startHoldSkill(ManasSkillInstance skillInstance, int keyNumber, int mode, @Nullable SkillTarget target) {
             return false;
+        }
+
+        @Override
+        public void stopHoldSkill(ManasSkillInstance skillInstance, int mode) {
         }
 
         @Override
@@ -126,7 +130,20 @@ public interface Skills {
     /**
      * Starts activating the specified skill and treating it as if it were being held down. Returns true if successful.
      */
-    boolean startHoldSkill(ManasSkillInstance skillInstance, int keyNumber, int mode);
+    default boolean startHoldSkill(ManasSkillInstance skillInstance, int keyNumber, int mode) {
+        return this.startHoldSkill(skillInstance, keyNumber, mode, null);
+    }
+
+    /**
+     * Starts activating the specified skill aimed at a {@link SkillTarget} and treating it as if it were being held down.
+     * The owner is turned towards the target right before every press, held and release call. Returns true if successful.
+     */
+    boolean startHoldSkill(ManasSkillInstance skillInstance, int keyNumber, int mode, @Nullable SkillTarget target);
+
+    /**
+     * Stops holding the specified skill without releasing it.
+     */
+    void stopHoldSkill(ManasSkillInstance skillInstance, int mode);
 
     /**
      * Returns all active {@link TickingSkill} of the storage.

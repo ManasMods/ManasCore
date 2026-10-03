@@ -19,10 +19,12 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileDeflection;
 import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -550,6 +552,55 @@ public class ManasSkillInstance {
      */
     public void removeAttributeModifiers(LivingEntity entity, int mode) {
         this.getSkill().removeAttributeModifiers(this, entity, mode);
+    }
+
+    /**
+     * Used by mob AI to determine which kind of target this instance needs in the given mode.
+     */
+    public SkillTargetType getMobTargetType(Mob entity, int mode) {
+        return this.getSkill().getMobTargetType(this, entity, mode);
+    }
+
+    /**
+     * Used by mob AI to determine the minimum distance to the target before using this instance.
+     */
+    public double getMobMinRange(Mob entity, int mode) {
+        return this.getSkill().getMobMinRange(this, entity, mode);
+    }
+
+    /**
+     * Used by mob AI to determine the maximum distance to the target for using this instance.
+     */
+    public double getMobMaxRange(Mob entity, int mode) {
+        return this.getSkill().getMobMaxRange(this, entity, mode);
+    }
+
+    /**
+     * Used by mob AI to determine how many ticks this instance is held before it gets released.
+     */
+    public int getMobHoldTime(Mob entity, int mode) {
+        return this.getSkill().getMobHoldTime(this, entity, mode);
+    }
+
+    /**
+     * Used by mob AI to weight this instance in the random pick. 0 or less means mobs never use this mode.
+     */
+    public int getMobWeight(Mob entity, int mode) {
+        return this.getSkill().getMobWeight(this, entity, mode);
+    }
+
+    /**
+     * Determine if a mob can use this instance on the given target right now.
+     */
+    public boolean canMobActivate(Mob entity, SkillTarget target, int mode) {
+        return this.getSkill().canMobActivate(this, entity, target, mode);
+    }
+
+    /**
+     * Used by mob AI to pick the position that a {@link SkillTargetType#POSITION} instance is aimed at.
+     */
+    public Vec3 getMobTargetPosition(Mob entity, LivingEntity target, int mode) {
+        return this.getSkill().getMobTargetPosition(this, entity, target, mode);
     }
 
     /**

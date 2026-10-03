@@ -24,6 +24,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
@@ -31,6 +32,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileDeflection;
 import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -320,6 +322,55 @@ public class ManasSkill {
             ClientboundUpdateAttributesPacket packet = new ClientboundUpdateAttributesPacket(player.getId(), dirtyInstances);
             player.connection.send(packet);
         }
+    }
+
+    /**
+     * Used by mob AI to determine which kind of target this skill needs in the given mode.
+     */
+    public SkillTargetType getMobTargetType(ManasSkillInstance instance, Mob entity, int mode) {
+        return SkillTargetType.ENEMY;
+    }
+
+    /**
+     * Used by mob AI to determine the minimum distance to the target before using this skill.
+     */
+    public double getMobMinRange(ManasSkillInstance instance, Mob entity, int mode) {
+        return 0;
+    }
+
+    /**
+     * Used by mob AI to determine the maximum distance to the target for using this skill.
+     */
+    public double getMobMaxRange(ManasSkillInstance instance, Mob entity, int mode) {
+        return 16;
+    }
+
+    /**
+     * Used by mob AI to determine how many ticks this skill is held before it gets released.
+     */
+    public int getMobHoldTime(ManasSkillInstance instance, Mob entity, int mode) {
+        return 0;
+    }
+
+    /**
+     * Used by mob AI to weight this skill in the random pick. 0 or less means mobs never use this mode.
+     */
+    public int getMobWeight(ManasSkillInstance instance, Mob entity, int mode) {
+        return 10;
+    }
+
+    /**
+     * Determine if a mob can use this skill on the given target right now.
+     */
+    public boolean canMobActivate(ManasSkillInstance instance, Mob entity, SkillTarget target, int mode) {
+        return true;
+    }
+
+    /**
+     * Used by mob AI to pick the position that a {@link SkillTargetType#POSITION} skill is aimed at.
+     */
+    public Vec3 getMobTargetPosition(ManasSkillInstance instance, Mob entity, LivingEntity target, int mode) {
+        return target.position();
     }
 
     /**

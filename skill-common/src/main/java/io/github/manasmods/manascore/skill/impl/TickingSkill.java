@@ -8,9 +8,11 @@ package io.github.manasmods.manascore.skill.impl;
 import io.github.manasmods.manascore.skill.api.ManasSkill;
 import io.github.manasmods.manascore.skill.api.ManasSkillInstance;
 import io.github.manasmods.manascore.skill.api.SkillAPI;
+import io.github.manasmods.manascore.skill.api.SkillTarget;
 import io.github.manasmods.manascore.skill.api.Skills;
 import lombok.Getter;
 import net.minecraft.world.entity.LivingEntity;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
@@ -26,10 +28,18 @@ public class TickingSkill {
     private final int mode;
     @Getter
     private final int keyNumber;
+    @Getter
+    @Nullable
+    private final SkillTarget target;
     public TickingSkill(ManasSkill skill, int mode, int keyNumber) {
+        this(skill, mode, keyNumber, null);
+    }
+
+    public TickingSkill(ManasSkill skill, int mode, int keyNumber, @Nullable SkillTarget target) {
         this.skill = skill;
         this.mode = mode;
         this.keyNumber = keyNumber;
+        this.target = target;
     }
 
     public boolean tick(Skills storage, LivingEntity entity) {
@@ -43,6 +53,7 @@ public class TickingSkill {
                 storage.handleSkillRelease(instance, this.keyNumber, this.mode, true);
             return false;
         }
+        if (this.target != null) this.target.aim(entity);
         return instance.onHeld(entity, this.duration++, this.mode);
     }
 
@@ -61,9 +72,21 @@ public class TickingSkill {
     }
 
     public static void addTickingSkill(LivingEntity livingEntity, ManasSkill skill, int mode, int keyNumber) {
+        addTickingSkill(livingEntity, skill, mode, keyNumber, null);
+    }
+
+    public static void addTickingSkill(LivingEntity livingEntity, ManasSkill skill, int mode, int keyNumber, @Nullable SkillTarget target) {
         Skills storage = SkillAPI.getSkillsFrom(livingEntity);
         for (TickingSkill tickingSkill : storage.getHeldSkills()) if (tickingSkill.matches(skill, mode)) return;
-        storage.getHeldSkills().add(new TickingSkill(skill, mode, keyNumber));
+        storage.getHeldSkills().add(new TickingSkill(skill, mode, keyNumber, target));
+    }
+
+    public static @Nullable TickingSkill getTickingSkill(LivingEntity entity, ManasSkill skill, int mode) {
+        Skills storage = SkillAPI.getSkillsFrom(entity);
+        for (TickingSkill tickingSkill : storage.getHeldSkills()) {
+            if (tickingSkill.matches(skill, mode)) return tickingSkill;
+        }
+        return null;
     }
 
     public static boolean isTickingSkill(LivingEntity entity, ManasSkill skill, int mode) {

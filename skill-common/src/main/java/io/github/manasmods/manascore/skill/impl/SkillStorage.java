@@ -197,7 +197,7 @@ public class SkillStorage extends Storage implements Skills {
         return startHoldSkill(optional.get(), keyNumber, mode);
     }
 
-    public boolean startHoldSkill(ManasSkillInstance skillInstance, int keyNumber, int mode) {
+    public boolean startHoldSkill(ManasSkillInstance skillInstance, int keyNumber, int mode, @Nullable SkillTarget target) {
         Changeable<ManasSkillInstance> changeable = Changeable.of(skillInstance);
         if (SkillEvents.ACTIVATE_SKILL.invoker().activateSkill(changeable, getOwner(), keyNumber, mode).isFalse()) return false;
 
@@ -208,11 +208,22 @@ public class SkillStorage extends Storage implements Skills {
         if (mode < 0 || mode >= skill.getModes()) return false;
         if (skill.onCoolDown(mode) && !skill.canIgnoreCoolDown(getOwner(), mode)) return false;
 
+        if (target != null) target.aim(this.getOwner());
         skill.onPressed(getOwner(), keyNumber, mode);
         skill.addHeldAttributeModifiers(getOwner(), mode);
-        TickingSkill.addTickingSkill(getOwner(), skill.getSkill(), mode, keyNumber);
+        TickingSkill.addTickingSkill(getOwner(), skill.getSkill(), mode, keyNumber, target);
         this.checkAndMarkDirty(skill);
         return true;
+    }
+
+    public void stopHoldSkill(ManasSkillInstance skillInstance, int mode) {
+        for (TickingSkill tickingSkill : List.copyOf(this.heldSkills)) {
+            if (!tickingSkill.matches(skillInstance.getSkill(), mode)) continue;
+            skillInstance.removeAttributeModifiers(this.getOwner(), mode);
+            skillInstance.onHeldStop(this.getOwner(), tickingSkill.getDuration(), mode);
+            this.heldSkills.remove(tickingSkill);
+        }
+        this.checkAndMarkDirty(skillInstance);
     }
 
     public Collection<ManasSkillInstance> getLearnedSkills() {
@@ -277,10 +288,12 @@ public class SkillStorage extends Storage implements Skills {
         Changeable<ManasSkillInstance> changeable = Changeable.of(skillInstance);
 
         int heldTick = 0;
+        SkillTarget target = null;
         if (!this.heldSkills.isEmpty()) {
             for (TickingSkill tickingSkill : List.copyOf(this.heldSkills)) {
                 if (tickingSkill.matches(skillInstance.getSkill(), mode)) {
                     heldTick = tickingSkill.getDuration();
+                    target = tickingSkill.getTarget();
                     break;
                 }
             }
@@ -293,6 +306,7 @@ public class SkillStorage extends Storage implements Skills {
 
         if ((heldInterrupt || skill.canActivateSkill(this.getOwner(), mode)) && mode < skill.getModes()) {
             if (!skill.onCoolDown(mode) || skill.canIgnoreCoolDown(getOwner(), mode)) {
+                if (target != null) target.aim(this.getOwner());
                 skill.onRelease(getOwner(), heldTickChangeable.get(), keyNumber, mode);
                 this.checkAndMarkDirty(skillInstance);
             }

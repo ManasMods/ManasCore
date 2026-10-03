@@ -12,14 +12,17 @@ import io.github.manasmods.manascore.skill.api.EntityEvents;
 import io.github.manasmods.manascore.skill.api.ManasSkill;
 import io.github.manasmods.manascore.skill.api.ManasSkillInstance;
 import io.github.manasmods.manascore.skill.api.SkillAPI;
+import io.github.manasmods.manascore.skill.impl.TickingSkill;
 import io.github.manasmods.manascore.testing.ManasCoreTesting;
 import io.github.manasmods.manascore.testing.configs.SkillConfig;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.IronGolem;
@@ -36,6 +39,7 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileDeflection;
 import net.minecraft.world.entity.projectile.ThrownTrident;
 import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 public class TestSkill extends ManasSkill {
@@ -51,6 +55,14 @@ public class TestSkill extends ManasSkill {
 
     public int getMaxHeldTime(ManasSkillInstance instance, LivingEntity entity) {
         return 200;
+    }
+
+    public int getMobHoldTime(ManasSkillInstance instance, Mob entity, int mode) {
+        return 40;
+    }
+
+    public boolean shouldTriggerReleaseOnHeldInterrupt(ManasSkillInstance instance, LivingEntity entity, int keyNumber, int mode) {
+        return keyNumber == -1;
     }
 
     public boolean canBeToggled(ManasSkillInstance instance, LivingEntity entity) {
@@ -85,11 +97,20 @@ public class TestSkill extends ManasSkill {
 
     public boolean onHeld(ManasSkillInstance instance, LivingEntity living, int heldTicks, int mode) {
         ManasCoreTesting.LOG.info("Held for {} ticks", heldTicks);
+        if (heldTicks % 10 == 0) this.logAim(living, mode, "Held");
         if (mode == 1 && heldTicks == 0) {
             if (living.onGround()) PlayerAnimationHelper.playThenLoop(living, "manascore:weird_hand", "manascore:beam");
             else PlayerAnimationHelper.play(living, "manascore:arrow");
         }
         return true;
+    }
+
+    private void logAim(LivingEntity entity, int mode, String stage) {
+        TickingSkill ticking = TickingSkill.getTickingSkill(entity, this, mode);
+        if (ticking == null || ticking.getTarget() == null) return;
+        Vec3 direction = ticking.getTarget().getPosition().subtract(entity.getEyePosition()).normalize();
+        double error = Math.toDegrees(Math.acos(Mth.clamp(entity.getViewVector(1F).dot(direction), -1D, 1D)));
+        ManasCoreTesting.LOG.info("{} aim error {} degrees", stage, error);
     }
 
     public void onHeldStop(@Nullable ManasSkillInstance instance, LivingEntity entity, int heldTicks, int mode) {
@@ -101,6 +122,7 @@ public class TestSkill extends ManasSkill {
 
     public void onRelease(ManasSkillInstance instance, LivingEntity entity, int heldTicks, int keyNumber, int mode) {
         ManasCoreTesting.LOG.info("I'm released after {} ticks", heldTicks);
+        this.logAim(entity, mode, "Released");
         if (mode == 1) {
             ManasCoreTesting.LOG.info("In second mode");
 //            instance.setCoolDown(5, mode);
