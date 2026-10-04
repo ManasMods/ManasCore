@@ -71,9 +71,9 @@ public class SkillRegistry {
             for (ManasSkillInstance instance : ownerStorage.getLearnedSkills()) {
                 if (!instance.canInteractSkill(owner)) continue;
                 if (!instance.onDamageEntity(owner, target, source, amount)) {
-                    storage.checkAndMarkDirty(instance);
+                    ownerStorage.checkAndMarkDirty(instance);
                     return EventResult.interruptFalse();
-                } else storage.checkAndMarkDirty(instance);
+                } else ownerStorage.checkAndMarkDirty(instance);
             }
             return EventResult.pass();
         });
@@ -85,9 +85,9 @@ public class SkillRegistry {
             for (ManasSkillInstance instance : ownerStorage.getLearnedSkills()) {
                 if (!instance.canInteractSkill(owner)) continue;
                 if (!instance.onTouchEntity(owner, target, source, amount)) {
-                    storage.checkAndMarkDirty(instance);
+                    ownerStorage.checkAndMarkDirty(instance);
                     return EventResult.interruptFalse();
-                } else storage.checkAndMarkDirty(instance);
+                } else ownerStorage.checkAndMarkDirty(instance);
             }
             return EventResult.pass();
         });

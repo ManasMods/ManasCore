@@ -130,6 +130,13 @@ public class CombinedStorage {
         return !packet.getList(STORAGE_LIST_KEY, Tag.TAG_COMPOUND).isEmpty();
     }
 
+    public boolean hasClientStorages() {
+        for (Storage storage : this.storages.values()) {
+            if (!storage.isServerOnly()) return true;
+        }
+        return false;
+    }
+
     public boolean isDirty() {
         for (Storage storage : this.storages.values()) {
             if (storage.isDirty()) return true;

@@ -513,8 +513,9 @@ public final class TeamManager {
      */
     private static void reconcileRelations(MinecraftServer server, UUID uuid, TeamStorage storage) {
         TeamSavedData data = TeamSavedData.get(server);
+        Map<ResourceLocation, Set<UUID>> stored = storage.getAllRelated();
         if (!data.isRelationsMigrated(uuid)) {
-            for (Map.Entry<ResourceLocation, Set<UUID>> entry : storage.getAllRelated().entrySet()) {
+            for (Map.Entry<ResourceLocation, Set<UUID>> entry : stored.entrySet()) {
                 ResourceLocation typeId = entry.getKey();
                 for (UUID related : entry.getValue()) {
                     TeamType<?> type = TeamRegistry.TEAM_TYPES.get(typeId);
@@ -522,10 +523,10 @@ public final class TeamManager {
                     data.addRelated(typeId, uuid, related);
                 }
             }
-            data.markRelationsMigrated(uuid);
+            if (storage.getOwner() instanceof Player || !stored.isEmpty() || data.hasAnyRelation(uuid)) data.markRelationsMigrated(uuid);
         }
 
-        Set<ResourceLocation> relationTypes = new LinkedHashSet<>(storage.getAllRelated().keySet());
+        Set<ResourceLocation> relationTypes = new LinkedHashSet<>(stored.keySet());
         relationTypes.addAll(data.getAllRelated(uuid).keySet());
         for (ResourceLocation typeId : relationTypes) storage.setRelated(typeId, data.getRelated(typeId, uuid));
 
@@ -803,6 +804,7 @@ public final class TeamManager {
     private static void mirrorAdd(MinecraftServer server, ResourceLocation typeId, UUID entity, UUID other) {
         TeamStorage storage = storageOf(server, entity);
         if (storage != null) storage.addRelated(typeId, other);
+        if (storage != null && !(storage.getOwner() instanceof Player)) TeamSavedData.get(server).markRelationsMigrated(entity);
         TeamStorage otherStorage = storageOf(server, other);
         if (otherStorage != null) otherStorage.addInbound(typeId, entity);
 

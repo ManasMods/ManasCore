@@ -44,6 +44,8 @@ public class ManasSkillInstance {
     private CompoundTag tag = null;
     @Getter
     private boolean dirty = false;
+    @Getter
+    private boolean timerOnly = false;
     protected final RegistrySupplier<ManasSkill> skillRegistryObject;
     private Skills owningStorage = null;
 
@@ -89,6 +91,7 @@ public class ManasSkillInstance {
     public ManasSkillInstance copy() {
         ManasSkillInstance clone = new ManasSkillInstance(getSkill());
         clone.dirty = this.dirty;
+        clone.timerOnly = this.timerOnly;
         clone.cooldownList = new ArrayList<>(this.cooldownList);
         clone.removeTime = this.removeTime;
         clone.masteryPoint = this.masteryPoint;
@@ -161,6 +164,20 @@ public class ManasSkillInstance {
         }
     }
 
+    public CompoundTag toTimerNBT() {
+        CompoundTag nbt = new CompoundTag();
+        nbt.putString("skill", this.getSkillId().toString());
+        nbt.putBoolean("timerOnly", true);
+        nbt.putInt("RemoveTime", this.removeTime);
+        nbt.putIntArray("CooldownList", this.cooldownList);
+        return nbt;
+    }
+
+    public void loadTimers(CompoundTag tag) {
+        this.removeTime = tag.getInt("RemoveTime");
+        this.cooldownList = Arrays.stream(tag.getIntArray("CooldownList")).boxed().collect(Collectors.toList());
+    }
+
     /**
      * Can be used to load a {@link ManasSkillInstance} from a {@link CompoundTag}.
      * <p>
@@ -180,6 +197,13 @@ public class ManasSkillInstance {
      */
     public void markDirty() {
         this.dirty = true;
+        this.timerOnly = false;
+    }
+
+    @ApiStatus.Internal
+    public void markTimerDirty() {
+        if (!this.dirty) this.timerOnly = true;
+        this.dirty = true;
     }
 
     /**
@@ -190,6 +214,7 @@ public class ManasSkillInstance {
     @ApiStatus.Internal
     public void resetDirty() {
         this.dirty = false;
+        this.timerOnly = false;
     }
 
     @Override
@@ -383,6 +408,14 @@ public class ManasSkillInstance {
         markDirty();
     }
 
+    @ApiStatus.Internal
+    public void tickCoolDown(int coolDown, int mode) {
+        if (mode < 0 || mode >= this.cooldownList.size()) return;
+        if (this.hasOwningStorage() && !this.getOwningStorage().shouldActiveTick() && coolDown > 0) this.getOwningStorage().markActiveTick();
+        this.cooldownList.set(mode, coolDown);
+        this.markTimerDirty();
+    }
+
     /**
      * Edit the entire cooldown list of this instance.
      */
@@ -432,6 +465,14 @@ public class ManasSkillInstance {
             if (hasOwningStorage() && !getOwningStorage().shouldActiveTick()) getOwningStorage().markActiveTick();
             markDirty();
         }
+    }
+
+    @ApiStatus.Internal
+    public void tickRemoveTime() {
+        if (this.removeTime <= 0) return;
+        this.removeTime--;
+        if (this.hasOwningStorage() && !this.getOwningStorage().shouldActiveTick()) this.getOwningStorage().markActiveTick();
+        this.markTimerDirty();
     }
 
     /**

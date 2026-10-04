@@ -5,7 +5,6 @@
 
 package io.github.manasmods.manascore.network.api.util;
 
-import lombok.Synchronized;
 import org.jetbrains.annotations.Nullable;
 
 public class Changeable<T> {
@@ -22,13 +21,11 @@ public class Changeable<T> {
         return new Changeable<>(value);
     }
 
-    @Synchronized
     @Nullable
     public T get() {
         return value;
     }
 
-    @Synchronized
     public void set(@Nullable T value) {
         this.value = value;
     }

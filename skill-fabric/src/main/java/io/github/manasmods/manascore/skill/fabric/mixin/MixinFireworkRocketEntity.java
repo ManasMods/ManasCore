@@ -32,6 +32,11 @@ public abstract class MixinFireworkRocketEntity extends Projectile {
 
     @WrapOperation(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/FireworkRocketEntity;hitTargetOrDeflectSelf(Lnet/minecraft/world/phys/HitResult;)Lnet/minecraft/world/entity/projectile/ProjectileDeflection;"))
     ProjectileDeflection onHit(FireworkRocketEntity instance, HitResult result, Operation<ProjectileDeflection> original) {
+        if (result.getType() == HitResult.Type.MISS) {
+            this.onHitEventResult = null;
+            return original.call(instance, result);
+        }
+
         Changeable<EntityEvents.ProjectileHitResult> resultChangeable = Changeable.of(EntityEvents.ProjectileHitResult.DEFAULT);
         Changeable<ProjectileDeflection> deflectionChangeable = Changeable.of(ProjectileDeflection.NONE);
         EntityEvents.PROJECTILE_HIT.invoker().hit(result, instance, deflectionChangeable, resultChangeable);

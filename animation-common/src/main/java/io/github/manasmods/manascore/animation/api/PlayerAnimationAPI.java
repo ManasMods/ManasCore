@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
@@ -336,6 +337,12 @@ public class PlayerAnimationAPI {
     }
 
     public static class PlayerBone {
+        private static final List<String> MOLANG_QUERIES = List.of("query.anim_time", "query.head_x_rotation", "query.head_y_rotation", "query.body_x_rotation", "query.body_y_rotation",
+                "query.life_time", "query.health", "query.max_health", "query.is_on_ground", "query.is_in_water", "query.is_sneaking", "query.is_sprinting", "query.is_swimming",
+                "query.is_riding", "query.is_sleeping", "query.is_alive", "query.is_gliding", "query.ground_speed", "query.vertical_speed", "query.speed", "query.limb_swing",
+                "query.limb_swing_amount", "query.modified_move_speed", "query.walk_anim_speed", "query.modified_distance_moved", "query.hurt_time", "query.death_time",
+                "query.swing_progress", "query.is_using_item", "query.use_item_interval", "query.is_first_person", "query.main_hand_item_use_duration", "query.yaw_speed",
+                "query.position_delta_x", "query.position_delta_y", "query.position_delta_z");
         public final List<Keyframe> rotations;
         public final List<Keyframe> positions;
         public final List<Keyframe> scales;
@@ -365,15 +372,19 @@ public class PlayerAnimationAPI {
         public static class KeyframeValue {
             public final Vec3 vector;
             public final String molang;
+            public final List<String> queries;
 
             public KeyframeValue(Vec3 vector) {
                 this.vector = vector;
                 this.molang = null;
+                this.queries = List.of();
             }
 
             public KeyframeValue(String molang) {
                 this.molang = molang;
                 this.vector = null;
+                this.queries = new ArrayList<>();
+                for (String query : MOLANG_QUERIES) if (molang.contains(query)) this.queries.add(query);
             }
 
             public boolean isMolang() {
@@ -453,7 +464,7 @@ public class PlayerAnimationAPI {
                 return null;
             if (keyframes.size() == 1) {
                 Keyframe kf = keyframes.get(0);
-                return kf.value.isMolang() ? evalMolang(kf.value.molang, time, entity) : kf.value.vector;
+                return kf.value.isMolang() ? evalMolang(kf.value, time, entity) : kf.value.vector;
             }
             Keyframe lastKf = null;
             Keyframe nextKf = null;
@@ -471,7 +482,7 @@ public class PlayerAnimationAPI {
             }
             if (lastKf == null)
                 return null;
-            Vec3 postVec = lastKf.post.isMolang() ? evalMolang(lastKf.post.molang, time, entity) : lastKf.post.vector;
+            Vec3 postVec = lastKf.post.isMolang() ? evalMolang(lastKf.post, time, entity) : lastKf.post.vector;
             if (nextKf == null)
                 return postVec;
             float t1 = lastKf.time;
@@ -480,16 +491,16 @@ public class PlayerAnimationAPI {
                 return postVec;
             float alpha = (time - t1) / (t2_ - t1);
             Vec3 v1 = postVec;
-            Vec3 v2 = nextKf.pre.isMolang() ? evalMolang(nextKf.pre.molang, time, entity) : nextKf.pre.vector;
+            Vec3 v2 = nextKf.pre.isMolang() ? evalMolang(nextKf.pre, time, entity) : nextKf.pre.vector;
             if (lastKf.catmullrom) {
                 Vec3 p0 = v1, p1 = v1, p2 = v2, p3 = v2;
                 if (lastIdx > 0) {
                     KeyframeValue kv = keyframes.get(lastIdx - 1).post;
-                    p0 = kv.isMolang() ? evalMolang(kv.molang, time, entity) : kv.vector;
+                    p0 = kv.isMolang() ? evalMolang(kv, time, entity) : kv.vector;
                 }
                 if (lastIdx + 1 < keyframes.size() - 1) {
                     KeyframeValue kv = keyframes.get(lastIdx + 2).pre;
-                    p3 = kv.isMolang() ? evalMolang(kv.molang, time, entity) : kv.vector;
+                    p3 = kv.isMolang() ? evalMolang(kv, time, entity) : kv.vector;
                 }
                 float t = alpha, t2 = t * t, t3 = t2 * t;
                 return new Vec3(0.5 * ((2 * p1.x) + (-p0.x + p2.x) * t + (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 + (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3),
@@ -499,8 +510,8 @@ public class PlayerAnimationAPI {
             return new Vec3(v1.x + (v2.x - v1.x) * alpha, v1.y + (v2.y - v1.y) * alpha, v1.z + (v2.z - v1.z) * alpha);
         }
 
-        private static Vec3 evalMolang(String expr, float time, LivingEntity entity) {
-            expr = preprocessMolangQueries(expr, time, entity);
+        private static Vec3 evalMolang(KeyframeValue value, float time, LivingEntity entity) {
+            String expr = preprocessMolangQueries(value, time, entity);
             try {
                 if (expr.trim().startsWith("[") && expr.trim().endsWith("]")) {
                     String inner = expr.trim().substring(1, expr.trim().length() - 1);
@@ -628,25 +639,54 @@ public class PlayerAnimationAPI {
             }
         }
 
-        private static String preprocessMolangQueries(String expr, float time, LivingEntity entity) {
-            java.util.function.Function<Float, String> fmt = (val) -> String.format(java.util.Locale.ROOT, "%.6f", val);
-            Minecraft mc = Minecraft.getInstance();
-            return expr.replace("query.anim_time", fmt.apply(time)).replace("query.head_x_rotation", fmt.apply(Mth.wrapDegrees(entity.getXRot()))).replace("query.head_y_rotation", fmt.apply(Mth.wrapDegrees(entity.getYRot())))
-                    .replace("query.body_x_rotation", fmt.apply(Mth.wrapDegrees(Mth.lerp(mc.getTimer().getGameTimeDeltaPartialTick(false), entity.xRotO, entity.getXRot()))))
-                    .replace("query.body_y_rotation", fmt.apply(Mth.wrapDegrees(Mth.rotLerp(mc.getTimer().getGameTimeDeltaPartialTick(false), entity.yBodyRotO, entity.yBodyRot)))).replace("query.life_time", fmt.apply(entity.tickCount / 20.0f))
-                    .replace("query.health", fmt.apply(entity.getHealth())).replace("query.max_health", fmt.apply(entity.getMaxHealth())).replace("query.is_on_ground", entity.onGround() ? "1.0" : "0.0")
-                    .replace("query.is_in_water", entity.isInWater() ? "1.0" : "0.0").replace("query.is_sneaking", entity.isCrouching() ? "1.0" : "0.0").replace("query.is_sprinting", entity.isSprinting() ? "1.0" : "0.0")
-                    .replace("query.is_swimming", entity.isSwimming() ? "1.0" : "0.0").replace("query.is_riding", entity.isPassenger() ? "1.0" : "0.0").replace("query.is_sleeping", entity.isSleeping() ? "1.0" : "0.0")
-                    .replace("query.is_alive", entity.isAlive() ? "1.0" : "0.0").replace("query.is_gliding", entity.isFallFlying() ? "1.0" : "0.0")
-                    .replace("query.ground_speed", fmt.apply((float) Math.sqrt(entity.getDeltaMovement().x * entity.getDeltaMovement().x + entity.getDeltaMovement().z * entity.getDeltaMovement().z)))
-                    .replace("query.vertical_speed", fmt.apply((float) entity.getDeltaMovement().y)).replace("query.speed", fmt.apply((float) entity.getDeltaMovement().length())).replace("query.limb_swing", fmt.apply(entity.walkAnimation.position()))
-                    .replace("query.limb_swing_amount", fmt.apply(entity.walkAnimation.speed())).replace("query.modified_move_speed", fmt.apply(entity.walkAnimation.speed())).replace("query.walk_anim_speed", fmt.apply(entity.walkAnimation.speed()))
-                    .replace("query.modified_distance_moved", fmt.apply(entity.walkAnimation.position())).replace("query.hurt_time", fmt.apply((float) entity.hurtTime)).replace("query.death_time", fmt.apply((float) entity.deathTime))
-                    .replace("query.swing_progress", fmt.apply(entity.getAttackAnim(1.0f))).replace("query.is_using_item", entity.isUsingItem() ? "1.0" : "0.0").replace("query.use_item_interval", fmt.apply((float) entity.getUseItemRemainingTicks()))
-                    .replace("query.is_first_person", mc.options.getCameraType().isFirstPerson() ? "1.0" : "0.0")
-                    .replace("query.main_hand_item_use_duration", entity.isUsingItem() && entity.getUsedItemHand() == InteractionHand.MAIN_HAND ? fmt.apply((float) entity.getUseItemRemainingTicks()) : "0.0")
-                    .replace("query.yaw_speed", fmt.apply(Math.abs(Mth.wrapDegrees(entity.getYRot() - entity.yRotO)))).replace("query.position_delta_x", fmt.apply((float) entity.getDeltaMovement().x))
-                    .replace("query.position_delta_y", fmt.apply((float) entity.getDeltaMovement().y)).replace("query.position_delta_z", fmt.apply((float) entity.getDeltaMovement().z));
+        private static String preprocessMolangQueries(KeyframeValue value, float time, LivingEntity entity) {
+            String resolved = value.molang;
+            for (String query : value.queries) resolved = resolved.replace(query, getQueryValue(query, time, entity));
+            return resolved;
+        }
+
+        private static String getQueryValue(String query, float time, LivingEntity entity) {
+            Minecraft minecraft = Minecraft.getInstance();
+            Vec3 movement = entity.getDeltaMovement();
+            return switch (query) {
+                case "query.anim_time" -> format(time);
+                case "query.head_x_rotation" -> format(Mth.wrapDegrees(entity.getXRot()));
+                case "query.head_y_rotation" -> format(Mth.wrapDegrees(entity.getYRot()));
+                case "query.body_x_rotation" -> format(Mth.wrapDegrees(Mth.lerp(minecraft.getTimer().getGameTimeDeltaPartialTick(false), entity.xRotO, entity.getXRot())));
+                case "query.body_y_rotation" -> format(Mth.wrapDegrees(Mth.rotLerp(minecraft.getTimer().getGameTimeDeltaPartialTick(false), entity.yBodyRotO, entity.yBodyRot)));
+                case "query.life_time" -> format(entity.tickCount / 20.0F);
+                case "query.health" -> format(entity.getHealth());
+                case "query.max_health" -> format(entity.getMaxHealth());
+                case "query.is_on_ground" -> entity.onGround() ? "1.0" : "0.0";
+                case "query.is_in_water" -> entity.isInWater() ? "1.0" : "0.0";
+                case "query.is_sneaking" -> entity.isCrouching() ? "1.0" : "0.0";
+                case "query.is_sprinting" -> entity.isSprinting() ? "1.0" : "0.0";
+                case "query.is_swimming" -> entity.isSwimming() ? "1.0" : "0.0";
+                case "query.is_riding" -> entity.isPassenger() ? "1.0" : "0.0";
+                case "query.is_sleeping" -> entity.isSleeping() ? "1.0" : "0.0";
+                case "query.is_alive" -> entity.isAlive() ? "1.0" : "0.0";
+                case "query.is_gliding" -> entity.isFallFlying() ? "1.0" : "0.0";
+                case "query.ground_speed" -> format((float) Math.sqrt(movement.x * movement.x + movement.z * movement.z));
+                case "query.vertical_speed", "query.position_delta_y" -> format((float) movement.y);
+                case "query.speed" -> format((float) movement.length());
+                case "query.limb_swing", "query.modified_distance_moved" -> format(entity.walkAnimation.position());
+                case "query.limb_swing_amount", "query.modified_move_speed", "query.walk_anim_speed" -> format(entity.walkAnimation.speed());
+                case "query.hurt_time" -> format((float) entity.hurtTime);
+                case "query.death_time" -> format((float) entity.deathTime);
+                case "query.swing_progress" -> format(entity.getAttackAnim(1.0F));
+                case "query.is_using_item" -> entity.isUsingItem() ? "1.0" : "0.0";
+                case "query.use_item_interval" -> format((float) entity.getUseItemRemainingTicks());
+                case "query.is_first_person" -> minecraft.options.getCameraType().isFirstPerson() ? "1.0" : "0.0";
+                case "query.main_hand_item_use_duration" -> entity.isUsingItem() && entity.getUsedItemHand() == InteractionHand.MAIN_HAND ? format((float) entity.getUseItemRemainingTicks()) : "0.0";
+                case "query.yaw_speed" -> format(Math.abs(Mth.wrapDegrees(entity.getYRot() - entity.yRotO)));
+                case "query.position_delta_x" -> format((float) movement.x);
+                case "query.position_delta_z" -> format((float) movement.z);
+                default -> query;
+            };
+        }
+
+        private static String format(float value) {
+            return String.format(Locale.ROOT, "%.6f", value);
         }
 
         private static int findTopLevelComma(String expr) {

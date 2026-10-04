@@ -21,6 +21,7 @@ import java.util.Objects;
 public abstract class MixinLlamaSpit {
     @WrapOperation(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/LlamaSpit;hitTargetOrDeflectSelf(Lnet/minecraft/world/phys/HitResult;)Lnet/minecraft/world/entity/projectile/ProjectileDeflection;"))
     ProjectileDeflection onHit(LlamaSpit instance, HitResult result, Operation<ProjectileDeflection> original) {
+        if (result.getType() == HitResult.Type.MISS) return original.call(instance, result);
         Changeable<EntityEvents.ProjectileHitResult> resultChangeable = Changeable.of(EntityEvents.ProjectileHitResult.DEFAULT);
         Changeable<ProjectileDeflection> deflectionChangeable = Changeable.of(ProjectileDeflection.NONE);
         EntityEvents.PROJECTILE_HIT.invoker().hit(result, instance, deflectionChangeable, resultChangeable);

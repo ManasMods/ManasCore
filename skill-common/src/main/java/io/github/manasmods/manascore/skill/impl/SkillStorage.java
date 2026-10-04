@@ -143,14 +143,14 @@ public class SkillStorage extends Storage implements Skills {
                 int currentCooldown = instance.getCoolDown(i);
                 Changeable<Integer> newCooldown = Changeable.of(Math.max(0, currentCooldown - 1));
                 if (!SkillEvents.SKILL_UPDATE_COOLDOWN.invoker().cooldown(instance, entity, i, currentCooldown, newCooldown).isFalse())
-                    instance.setCoolDown(newCooldown.get(), i);
+                    instance.tickCoolDown(newCooldown.get(), i);
                 storage.checkAndMarkDirty(instance);
             }
 
             // Update temporary skill timer
             if (!instance.isTemporarySkill()) continue;
             shouldContinueToTick = true;
-            instance.decreaseRemoveTime(1);
+            instance.tickRemoveTime();
             storage.checkAndMarkDirty(instance);
 
             if (!instance.shouldRemove()) continue;
@@ -339,6 +339,12 @@ public class SkillStorage extends Storage implements Skills {
         }
 
         for (Tag tag : data.getList(SKILL_LIST_KEY, Tag.TAG_COMPOUND)) {
+            CompoundTag entry = (CompoundTag) tag;
+            if (entry.getBoolean("timerOnly")) {
+                ManasSkillInstance instance = this.skillInstances.get(ResourceLocation.tryParse(entry.getString("skill")));
+                if (instance != null) instance.loadTimers(entry);
+                continue;
+            }
             try {
                 ManasSkillInstance instance = ManasSkillInstance.fromNBT((CompoundTag) tag);
                 instance.setOwningStorage(this);
@@ -360,7 +366,7 @@ public class SkillStorage extends Storage implements Skills {
             ListTag skillList = new ListTag();
             for (ManasSkillInstance instance : this.skillInstances.values()) {
                 if (!instance.isDirty()) continue;
-                skillList.add(instance.toNBT());
+                skillList.add(instance.isTimerOnly() ? instance.toTimerNBT() : instance.toNBT());
                 instance.resetDirty();
             }
             data.put(SKILL_LIST_KEY, skillList);

@@ -5,6 +5,7 @@
 
 package io.github.manasmods.manascore.storage.impl;
 
+import io.github.manasmods.manascore.network.api.util.PlayerLookup;
 import io.github.manasmods.manascore.storage.ManasCoreStorage;
 import io.github.manasmods.manascore.storage.api.*;
 import io.github.manasmods.manascore.storage.impl.network.s2c.StorageSyncPayload;
@@ -86,10 +87,7 @@ public final class StorageManager {
 
             if (!update || CombinedStorage.hasEntries(full)) NetworkManager.sendToPlayer(self, new SyncEntityStoragePayload(update, self.getId(), full));
             if (update && shared.isEmpty()) return;
-            SyncEntityStoragePayload filteredPayload = new SyncEntityStoragePayload(update, self.getId(), filtered);
-            for (ServerPlayer player : source.manasCore$getTrackingPlayers()) {
-                if (player != self) NetworkManager.sendToPlayer(player, filteredPayload);
-            }
+            NetworkManager.sendToPlayers(PlayerLookup.tracking(self), new SyncEntityStoragePayload(update, self.getId(), filtered));
             return;
         }
         StorageSyncPayload payload = createSyncPacket(source, update, false, update);
@@ -98,6 +96,7 @@ public final class StorageManager {
     }
 
     public static void syncTarget(StorageHolder source, ServerPlayer target) {
+        if (!source.manasCore$getCombinedStorage().hasClientStorages()) return;
         NetworkManager.sendToPlayer(target, createSyncPacket(source, false, source == target, false));
     }
 

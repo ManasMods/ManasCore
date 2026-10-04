@@ -56,6 +56,7 @@ public class RelationResolver {
         UUID ownerB = OwnerResolvers.resolveId(b);
         Teams ownA = teamsOf(a);
         Teams ownB = teamsOf(b);
+        if (ownerA.equals(a.getUUID()) && ownerB.equals(b.getUUID()) && ownA.isEmpty() && ownB.isEmpty()) return ResolvedRelation.NEUTRAL;
         Teams ownerTeamsA = ownerA.equals(a.getUUID()) ? ownA : teamsOf(a.level(), ownerA);
         Teams ownerTeamsB = ownerB.equals(b.getUUID()) ? ownB : teamsOf(b.level(), ownerB);
 
