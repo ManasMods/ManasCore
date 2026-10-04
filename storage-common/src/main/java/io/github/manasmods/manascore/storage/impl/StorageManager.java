@@ -15,6 +15,7 @@ import com.mojang.datafixers.util.Pair;
 import dev.architectury.event.events.common.PlayerEvent;
 import dev.architectury.networking.NetworkManager;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -79,11 +80,12 @@ public final class StorageManager {
     public static void syncTracking(StorageHolder source, boolean update) {
         if (source instanceof ServerPlayer self) {
             CombinedStorage storage = self.manasCore$getCombinedStorage();
-            CompoundTag full = update ? storage.createUpdatePacket(true, true) : storage.toNBT(true);
-            CompoundTag filtered = update ? storage.stripOwnerOnly(full) : storage.toNBT(false);
+            ListTag shared = new ListTag();
+            CompoundTag full = update ? storage.createUpdatePacket(true, true, shared) : storage.toSyncNBT(true);
+            CompoundTag filtered = update ? CombinedStorage.wrapEntries(shared) : storage.toSyncNBT(false);
 
-            NetworkManager.sendToPlayer(self, new SyncEntityStoragePayload(update, self.getId(), full));
-            if (update && !CombinedStorage.hasEntries(filtered)) return;
+            if (!update || CombinedStorage.hasEntries(full)) NetworkManager.sendToPlayer(self, new SyncEntityStoragePayload(update, self.getId(), full));
+            if (update && shared.isEmpty()) return;
             SyncEntityStoragePayload filteredPayload = new SyncEntityStoragePayload(update, self.getId(), filtered);
             for (ServerPlayer player : source.manasCore$getTrackingPlayers()) {
                 if (player != self) NetworkManager.sendToPlayer(player, filteredPayload);
@@ -91,7 +93,7 @@ public final class StorageManager {
             return;
         }
         StorageSyncPayload payload = createSyncPacket(source, update, false, update);
-        if (update && source instanceof Entity && !CombinedStorage.hasEntries(payload.storageTag())) return;
+        if (update && !CombinedStorage.hasEntries(payload.storageTag())) return;
         NetworkManager.sendToPlayers(source.manasCore$getTrackingPlayers(), payload);
     }
 
@@ -107,7 +109,7 @@ public final class StorageManager {
                         update,
                         sourceEntity.getId(),
                         update ? sourceEntity.manasCore$getCombinedStorage().createUpdatePacket(clean, includeOwnerOnly)
-                                : sourceEntity.manasCore$getCombinedStorage().toNBT(includeOwnerOnly)
+                                : sourceEntity.manasCore$getCombinedStorage().toSyncNBT(includeOwnerOnly)
                 );
             }
             case CHUNK -> {
@@ -116,13 +118,13 @@ public final class StorageManager {
                         update,
                         sourceChunk.getPos(),
                         update ? sourceChunk.manasCore$getCombinedStorage().createUpdatePacket(clean)
-                                : sourceChunk.manasCore$getCombinedStorage().toNBT()
+                                : sourceChunk.manasCore$getCombinedStorage().toSyncNBT(true)
                 );
             }
             case WORLD -> new SyncWorldStoragePayload(
                     update,
                     update ? source.manasCore$getCombinedStorage().createUpdatePacket(clean)
-                            : source.manasCore$getCombinedStorage().toNBT()
+                            : source.manasCore$getCombinedStorage().toSyncNBT(true)
             );
         };
     }

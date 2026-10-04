@@ -1,6 +1,7 @@
 package io.github.manasmods.manascore.storage.api;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.chunk.LevelChunk;
 
 public abstract class Storage {
     private boolean dirty = true;
@@ -52,6 +53,7 @@ public abstract class Storage {
      */
     public void markDirty() {
         this.dirty = true;
+        if (this.holder instanceof LevelChunk chunk) chunk.setUnsaved(true);
     }
 
     /**
@@ -73,6 +75,10 @@ public abstract class Storage {
      * players receive an empty instance. Chunk and world storages ignore this.
      */
     public boolean isOwnerOnly() {
+        return false;
+    }
+
+    public boolean isServerOnly() {
         return false;
     }
 }

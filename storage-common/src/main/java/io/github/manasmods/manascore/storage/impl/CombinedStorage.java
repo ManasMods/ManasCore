@@ -24,17 +24,21 @@ public class CombinedStorage {
     }
 
     public CompoundTag toNBT() {
-        return this.toNBT(true);
+        return this.toNBT(true, true);
     }
 
-    public CompoundTag toNBT(boolean includeOwnerOnly) {
+    public CompoundTag toSyncNBT(boolean includeOwnerOnly) {
+        return this.toNBT(includeOwnerOnly, false);
+    }
+
+    private CompoundTag toNBT(boolean includeOwnerOnly, boolean includeServerOnly) {
         CompoundTag tag = new CompoundTag();
 
         ListTag entriesTag = new ListTag();
         this.storages.forEach((id, storage) -> {
             CompoundTag entryTag = new CompoundTag();
             entryTag.putString(STORAGE_ID_KEY, id.toString());
-            if (includeOwnerOnly || !storage.isOwnerOnly()) storage.save(entryTag);
+            if ((includeOwnerOnly || !storage.isOwnerOnly()) && (includeServerOnly || !storage.isServerOnly())) storage.save(entryTag);
             entriesTag.add(entryTag);
         });
 
@@ -93,12 +97,14 @@ public class CombinedStorage {
     }
 
     public CompoundTag createUpdatePacket(boolean clean, boolean includeOwnerOnly) {
-        CompoundTag tag = new CompoundTag();
+        return this.createUpdatePacket(clean, includeOwnerOnly, null);
+    }
 
+    public CompoundTag createUpdatePacket(boolean clean, boolean includeOwnerOnly, @Nullable ListTag sharedEntries) {
         ListTag entriesTag = new ListTag();
         this.storages.forEach((id, storage) -> {
             if (!storage.isDirty()) return;
-            if (!includeOwnerOnly && storage.isOwnerOnly()) {
+            if (storage.isServerOnly() || (!includeOwnerOnly && storage.isOwnerOnly())) {
                 if (clean) storage.clearDirty();
                 return;
             }
@@ -107,25 +113,16 @@ public class CombinedStorage {
             entryTag.putString(STORAGE_ID_KEY, id.toString());
             storage.saveOutdated(entryTag);
             entriesTag.add(entryTag);
+            if (sharedEntries != null && !storage.isOwnerOnly()) sharedEntries.add(entryTag);
             if (clean) storage.clearDirty();
         });
 
-        tag.put(STORAGE_LIST_KEY, entriesTag);
-        return tag;
+        return wrapEntries(entriesTag);
     }
 
-    /**
-     * Copy of an update packet created by {@link #createUpdatePacket(boolean, boolean)} without the owner-only entries.
-     */
-    public CompoundTag stripOwnerOnly(CompoundTag updatePacket) {
-        ListTag entriesTag = new ListTag();
-        for (Tag e : updatePacket.getList(STORAGE_LIST_KEY, Tag.TAG_COMPOUND)) {
-            Storage storage = this.storages.get(ResourceLocation.tryParse(((CompoundTag) e).getString(STORAGE_ID_KEY)));
-            if (storage == null || !storage.isOwnerOnly()) entriesTag.add(e);
-        }
-
+    public static CompoundTag wrapEntries(ListTag entries) {
         CompoundTag tag = new CompoundTag();
-        tag.put(STORAGE_LIST_KEY, entriesTag);
+        tag.put(STORAGE_LIST_KEY, entries);
         return tag;
     }
 
