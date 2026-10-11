@@ -27,7 +27,8 @@ public enum TeamResult {
     INVITE_PENDING,
     INVALID,
     UNCHANGED,
-    CANCELLED;
+    CANCELLED,
+    NAME_TAKEN;
 
     public boolean isAccepted() {
         return this == ACCEPTED;

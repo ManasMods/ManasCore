@@ -10,6 +10,7 @@ import dev.architectury.utils.Env;
 import io.github.manasmods.manascore.team.ModuleConstants;
 import io.github.manasmods.manascore.team.api.template.TeamAction;
 import io.github.manasmods.manascore.team.api.template.TeamResult;
+import io.netty.handler.codec.DecoderException;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -24,7 +25,19 @@ public record TeamActionResultPayload(TeamAction action, @Nullable UUID teamId, 
     public static final StreamCodec<FriendlyByteBuf, TeamActionResultPayload> STREAM_CODEC = CustomPacketPayload.codec(TeamActionResultPayload::encode, TeamActionResultPayload::new);
 
     public TeamActionResultPayload(FriendlyByteBuf buf) {
-        this(buf.readEnum(TeamAction.class), buf.readNullable(b -> b.readUUID()), buf.readEnum(TeamResult.class));
+        this(readAction(buf), buf.readNullable(b -> b.readUUID()), readResult(buf));
+    }
+
+    private static TeamAction readAction(FriendlyByteBuf buf) {
+        int ordinal = buf.readVarInt();
+        if (ordinal < 0 || ordinal >= TeamAction.values().length) throw new DecoderException("Unknown team action " + ordinal);
+        return TeamAction.values()[ordinal];
+    }
+
+    private static TeamResult readResult(FriendlyByteBuf buf) {
+        int ordinal = buf.readVarInt();
+        if (ordinal < 0 || ordinal >= TeamResult.values().length) throw new DecoderException("Unknown team result " + ordinal);
+        return TeamResult.values()[ordinal];
     }
 
     public void encode(FriendlyByteBuf buf) {

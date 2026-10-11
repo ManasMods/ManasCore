@@ -26,6 +26,15 @@ public class TeamConfig extends ManasConfig {
     @Comment("Minimum ticks between two client team queries of the same kind per player.")
     public int queryCooldownTicks = 20;
 
+    @Comment("Settings between an owned entity (pet, summon, minion) and its owner, and between two entities of the same owner.")
+    public OwnershipConfig ownership = new OwnershipConfig();
+    public static class OwnershipConfig extends ManasSubConfig {
+        @Comment("An owner and its owned entities cannot damage each other.")
+        public boolean blocksFriendlyFire = false;
+        @Comment("An owned entity never targets its owner or its owner's other owned entities.")
+        public boolean blocksTargeting = true;
+    }
+
     @Comment("Settings of the built-in ally relation.")
     public AllyConfig ally = new AllyConfig();
     public static class AllyConfig extends ManasSubConfig {

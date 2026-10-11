@@ -46,6 +46,7 @@ public interface TeamEvents {
     Event<InviteEvent> INVITE_ACCEPTED = EventFactory.createLoop();
     Event<InviteEvent> INVITE_DECLINED = EventFactory.createLoop();
     Event<InviteEvent> INVITE_EXPIRED = EventFactory.createLoop();
+    Event<InviteEvent> INVITE_REVOKED = EventFactory.createLoop();
 
     Event<RelationAddEvent> RELATION_ADD = EventFactory.createEventResult();
     Event<RelationEvent> RELATION_ADDED = EventFactory.createLoop();

@@ -17,6 +17,7 @@ import io.github.manasmods.manascore.command.api.parameter.EntityArg;
 import io.github.manasmods.manascore.command.api.parameter.SenderArg;
 import io.github.manasmods.manascore.command.api.parameter.ResourceLocationArg;
 import io.github.manasmods.manascore.command.api.parameter.UuidArg;
+import io.github.manasmods.manascore.command.api.parameter.primitive.IntegerArg;
 import io.github.manasmods.manascore.command.api.parameter.primitive.LiteralArg;
 import io.github.manasmods.manascore.command.api.parameter.primitive.TextArg;
 import io.github.manasmods.manascore.team.api.ResolvedRelation;
@@ -33,6 +34,7 @@ import io.github.manasmods.manascore.team.api.template.Teams;
 import io.github.manasmods.manascore.testing.ModuleConstants;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.selector.EntitySelector;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -52,6 +54,7 @@ import static io.github.manasmods.manascore.testing.ManasCoreTesting.LOG;
 public class TeamModuleTest {
     private static final DeferredRegister<TeamType<?>> TEAM_TYPES = DeferredRegister.create(ModuleConstants.MOD_ID, TeamAPI.getTeamTypeRegistryKey());
     public static final RegistrySupplier<FactionTeamType> FACTION = TEAM_TYPES.register("test_faction", FactionTeamType::new);
+    public static final RegistrySupplier<GuildTeamType> GUILD = Boolean.getBoolean("manascore.testing.skipGuild") ? null : TEAM_TYPES.register("test_guild", GuildTeamType::new);
     private static final String OWNER_TAG = "manas_owner:";
 
     public static void init() {
@@ -67,6 +70,7 @@ public class TeamModuleTest {
         TeamEvents.INVITE_ACCEPTED.register(invite -> LOG.info("[team] invite accepted {}", invite));
         TeamEvents.INVITE_DECLINED.register(invite -> LOG.info("[team] invite declined {}", invite));
         TeamEvents.INVITE_EXPIRED.register(invite -> LOG.info("[team] invite expired {}", invite));
+        TeamEvents.INVITE_REVOKED.register(invite -> LOG.info("[team] invite revoked {}", invite));
         TeamEvents.RELATION_ADDED.register((type, a, b) -> LOG.info("[team] relation {} added {} <-> {}", type.getId(), a, b));
         TeamEvents.RELATION_REMOVED.register((type, a, b) -> LOG.info("[team] relation {} removed {} <-> {}", type.getId(), a, b));
 
@@ -87,13 +91,43 @@ public class TeamModuleTest {
         return null;
     }
 
+    public static class FactionTeam extends Team {
+        private int score = 0;
+
+        public FactionTeam(UUID id, TeamType<?> type, UUID owner) {
+            super(id, type, owner);
+        }
+
+        public int getScore() {
+            return this.score;
+        }
+
+        public void setScore(int score) {
+            this.score = score;
+        }
+
+        public CompoundTag save(CompoundTag tag) {
+            super.save(tag);
+            tag.putInt("score", this.score);
+            return tag;
+        }
+
+        public void load(CompoundTag tag) {
+            super.load(tag);
+            this.score = tag.getInt("score");
+        }
+    }
+
     /** Two members of different factions are enemies; same faction allies; up to two factions each. */
-    public static class FactionTeamType extends TeamType<Team> {
+    public static class FactionTeamType extends TeamType<FactionTeam> {
         public TeamShape getShape() {
             return TeamShape.GROUP;
         }
-        public Class<Team> getTeamClass() {
-            return Team.class;
+        public Class<FactionTeam> getTeamClass() {
+            return FactionTeam.class;
+        }
+        public FactionTeam createTeam(UUID id, UUID owner) {
+            return new FactionTeam(id, this, owner);
         }
         public int getMaxTeamsPerMember() {
             return 2;
@@ -110,6 +144,24 @@ public class TeamModuleTest {
             if (mine.isEmpty() || theirs.isEmpty()) return Relation.NEUTRAL;
             for (UUID id : mine) if (theirs.contains(id)) return Relation.ALLY;
             return Relation.ENEMY;
+        }
+    }
+
+    public static class GuildTeamType extends TeamType<Team> {
+        public TeamShape getShape() {
+            return TeamShape.GROUP;
+        }
+        public Class<Team> getTeamClass() {
+            return Team.class;
+        }
+        public int getPriority() {
+            return 300;
+        }
+        public boolean blocksTargeting() {
+            return false;
+        }
+        public boolean requiresUniqueNames() {
+            return true;
         }
     }
 
@@ -134,6 +186,18 @@ public class TeamModuleTest {
         }
 
         @Execute
+        public boolean inviteid(@SenderArg CommandSourceStack sender, @LiteralArg("inviteid") String l, @ResourceLocationArg ResourceLocation typeId, @UuidArg UUID invitee) {
+            ServerPlayer player = sender.getPlayer();
+            TeamType<?> type = type(typeId);
+            if (player == null || type == null) return false;
+            Optional<? extends Team> team = TeamAPI.getTeam(player, type);
+            if (team.isEmpty()) return false;
+            TeamResult result = TeamAPI.tryInvite(team.get(), player, invitee);
+            reply(sender, "Invite " + invitee + ": " + result.name());
+            return result.isAccepted();
+        }
+
+        @Execute
         public boolean invite(@SenderArg CommandSourceStack sender, @LiteralArg("invite") String l, @ResourceLocationArg ResourceLocation typeId,
                               @EntityArg(name = "target", value = EntityArg.Type.PLAYER) EntitySelector selector) throws CommandSyntaxException {
             ServerPlayer player = sender.getPlayer();
@@ -153,6 +217,31 @@ public class TeamModuleTest {
             Optional<TeamInvite> invite = TeamAPI.invite(team.get(), player, target);
             reply(sender, invite.map(i -> "Invited " + target.getName().getString() + " (expires tick " + i.expiresAtTick() + ")").orElse("Invite failed"));
             return true;
+        }
+
+        @Execute
+        public boolean revoke(@SenderArg CommandSourceStack sender, @LiteralArg("revoke") String l, @ResourceLocationArg ResourceLocation typeId, @EntityArg(name = "player") EntitySelector sel) throws CommandSyntaxException {
+            ServerPlayer player = sender.getPlayer();
+            TeamType<?> type = type(typeId);
+            if (player == null || type == null) return false;
+            Optional<? extends Team> team = TeamAPI.getTeam(player, type);
+            if (team.isEmpty()) return false;
+            Entity target = sel.findSingleEntity(sender);
+            TeamResult result = TeamAPI.tryRevokeInvite(team.get(), player, target.getUUID());
+            reply(sender, "Revoke: " + result.name());
+            return result.isAccepted();
+        }
+
+        @Execute
+        public boolean revokeid(@SenderArg CommandSourceStack sender, @LiteralArg("revokeid") String l, @ResourceLocationArg ResourceLocation typeId, @UuidArg UUID invitee) {
+            ServerPlayer player = sender.getPlayer();
+            TeamType<?> type = type(typeId);
+            if (player == null || type == null) return false;
+            Optional<? extends Team> team = TeamAPI.getTeam(player, type);
+            if (team.isEmpty()) return false;
+            TeamResult result = TeamAPI.tryRevokeInvite(team.get(), player, invitee);
+            reply(sender, "Revoke " + invitee + ": " + result.name());
+            return result.isAccepted();
         }
 
         @Execute
@@ -231,6 +320,18 @@ public class TeamModuleTest {
         }
 
         @Execute
+        public boolean score(@SenderArg CommandSourceStack sender, @LiteralArg("score") String l, @IntegerArg int score) {
+            ServerPlayer player = sender.getPlayer();
+            if (player == null) return false;
+            Optional<FactionTeam> team = TeamAPI.getTeam(player, FACTION.get());
+            if (team.isEmpty()) return false;
+            team.get().setScore(score);
+            team.get().markDirty();
+            reply(sender, "Score " + team.get().getScore() + " saved and synced");
+            return true;
+        }
+
+        @Execute
         public boolean name(@SenderArg CommandSourceStack sender, @LiteralArg("name") String l, @ResourceLocationArg ResourceLocation typeId,
                             @TextArg(value = TextArg.Type.GREEDY_STRING, name = "name") String name) {
             ServerPlayer player = sender.getPlayer();
@@ -241,6 +342,27 @@ public class TeamModuleTest {
             boolean ok = team.isPresent() && TeamAPI.setTeamName(team.get(), player, newName);
             reply(sender, ok ? "Renamed" : "Rename failed");
             return ok;
+        }
+
+        @Execute
+        public boolean createnamed(@SenderArg CommandSourceStack sender, @LiteralArg("createnamed") String l, @ResourceLocationArg ResourceLocation typeId,
+                                   @TextArg(value = TextArg.Type.GREEDY_STRING, name = "name") String name) {
+            ServerPlayer player = sender.getPlayer();
+            TeamType<?> type = type(typeId);
+            if (player == null || type == null) return false;
+            TeamResult result = TeamAPI.tryCreateTeam(type, player, name);
+            reply(sender, "Create '" + name + "': " + result.name());
+            return result.isAccepted();
+        }
+
+        @Execute
+        public boolean byname(@SenderArg CommandSourceStack sender, @LiteralArg("byname") String l, @ResourceLocationArg ResourceLocation typeId,
+                              @TextArg(value = TextArg.Type.GREEDY_STRING, name = "name") String name) {
+            TeamType<?> type = type(typeId);
+            if (type == null) return false;
+            Optional<? extends Team> team = TeamAPI.getTeamByName(sender.getServer(), type, name);
+            reply(sender, team.map(found -> "Found " + found.getId() + " " + found.getDisplayName().getString()).orElse("No team named " + name));
+            return team.isPresent();
         }
 
         @Execute

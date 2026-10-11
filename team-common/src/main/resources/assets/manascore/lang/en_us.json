@@ -11,5 +11,6 @@
   "manascore.team.result.invite_pending": "Invite already pending",
   "manascore.team.result.invalid": "Invalid",
   "manascore.team.result.unchanged": "Nothing changed",
-  "manascore.team.result.cancelled": "Cancelled"
+  "manascore.team.result.cancelled": "Cancelled",
+  "manascore.team.result.name_taken": "Name already taken"
 }

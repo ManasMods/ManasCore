@@ -19,6 +19,7 @@ import io.github.manasmods.manascore.team.impl.network.s2c.RemoveTeamPayload;
 import io.github.manasmods.manascore.team.impl.network.s2c.SyncInvitesPayload;
 import io.github.manasmods.manascore.team.impl.network.s2c.SyncNamesPayload;
 import io.github.manasmods.manascore.team.impl.network.s2c.SyncTeamPayload;
+import net.minecraft.Util;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -82,10 +83,14 @@ public final class TeamManager {
         return id;
     }
 
-    private record CreateOutcome<T extends Team>(TeamResult result, @Nullable T team) {
+    static long getGameTime(MinecraftServer server) {
+        return server.overworld().getGameTime();
     }
 
-    private static <T extends Team> CreateOutcome<T> createTeamInternal(TeamType<T> type, LivingEntity owner) {
+    public record CreateOutcome<T extends Team>(TeamResult result, @Nullable T team) {
+    }
+
+    private static <T extends Team> CreateOutcome<T> createTeamInternal(TeamType<T> type, LivingEntity owner, @Nullable String name) {
         if (!isServer(owner, "createTeam")) return new CreateOutcome<>(TeamResult.CLIENT_SIDE, null);
         if (type.getShape() != TeamShape.GROUP) return new CreateOutcome<>(TeamResult.WRONG_SHAPE, null);
         LivingEntity resolved = type.resolveMember(owner);
@@ -93,13 +98,18 @@ public final class TeamManager {
         if (storage == null) return new CreateOutcome<>(TeamResult.NOT_FOUND, null);
 
         MinecraftServer server = serverOf(resolved);
+        String sanitized = sanitizeName(name);
+        TeamResult valid = validateName(server, type, null, sanitized);
+        if (!valid.isAccepted()) return new CreateOutcome<>(valid, null);
+        T team = type.createTeam(UUID.randomUUID(), resolved.getUUID());
+        if (sanitized != null && !type.canRename(team, resolved)) return new CreateOutcome<>(TeamResult.NOT_ALLOWED, null);
         List<UUID> evict = planEvictions(server, type, resolved, storage);
         if (evict == null) return new CreateOutcome<>(TeamResult.LIMIT_REACHED, null);
         if (TeamEvents.TEAM_CREATE.invoker().create(type, resolved).isFalse()) return new CreateOutcome<>(TeamResult.CANCELLED, null);
         applyEvictions(server, type, resolved, storage, evict);
 
-        T team = type.createTeam(UUID.randomUUID(), resolved.getUUID());
         Team.Internals.setOwnerName(team, nameOf(server, resolved.getUUID()).orElse(null));
+        if (sanitized != null) Team.Internals.setName(team, sanitized);
         TeamSavedData.get(server).putTeam(team);
         storage.addTeamId(idOf(type), team.getId());
         type.onTeamCreated(team);
@@ -109,11 +119,23 @@ public final class TeamManager {
     }
 
     public static <T extends Team> TeamResult tryCreateTeam(TeamType<T> type, LivingEntity owner) {
-        return createTeamInternal(type, owner).result();
+        return createTeamInternal(type, owner, null).result();
     }
 
     public static <T extends Team> Optional<T> createTeam(TeamType<T> type, LivingEntity owner) {
-        return Optional.ofNullable(createTeamInternal(type, owner).team());
+        return Optional.ofNullable(createTeamInternal(type, owner, null).team());
+    }
+
+    public static <T extends Team> TeamResult tryCreateTeam(TeamType<T> type, LivingEntity owner, @Nullable String name) {
+        return createTeamInternal(type, owner, name).result();
+    }
+
+    public static <T extends Team> Optional<T> createTeam(TeamType<T> type, LivingEntity owner, @Nullable String name) {
+        return Optional.ofNullable(createTeamInternal(type, owner, name).team());
+    }
+
+    public static <T extends Team> CreateOutcome<T> tryCreate(TeamType<T> type, LivingEntity owner, @Nullable String name) {
+        return createTeamInternal(type, owner, name);
     }
 
     public static TeamResult tryDisbandTeam(MinecraftServer server, Team team) {
@@ -314,13 +336,18 @@ public final class TeamManager {
     }
 
     public static TeamResult trySetTeamName(MinecraftServer server, Team team, @Nullable String name) {
+        TeamSavedData data = TeamSavedData.get(server);
+        if (data.getTeam(team.getId()).isEmpty()) return TeamResult.NOT_FOUND;
         String sanitized = sanitizeName(name);
         String old = team.getName();
         if (Objects.equals(old, sanitized)) return TeamResult.UNCHANGED;
-        if (sanitized != null && sanitized.length() > typeOf(team).getMaxNameLength()) return TeamResult.INVALID;
+        TeamResult valid = validateName(server, typeOf(team), team.getId(), sanitized);
+        if (!valid.isAccepted()) return valid;
 
+        data.unindexName(team);
         Team.Internals.setName(team, sanitized);
-        TeamSavedData.get(server).setDirty();
+        data.indexName(team);
+        data.setDirty();
         TeamEvents.TEAM_RENAMED.invoker().run(team, old, sanitized);
         syncTeam(server, team);
         return TeamResult.ACCEPTED;
@@ -343,10 +370,17 @@ public final class TeamManager {
     }
 
     @Nullable
-    private static String sanitizeName(@Nullable String name) {
+    public static String sanitizeName(@Nullable String name) {
         if (name == null) return null;
         String sanitized = name.replaceAll("(?s)§.?", "").replaceAll("\\p{Cntrl}", "").trim();
         return sanitized.isBlank() ? null : sanitized;
+    }
+
+    static TeamResult validateName(MinecraftServer server, TeamType<?> type, @Nullable UUID teamId, @Nullable String sanitized) {
+        if (sanitized == null) return TeamResult.ACCEPTED;
+        if (!type.isValidName(sanitized)) return TeamResult.INVALID;
+        if (type.requiresUniqueNames() && TeamSavedData.get(server).isNameTaken(idOf(type), sanitized, teamId)) return TeamResult.NAME_TAKEN;
+        return TeamResult.ACCEPTED;
     }
 
     /**
@@ -555,7 +589,7 @@ public final class TeamManager {
             ManasCoreTeam.LOG.debug("Invite refused ({}): team {} inviter {} invitee {}", TeamResult.NOT_ALLOWED, team.getId(), resolvedInviter.getUUID(), resolvedInvitee.getUUID());
             return new InviteOutcome(TeamResult.NOT_ALLOWED, null);
         }
-        return createInvite(serverOf(inviter), team.getId(), idOf(type), resolvedInviter, resolvedInvitee, type.getInviteTimeoutTicks());
+        return createInvite(serverOf(inviter), team.getId(), idOf(type), resolvedInviter.getUUID(), resolvedInvitee.getUUID(), type.getInviteTimeoutTicks());
     }
 
     public static TeamResult tryInvite(Team team, LivingEntity inviter, LivingEntity invitee) {
@@ -564,6 +598,38 @@ public final class TeamManager {
 
     public static Optional<TeamInvite> invite(Team team, LivingEntity inviter, LivingEntity invitee) {
         return Optional.ofNullable(inviteInternal(team, inviter, invitee).invite());
+    }
+
+    private static InviteOutcome inviteInternal(MinecraftServer server, Team team, @Nullable UUID inviter, UUID invitee) {
+        TeamType<Team> type = typeOf(team);
+        if (team.isMember(invitee)) return new InviteOutcome(TeamResult.ALREADY_MEMBER, null);
+        if (team.size() >= type.getMaxMembers()) return new InviteOutcome(TeamResult.TEAM_FULL, null);
+        if (type.onLimitReached() == LimitPolicy.REJECT && TeamAPI.getTeamsFrom(server, invitee).getTeamIds(type).size() >= type.getMaxTeamsPerMember()) return new InviteOutcome(TeamResult.LIMIT_REACHED, null);
+        return createInvite(server, team.getId(), idOf(type), inviter, invitee, type.getInviteTimeoutTicks());
+    }
+
+    public static TeamResult tryInvite(MinecraftServer server, Team team, @Nullable UUID inviter, UUID invitee) {
+        return inviteInternal(server, team, inviter, invitee).result();
+    }
+
+    public static Optional<TeamInvite> invite(MinecraftServer server, Team team, @Nullable UUID inviter, UUID invitee) {
+        return Optional.ofNullable(inviteInternal(server, team, inviter, invitee).invite());
+    }
+
+    public static TeamResult tryInvite(Team team, LivingEntity inviter, UUID invitee) {
+        if (!isServer(inviter, "invite")) return TeamResult.CLIENT_SIDE;
+        TeamType<Team> type = typeOf(team);
+        LivingEntity resolvedInviter = type.resolveMember(inviter);
+        if (!type.canInvite(team, resolvedInviter, invitee)) return TeamResult.NOT_ALLOWED;
+        return tryInvite(serverOf(inviter), team, resolvedInviter.getUUID(), invitee);
+    }
+
+    public static Optional<TeamInvite> invite(Team team, LivingEntity inviter, UUID invitee) {
+        if (!isServer(inviter, "invite")) return Optional.empty();
+        TeamType<Team> type = typeOf(team);
+        LivingEntity resolvedInviter = type.resolveMember(inviter);
+        if (!type.canInvite(team, resolvedInviter, invitee)) return Optional.empty();
+        return invite(serverOf(inviter), team, resolvedInviter.getUUID(), invitee);
     }
 
     /** Server only. Online players this team may still invite, with every limit and hook applied. */
@@ -607,19 +673,22 @@ public final class TeamManager {
         return TeamSavedData.get(server).findInvite(invitee, team.getId()).isPresent();
     }
 
-    private static InviteOutcome createInvite(MinecraftServer server, UUID teamId, ResourceLocation typeId, LivingEntity inviter, LivingEntity invitee, int timeoutTicks) {
+    private static InviteOutcome createInvite(MinecraftServer server, UUID teamId, ResourceLocation typeId, @Nullable UUID inviter, UUID invitee, int timeoutTicks) {
         TeamSavedData data = TeamSavedData.get(server);
-        if (data.findInvite(invitee.getUUID(), teamId).isPresent()) {
-            ManasCoreTeam.LOG.debug("Invite refused ({}): team {} inviter {} invitee {}", TeamResult.INVITE_PENDING, teamId, inviter.getUUID(), invitee.getUUID());
+        UUID inviterId = inviter == null ? Util.NIL_UUID : inviter;
+        if (data.findInvite(invitee, teamId).isPresent()) {
+            ManasCoreTeam.LOG.debug("Invite refused ({}): team {} inviter {} invitee {}", TeamResult.INVITE_PENDING, teamId, inviterId, invitee);
             return new InviteOutcome(TeamResult.INVITE_PENDING, null);
         }
-        TeamInvite invite = new TeamInvite(teamId, typeId, inviter.getUUID(), invitee.getUUID(), server.getTickCount() + timeoutTicks);
+
+        TeamInvite invite = new TeamInvite(teamId, typeId, inviterId, invitee, getGameTime(server) + timeoutTicks);
         if (TeamEvents.INVITE_SEND.invoker().run(invite).isFalse()) {
-            ManasCoreTeam.LOG.debug("Invite refused ({}): team {} inviter {} invitee {}", TeamResult.CANCELLED, teamId, inviter.getUUID(), invitee.getUUID());
+            ManasCoreTeam.LOG.debug("Invite refused ({}): team {} inviter {} invitee {}", TeamResult.CANCELLED, teamId, inviterId, invitee);
             return new InviteOutcome(TeamResult.CANCELLED, null);
         }
 
         data.getInvites().add(invite);
+        data.setDirty();
         syncInvites(server, invite.invitee());
         data.getTeam(teamId).ifPresent(team -> syncTeamInvites(server, team));
         return new InviteOutcome(TeamResult.ACCEPTED, invite);
@@ -640,6 +709,7 @@ public final class TeamManager {
         TeamType<?> type = TeamRegistry.TEAM_TYPES.get(invite.typeId());
         if (type == null) {
             data.getInvites().remove(invite);
+            data.setDirty();
             syncInvites(server, invitee.getUUID());
             data.getTeam(invite.teamId()).ifPresent(team -> syncTeamInvites(server, team));
             return TeamResult.NOT_FOUND;
@@ -651,6 +721,7 @@ public final class TeamManager {
         if (!joinResult.isAccepted()) return joinResult;
 
         data.getInvites().remove(invite);
+        data.setDirty();
         TeamEvents.INVITE_ACCEPTED.invoker().run(invite);
         syncInvites(server, invitee.getUUID());
         syncTeamInvites(server, team.get());
@@ -673,6 +744,7 @@ public final class TeamManager {
         if (optional.isEmpty()) return TeamResult.NOT_FOUND;
         TeamInvite invite = optional.get();
         data.getInvites().remove(invite);
+        data.setDirty();
         TeamEvents.INVITE_DECLINED.invoker().run(invite);
         syncInvites(server, invitee.getUUID());
         data.getTeam(invite.teamId()).ifPresent(team -> syncTeamInvites(server, team));
@@ -681,6 +753,43 @@ public final class TeamManager {
 
     public static boolean declineInvite(LivingEntity invitee, UUID teamId) {
         return tryDeclineInvite(invitee, teamId).isAccepted();
+    }
+
+    public static TeamResult tryRevokeInvite(MinecraftServer server, Team team, UUID invitee) {
+        TeamSavedData data = TeamSavedData.get(server);
+        Optional<TeamInvite> optional = data.findInvite(invitee, team.getId());
+        if (optional.isEmpty()) return TeamResult.NOT_FOUND;
+        TeamInvite invite = optional.get();
+        data.getInvites().remove(invite);
+        data.setDirty();
+        TeamEvents.INVITE_REVOKED.invoker().run(invite);
+        syncInvites(server, invitee);
+        syncTeamInvites(server, team);
+        return TeamResult.ACCEPTED;
+    }
+
+    public static boolean revokeInvite(MinecraftServer server, Team team, UUID invitee) {
+        return tryRevokeInvite(server, team, invitee).isAccepted();
+    }
+
+    public static boolean canRevokeInvite(MinecraftServer server, Team team, LivingEntity actor, UUID invitee) {
+        TeamType<Team> type = typeOf(team);
+        LivingEntity resolved = type.resolveMember(actor);
+        Optional<TeamInvite> invite = TeamSavedData.get(server).findInvite(invitee, team.getId());
+        if (invite.isPresent() && invite.get().inviter().equals(resolved.getUUID())) return true;
+        return type.canRevokeInvite(team, resolved, invitee);
+    }
+
+    public static TeamResult tryRevokeInvite(Team team, LivingEntity actor, UUID invitee) {
+        if (!isServer(actor, "revokeInvite")) return TeamResult.CLIENT_SIDE;
+        MinecraftServer server = serverOf(actor);
+        if (TeamSavedData.get(server).findInvite(invitee, team.getId()).isEmpty()) return TeamResult.NOT_FOUND;
+        if (!canRevokeInvite(server, team, actor, invitee)) return TeamResult.NOT_ALLOWED;
+        return tryRevokeInvite(server, team, invitee);
+    }
+
+    public static boolean revokeInvite(Team team, LivingEntity actor, UUID invitee) {
+        return tryRevokeInvite(team, actor, invitee).isAccepted();
     }
 
     public static List<TeamInvite> getPendingInvites(MinecraftServer server, UUID invitee) {
@@ -713,7 +822,7 @@ public final class TeamManager {
     public static void expireInvites(MinecraftServer server) {
         TeamSavedData data = TeamSavedData.get(server);
         if (data.getInvites().isEmpty()) return;
-        long tick = server.getTickCount();
+        long tick = getGameTime(server);
 
         List<TeamInvite> expired = new ArrayList<>();
         for (TeamInvite invite : data.getInvites()) {
@@ -721,6 +830,7 @@ public final class TeamManager {
         }
         if (expired.isEmpty()) return;
         data.getInvites().removeAll(expired);
+        data.setDirty();
 
         Set<UUID> affected = new LinkedHashSet<>();
         Set<UUID> affectedTeams = new LinkedHashSet<>();
@@ -880,6 +990,7 @@ public final class TeamManager {
             affected.add(invite.invitee());
             affectedTeams.add(invite.teamId());
         }
+        if (!affectedTeams.isEmpty()) data.setDirty();
 
         affected.remove(entityId);
         for (UUID uuid : affected) syncInvites(server, uuid);
@@ -900,7 +1011,7 @@ public final class TeamManager {
             LivingEntity attacker = resolveAttacker(source);
             if (attacker == null || attacker == victim) return EventResult.pass();
             ResolvedRelation relation = RelationResolver.resolve(attacker, victim);
-            if (relation.isAlly() && relation.decidedBy() != null && relation.decidedBy().blocksFriendlyFire()) return EventResult.interruptFalse();
+            if (relation.isAlly() && blocksFriendlyFire(relation)) return EventResult.interruptFalse();
             return EventResult.pass();
         });
 
@@ -909,7 +1020,7 @@ public final class TeamManager {
             LivingEntity target = changeableTarget.get();
             if (target == null || target == entity) return EventResult.pass();
             ResolvedRelation relation = RelationResolver.resolve(entity, target);
-            if (relation.isAlly() && relation.decidedBy() != null && relation.decidedBy().blocksTargeting()) {
+            if (relation.isAlly() && blocksTargeting(relation)) {
                 changeableTarget.set(null);
                 return EventResult.interruptFalse();
             }
@@ -964,6 +1075,16 @@ public final class TeamManager {
                 data.pruneNames(keep);
             }
         });
+    }
+
+    private static boolean blocksFriendlyFire(ResolvedRelation relation) {
+        if (relation.isOwnership()) return TeamConfig.get().ownership.blocksFriendlyFire;
+        return relation.decidedBy() != null && relation.decidedBy().blocksFriendlyFire();
+    }
+
+    private static boolean blocksTargeting(ResolvedRelation relation) {
+        if (relation.isOwnership()) return TeamConfig.get().ownership.blocksTargeting;
+        return relation.decidedBy() != null && relation.decidedBy().blocksTargeting();
     }
 
     @Nullable

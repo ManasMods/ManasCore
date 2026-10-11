@@ -13,6 +13,7 @@ import java.util.UUID;
 
 /**
  * Pending invitation into a GROUP team.
+ * expiresAtTick is overworld game time (ServerLevel#getGameTime), which survives restarts.
  */
 public record TeamInvite(UUID teamId, ResourceLocation typeId, UUID inviter, UUID invitee, long expiresAtTick) {
     public boolean isExpired(long currentTick) {

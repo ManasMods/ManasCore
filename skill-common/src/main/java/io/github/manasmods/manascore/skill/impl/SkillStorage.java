@@ -42,6 +42,7 @@ public class SkillStorage extends Storage implements Skills {
     public static final int INSTANCE_UPDATE = 20;
     public static final int PASSIVE_SKILL = 100;
     private static final String SKILL_LIST_KEY = "skills";
+    private static final String HELD_SKILL_LIST_KEY = "heldSkills";
 
     public static void init() {
         StorageEvents.RegisterStorage<Entity> listener = new StorageEvents.RegisterStorage<Entity>() {
@@ -90,6 +91,7 @@ public class SkillStorage extends Storage implements Skills {
             Level level = entity.level();
             if (level.isClientSide()) return;
             Skills storage = SkillAPI.getSkillsFrom(entity);
+            if (storage instanceof SkillStorage skillStorage) skillStorage.stopUnfinishedHolds();
             handleSkillTick(entity, level, storage);
             handleSkillHeldTick(entity, storage);
         });
@@ -188,6 +190,8 @@ public class SkillStorage extends Storage implements Skills {
 
     @Getter
     public ArrayList<TickingSkill> heldSkills = new ArrayList<>(0);
+    @Nullable
+    private ListTag unfinishedHolds = null;
     protected SkillStorage(LivingEntity holder) {
         super(holder);
     }
@@ -330,6 +334,17 @@ public class SkillStorage extends Storage implements Skills {
         ListTag skillList = new ListTag();
         this.skillInstances.values().forEach(instance -> skillList.add(instance.toNBT()));
         data.put(SKILL_LIST_KEY, skillList);
+
+        ListTag heldList = new ListTag();
+        for (TickingSkill held : this.heldSkills) {
+            CompoundTag entry = new CompoundTag();
+            entry.putString("skill", held.getSkill().getRegistryName().toString());
+            entry.putInt("mode", held.getMode());
+            entry.putInt("duration", held.getDuration());
+            heldList.add(entry);
+        }
+        if (this.unfinishedHolds != null) heldList.addAll(this.unfinishedHolds.copy());
+        if (!heldList.isEmpty() && this.getOwner().isAlive()) data.put(HELD_SKILL_LIST_KEY, heldList);
     }
 
     @Override
@@ -337,6 +352,7 @@ public class SkillStorage extends Storage implements Skills {
         if (data.contains("resetExistingData")) {
             this.skillInstances.clear();
         }
+        if (data.contains(HELD_SKILL_LIST_KEY) && !this.getOwner().level().isClientSide()) this.unfinishedHolds = data.getList(HELD_SKILL_LIST_KEY, Tag.TAG_COMPOUND);
 
         for (Tag tag : data.getList(SKILL_LIST_KEY, Tag.TAG_COMPOUND)) {
             CompoundTag entry = (CompoundTag) tag;
@@ -353,6 +369,26 @@ public class SkillStorage extends Storage implements Skills {
             } catch (Exception e) {
                 ManasCoreSkill.LOG.error("Failed to load skill instance from NBT", e);
             }
+        }
+    }
+
+    private void stopUnfinishedHolds() {
+        if (this.unfinishedHolds == null) return;
+        ListTag holds = this.unfinishedHolds;
+        this.unfinishedHolds = null;
+        LivingEntity owner = this.getOwner();
+        for (Tag tag : holds) {
+            CompoundTag entry = (CompoundTag) tag;
+            ManasSkill skill = SkillAPI.getSkillRegistry().get(ResourceLocation.tryParse(entry.getString("skill")));
+            if (skill == null) continue;
+            int mode = entry.getInt("mode");
+            if (TickingSkill.isTickingSkill(owner, skill, mode)) continue;
+            int duration = entry.getInt("duration");
+            this.getSkill(skill).ifPresentOrElse(instance -> {
+                skill.removeAttributeModifiers(instance, owner, mode);
+                instance.onHeldStop(owner, duration, mode);
+                this.checkAndMarkDirty(instance);
+            }, () -> skill.onHeldStop(null, owner, duration, mode));
         }
     }
 

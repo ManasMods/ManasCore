@@ -52,6 +52,14 @@ public abstract class TeamType<T extends Team> {
         return team.isOwner(entity);
     }
 
+    public boolean isValidName(String name) {
+        return !name.isBlank() && name.length() <= this.getMaxNameLength();
+    }
+
+    public boolean requiresUniqueNames() {
+        return false;
+    }
+
     public LimitPolicy onLimitReached() {
         return LimitPolicy.REJECT;
     }
@@ -167,7 +175,16 @@ public abstract class TeamType<T extends Team> {
 
     /** Determine if the inviter may invite this specific invitee. */
     public boolean canInvite(T team, LivingEntity inviter, LivingEntity invitee) {
+        return this.canInvite(team, inviter, invitee.getUUID());
+    }
+
+    public boolean canInvite(T team, LivingEntity inviter, UUID invitee) {
         return this.canInvite(team, inviter);
+    }
+
+    /** Default: anyone allowed to invite; the inviter of the invite may always revoke it. */
+    public boolean canRevokeInvite(T team, LivingEntity actor, UUID invitee) {
+        return this.canInvite(team, actor);
     }
 
     /** Determine if the actor may kick the target member. */

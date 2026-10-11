@@ -33,6 +33,7 @@ import lombok.NonNull;
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
@@ -48,6 +49,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Public entry point of the team module. Reads work on both sides; mutations are server-only
@@ -55,6 +57,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class TeamAPI {
     private static final Set<EntityType<?>> MISSING_STORAGE_WARNED = ConcurrentHashMap.newKeySet();
+    private static final AtomicBoolean MARK_DIRTY_WARNED = new AtomicBoolean();
 
     private TeamAPI() {
     }
@@ -217,6 +220,23 @@ public class TeamAPI {
         return TeamSavedData.get(server).getTeams();
     }
 
+    /** Saves and re-sends the whole team tag to every online member, so do not store secrets in it. */
+    public static void markDirty(@NonNull MinecraftServer server, @NonNull Team team) {
+        TeamSavedData.get(server).setDirty();
+        TeamManager.syncTeam(server, team);
+    }
+
+    public static void markDirty(@NonNull Team team) {
+        MinecraftServer server = GameInstance.getServer();
+        boolean serverSide = Platform.getEnvironment() == Env.SERVER || (server != null && server.isSameThread());
+        if (!serverSide) {
+            if (MARK_DIRTY_WARNED.compareAndSet(false, true)) ManasCoreTeam.LOG.warn("TeamAPI.markDirty called on the client, ignoring.");
+            return;
+        }
+        if (server == null) return;
+        markDirty(server, team);
+    }
+
     /*** GROUP ops (server only) ***/
     public static <T extends Team> Optional<T> createTeam(@NonNull TeamType<T> type, @NonNull LivingEntity owner) {
         return TeamManager.createTeam(type, owner);
@@ -225,6 +245,25 @@ public class TeamAPI {
     /** Like {@link #createTeam}, with the reason. */
     public static <T extends Team> TeamResult tryCreateTeam(@NonNull TeamType<T> type, @NonNull LivingEntity owner) {
         return TeamManager.tryCreateTeam(type, owner);
+    }
+
+    public static <T extends Team> Optional<T> createTeam(@NonNull TeamType<T> type, @NonNull LivingEntity owner, @Nullable String name) {
+        return TeamManager.createTeam(type, owner, name);
+    }
+
+    public static <T extends Team> TeamResult tryCreateTeam(@NonNull TeamType<T> type, @NonNull LivingEntity owner, @Nullable String name) {
+        return TeamManager.tryCreateTeam(type, owner, name);
+    }
+
+    public static <T extends Team> Optional<T> getTeamByName(@NonNull MinecraftServer server, @NonNull TeamType<T> type, @NonNull String name) {
+        ResourceLocation typeId = type.getId();
+        if (typeId == null) return Optional.empty();
+        String sanitized = TeamManager.sanitizeName(name);
+        if (sanitized == null) return Optional.empty();
+        TeamSavedData data = TeamSavedData.get(server);
+        UUID id = data.getTeamByName(typeId, sanitized);
+        if (id == null) return Optional.empty();
+        return data.getTeam(id).filter(type.getTeamClass()::isInstance).map(type.getTeamClass()::cast);
     }
 
     public static boolean disbandTeam(@NonNull MinecraftServer server, @NonNull Team team) {
@@ -288,6 +327,17 @@ public class TeamAPI {
         return type.canInvite(team, type.resolveMember(inviter));
     }
 
+    public static boolean canRevokeInvite(@NonNull Team team, @NonNull LivingEntity actor, @NonNull UUID invitee) {
+        TeamType<Team> type = typeOf(team);
+        MinecraftServer server = actor.getServer();
+        if (server != null && !actor.level().isClientSide()) return TeamManager.canRevokeInvite(server, team, actor, invitee);
+        LivingEntity resolved = type.resolveMember(actor);
+        for (TeamInvite invite : ClientTeamCache.getOutgoingInvites(team.getId())) {
+            if (invite.invitee().equals(invitee) && invite.inviter().equals(resolved.getUUID())) return true;
+        }
+        return type.canRevokeInvite(team, resolved, invitee);
+    }
+
     /** Determine if the actor may kick the target member, subject to {@link TeamType#canKick}. */
     public static boolean canKick(@NonNull Team team, @NonNull LivingEntity actor, @NonNull UUID target) {
         TeamType<Team> type = typeOf(team);
@@ -310,6 +360,11 @@ public class TeamAPI {
     public static boolean canDisband(@NonNull Team team, @NonNull LivingEntity actor) {
         TeamType<Team> type = typeOf(team);
         return type.canDisband(team, type.resolveMember(actor));
+    }
+
+    public static boolean canRename(@NonNull Team team, @NonNull LivingEntity actor) {
+        TeamType<Team> type = typeOf(team);
+        return type.canRename(team, type.resolveMember(actor));
     }
 
     /** Kicks the target member, subject to {@link TeamType#canKick}. */
@@ -352,7 +407,7 @@ public class TeamAPI {
         return TeamManager.disband(team, actor);
     }
 
-    /** Sanitizes and applies {@code name}, subject to {@link TeamType#canRename} and {@link TeamType#getMaxNameLength()}. */
+    /** Sanitizes and applies the name when the actor may rename. The type's isValidName decides validity, and unique types return NAME_TAKEN for a taken name. */
     public static boolean setTeamName(@NonNull Team team, @NonNull LivingEntity actor, @Nullable String name) {
         return TeamManager.setTeamName(team, actor, name);
     }
@@ -381,6 +436,23 @@ public class TeamAPI {
         return TeamManager.tryInvite(team, inviter, invitee);
     }
 
+    public static Optional<TeamInvite> invite(@NonNull Team team, @NonNull LivingEntity inviter, @NonNull UUID invitee) {
+        return TeamManager.invite(team, inviter, invitee);
+    }
+
+    public static TeamResult tryInvite(@NonNull Team team, @NonNull LivingEntity inviter, @NonNull UUID invitee) {
+        return TeamManager.tryInvite(team, inviter, invitee);
+    }
+
+    /** Authoritative, skips hooks. A null inviter is a system invite and is stored as Util.NIL_UUID. */
+    public static Optional<TeamInvite> invite(@NonNull MinecraftServer server, @NonNull Team team, @Nullable UUID inviter, @NonNull UUID invitee) {
+        return TeamManager.invite(server, team, inviter, invitee);
+    }
+
+    public static TeamResult tryInvite(@NonNull MinecraftServer server, @NonNull Team team, @Nullable UUID inviter, @NonNull UUID invitee) {
+        return TeamManager.tryInvite(server, team, inviter, invitee);
+    }
+
     public static boolean acceptInvite(@NonNull LivingEntity invitee, @NonNull UUID teamId) {
         return TeamManager.acceptInvite(invitee, teamId);
     }
@@ -401,6 +473,22 @@ public class TeamAPI {
     /** Like {@link #declineInvite}, with the reason. */
     public static TeamResult tryDeclineInvite(@NonNull LivingEntity invitee, @NonNull UUID teamId) {
         return TeamManager.tryDeclineInvite(invitee, teamId);
+    }
+
+    public static boolean revokeInvite(@NonNull Team team, @NonNull LivingEntity actor, @NonNull UUID invitee) {
+        return TeamManager.revokeInvite(team, actor, invitee);
+    }
+
+    public static TeamResult tryRevokeInvite(@NonNull Team team, @NonNull LivingEntity actor, @NonNull UUID invitee) {
+        return TeamManager.tryRevokeInvite(team, actor, invitee);
+    }
+
+    public static boolean revokeInvite(@NonNull MinecraftServer server, @NonNull Team team, @NonNull UUID invitee) {
+        return TeamManager.revokeInvite(server, team, invitee);
+    }
+
+    public static TeamResult tryRevokeInvite(@NonNull MinecraftServer server, @NonNull Team team, @NonNull UUID invitee) {
+        return TeamManager.tryRevokeInvite(server, team, invitee);
     }
 
     /**
@@ -585,6 +673,11 @@ public class TeamAPI {
         public static void declineInvite(@NonNull UUID teamId) {
             if (guard("declineInvite")) return;
             NetworkManager.sendToServer(new TeamActionPayload(TeamAction.DECLINE_INVITE, null, teamId, null, null));
+        }
+
+        public static void revokeInvite(@NonNull UUID teamId, @NonNull UUID invitee) {
+            if (guard("revokeInvite")) return;
+            NetworkManager.sendToServer(new TeamActionPayload(TeamAction.REVOKE_INVITE, null, teamId, invitee, null));
         }
 
         public static void addRelation(@NonNull TeamType<?> type, @NonNull UUID target) {

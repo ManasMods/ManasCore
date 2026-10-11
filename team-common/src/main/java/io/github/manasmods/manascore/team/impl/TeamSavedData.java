@@ -25,11 +25,12 @@ import java.util.*;
 
 /**
  * Server-global team table. Lives on the overworld so it is shared by every dimension.
- * Invites are session-only and not written to disk.
+ * Invites are persisted and expire on overworld game time.
  */
 public class TeamSavedData extends SavedData {
     private static final String FILE_NAME = "manascore_teams";
     private static final String TEAMS_KEY = "teams";
+    private static final String INVITES_KEY = "invites";
     private static final String ID_KEY = "id";
     private static final String TYPE_KEY = "type";
     private static final String DATA_KEY = "data";
@@ -45,6 +46,7 @@ public class TeamSavedData extends SavedData {
     );
 
     private final Map<UUID, Team> teams = new LinkedHashMap<>();
+    private final List<CompoundTag> unknownTeams = new ArrayList<>();
     @Getter
     private final List<TeamInvite> invites = new ArrayList<>();
     private final Map<ResourceLocation, Map<UUID, Set<UUID>>> relations = new LinkedHashMap<>();
@@ -52,6 +54,7 @@ public class TeamSavedData extends SavedData {
     private final Set<UUID> relationsMigrated = new LinkedHashSet<>();
     private final Map<UUID, String> names = new LinkedHashMap<>();
     private final Map<UUID, Set<UUID>> memberTeams = new HashMap<>();
+    private final Map<ResourceLocation, Map<String, Set<UUID>>> namesByType = new HashMap<>();
 
     /**
      * The LOADING flag makes the storage module's DataFixTypes mixin skip datafixing this
@@ -71,13 +74,14 @@ public class TeamSavedData extends SavedData {
     }
 
     public Collection<Team> getTeams() {
-        return Collections.unmodifiableCollection(this.teams.values());
+        return new ArrayList<>(this.teams.values());
     }
 
     public void putTeam(Team team) {
         this.teams.put(team.getId(), team);
         this.indexMember(team.getId(), team.getOwner());
         for (UUID member : team.getMembers()) this.indexMember(team.getId(), member);
+        this.indexName(team);
         this.setDirty();
     }
 
@@ -86,6 +90,7 @@ public class TeamSavedData extends SavedData {
         if (team == null) return;
         this.unindexMember(id, team.getOwner());
         for (UUID member : team.getMembers()) this.unindexMember(id, member);
+        this.unindexName(team);
         this.setDirty();
     }
 
@@ -94,7 +99,12 @@ public class TeamSavedData extends SavedData {
      */
     public Set<UUID> getTeamIdsOf(UUID member) {
         Set<UUID> ids = this.memberTeams.get(member);
-        return ids == null ? Collections.emptySet() : Collections.unmodifiableSet(ids);
+        return ids == null ? new LinkedHashSet<>() : new LinkedHashSet<>(ids);
+    }
+
+    public boolean hasTeams(UUID member) {
+        Set<UUID> ids = this.memberTeams.get(member);
+        return ids != null && !ids.isEmpty();
     }
 
     public void indexMember(UUID teamId, UUID member) {
@@ -106,6 +116,47 @@ public class TeamSavedData extends SavedData {
         if (ids == null) return;
         ids.remove(teamId);
         if (ids.isEmpty()) this.memberTeams.remove(member);
+    }
+
+    @Nullable
+    public UUID getTeamByName(ResourceLocation typeId, String name) {
+        Map<String, Set<UUID>> byName = this.namesByType.get(typeId);
+        if (byName == null) return null;
+        String key = name.toLowerCase(Locale.ROOT);
+        Set<UUID> ids = byName.get(key);
+        return ids == null || ids.isEmpty() ? null : ids.iterator().next();
+    }
+
+    public boolean isNameTaken(ResourceLocation typeId, String name, @Nullable UUID exceptTeamId) {
+        Map<String, Set<UUID>> byName = this.namesByType.get(typeId);
+        if (byName == null) return false;
+        String key = name.toLowerCase(Locale.ROOT);
+        Set<UUID> ids = byName.get(key);
+        if (ids == null) return false;
+        for (UUID id : ids) {
+            if (!id.equals(exceptTeamId)) return true;
+        }
+        return false;
+    }
+
+    public void indexName(Team team) {
+        ResourceLocation typeId = team.getType().getId();
+        if (typeId == null || team.getName() == null) return;
+        String key = team.getName().toLowerCase(Locale.ROOT);
+        this.namesByType.computeIfAbsent(typeId, ignored -> new HashMap<>()).computeIfAbsent(key, ignored -> new LinkedHashSet<>()).add(team.getId());
+    }
+
+    public void unindexName(Team team) {
+        ResourceLocation typeId = team.getType().getId();
+        if (typeId == null || team.getName() == null) return;
+        Map<String, Set<UUID>> byName = this.namesByType.get(typeId);
+        if (byName == null) return;
+        String key = team.getName().toLowerCase(Locale.ROOT);
+        Set<UUID> ids = byName.get(key);
+        if (ids == null) return;
+        ids.remove(team.getId());
+        if (ids.isEmpty()) byName.remove(key);
+        if (byName.isEmpty()) this.namesByType.remove(typeId);
     }
 
     public List<TeamInvite> getInvitesFor(UUID invitee) {
@@ -128,9 +179,9 @@ public class TeamSavedData extends SavedData {
      */
     public Set<UUID> getRelated(ResourceLocation typeId, UUID entity) {
         Map<UUID, Set<UUID>> byEntity = this.relations.get(typeId);
-        if (byEntity == null) return Collections.emptySet();
+        if (byEntity == null) return new LinkedHashSet<>();
         Set<UUID> related = byEntity.get(entity);
-        return related == null ? Collections.emptySet() : Collections.unmodifiableSet(related);
+        return related == null ? new LinkedHashSet<>() : new LinkedHashSet<>(related);
     }
 
     public Map<ResourceLocation, Set<UUID>> getAllRelated(UUID entity) {
@@ -148,9 +199,9 @@ public class TeamSavedData extends SavedData {
      */
     public Set<UUID> getRelatedBy(ResourceLocation typeId, UUID entity) {
         Map<UUID, Set<UUID>> byEntity = this.relatedBy.get(typeId);
-        if (byEntity == null) return Collections.emptySet();
+        if (byEntity == null) return new LinkedHashSet<>();
         Set<UUID> related = byEntity.get(entity);
-        return related == null ? Collections.emptySet() : Collections.unmodifiableSet(related);
+        return related == null ? new LinkedHashSet<>() : new LinkedHashSet<>(related);
     }
 
     /** Determine if {@code entity} relates to or is related by anything under any type. */
@@ -272,7 +323,12 @@ public class TeamSavedData extends SavedData {
             entry.putString(TYPE_KEY, typeId.toString());
             list.add(entry);
         }
+
+        for (CompoundTag entry : this.unknownTeams) list.add(entry);
         tag.put(TEAMS_KEY, list);
+        ListTag invites = new ListTag();
+        for (TeamInvite invite : this.invites) invites.add(invite.toNBT());
+        tag.put(INVITES_KEY, invites);
         tag.put(RELATIONS_KEY, this.saveRelations());
 
         ListTag migrated = new ListTag();
@@ -308,14 +364,27 @@ public class TeamSavedData extends SavedData {
             CompoundTag entry = (CompoundTag) t;
             ResourceLocation typeId = ResourceLocation.tryParse(entry.getString(TYPE_KEY));
             TeamType<?> type = typeId == null ? null : TeamRegistry.TEAM_TYPES.get(typeId);
+
             if (type == null) {
                 if (UNKNOWN_TYPE_WARNED.add(typeId)) {
-                    ManasCoreTeam.LOG.warn("Unknown team type {} in saved data, skipping its teams", typeId);
+                    ManasCoreTeam.LOG.warn("Unknown team type {} in saved data, keeping its teams untouched until the type is registered again", typeId);
                 }
+                data.unknownTeams.add(entry.copy());
                 continue;
             }
             Team team = TeamSavedData.deserialize(type, entry);
             data.teams.put(team.getId(), team);
+        }
+
+        // Expired invites are kept here, the 20 tick expireInvites sweep drops them once a server is running
+        for (Tag element : tag.getList(INVITES_KEY, Tag.TAG_COMPOUND)) {
+            CompoundTag entry = (CompoundTag) element;
+            if (!(entry.hasUUID("team") && entry.hasUUID("inviter") && entry.hasUUID("invitee") && entry.contains("type", Tag.TAG_STRING) && entry.contains("expires", Tag.TAG_LONG))) continue;
+            if (ResourceLocation.tryParse(entry.getString("type")) == null) continue;
+            TeamInvite invite = TeamInvite.fromNBT(entry);
+            if (!data.teams.containsKey(invite.teamId())) continue;
+            if (TeamRegistry.TEAM_TYPES.get(invite.typeId()) == null) continue;
+            data.invites.add(invite);
         }
 
         loadRelations(tag.getCompound(RELATIONS_KEY), data.relations);
@@ -323,6 +392,7 @@ public class TeamSavedData extends SavedData {
         loadNames(tag.getCompound(NAMES_KEY), data.names);
         data.rebuildRelatedBy();
         data.rebuildMemberIndex();
+        data.rebuildNameIndex();
         return data;
     }
 
@@ -332,6 +402,11 @@ public class TeamSavedData extends SavedData {
             this.indexMember(team.getId(), team.getOwner());
             for (UUID member : team.getMembers()) this.indexMember(team.getId(), member);
         }
+    }
+
+    private void rebuildNameIndex() {
+        this.namesByType.clear();
+        for (Team team : this.teams.values()) this.indexName(team);
     }
 
     private void rebuildRelatedBy() {
@@ -407,6 +482,11 @@ public class TeamSavedData extends SavedData {
         for (Team team : this.teams.values()) {
             result.add(team.getOwner());
             result.addAll(team.getMembers());
+        }
+        for (CompoundTag entry : this.unknownTeams) {
+            CompoundTag body = entry.getCompound(DATA_KEY);
+            if (body.hasUUID(Team.OWNER_KEY)) result.add(body.getUUID(Team.OWNER_KEY));
+            for (Tag tag : body.getList(Team.MEMBERS_KEY, Tag.TAG_INT_ARRAY)) result.add(NbtUtils.loadUUID(tag));
         }
         for (Map.Entry<ResourceLocation, Map<UUID, Set<UUID>>> typeEntry : this.relations.entrySet()) {
             Map<UUID, Set<UUID>> byEntity = typeEntry.getValue();

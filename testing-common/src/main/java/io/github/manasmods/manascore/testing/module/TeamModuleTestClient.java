@@ -11,7 +11,7 @@ import static io.github.manasmods.manascore.testing.ManasCoreTesting.LOG;
 
 public class TeamModuleTestClient {
     public static void init() {
-        TeamEvents.CLIENT_TEAM_UPDATED.register(team -> LOG.info("[team-client] updated {}", team.getId()));
+        TeamEvents.CLIENT_TEAM_UPDATED.register(team -> LOG.info("[team-client] updated {}{}", team.getId(), team instanceof TeamModuleTest.FactionTeam faction ? " score=" + faction.getScore() : ""));
         TeamEvents.CLIENT_TEAM_REMOVED.register(teamId -> LOG.info("[team-client] removed {}", teamId));
         TeamEvents.CLIENT_INVITES_UPDATED.register((incoming, outgoing) -> LOG.info("[team-client] invites updated incoming={} outgoing={}", incoming, outgoing));
         TeamEvents.CLIENT_ACTION_RESULT.register((action, teamId, result) -> LOG.info("[team-client] action result {} {} {}", action, teamId, result));

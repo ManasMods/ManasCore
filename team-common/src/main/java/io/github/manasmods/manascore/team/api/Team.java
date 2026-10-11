@@ -31,7 +31,7 @@ import java.util.UUID;
  */
 public class Team {
     public static final String OWNER_KEY = "owner";
-    private static final String MEMBERS_KEY = "members";
+    public static final String MEMBERS_KEY = "members";
     private static final String NAME_KEY = "name";
     private static final String OWNER_NAME_KEY = "ownerName";
 
@@ -99,6 +99,10 @@ public class Team {
             if (entity != null) result.add(entity);
         }
         return result;
+    }
+
+    public void markDirty() {
+        TeamAPI.markDirty(this);
     }
 
     @Nullable

@@ -21,11 +21,9 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -78,6 +76,7 @@ public final class TeamActionHandler {
             case DECLINE_INVITE -> plain(payload.teamId() == null ? TeamResult.NOT_FOUND : TeamAPI.tryDeclineInvite(sender, payload.teamId()), payload.teamId());
             case ADD_RELATION -> relation(server, sender, payload, true);
             case REMOVE_RELATION -> relation(server, sender, payload, false);
+            case REVOKE_INVITE -> withTeam(server, sender, payload, team -> payload.target() == null ? TeamResult.NOT_FOUND : TeamAPI.tryRevokeInvite(team, sender, payload.target()));
             case REQUEST_INVITABLE -> requestInvitable(server, sender, payload);
         };
     }
@@ -86,18 +85,8 @@ public final class TeamActionHandler {
         if (payload.typeId() == null) return plain(TeamResult.NOT_FOUND, null);
         TeamType<?> type = TeamAPI.getTeamTypeRegistry().get(payload.typeId());
         if (type == null) return plain(TeamResult.NOT_FOUND, null);
-        LivingEntity resolved = type.resolveMember(sender);
-        Set<UUID> before = new HashSet<>(TeamAPI.getTeamsFrom(resolved).getTeamIds(type));
-        TeamResult result = TeamAPI.tryCreateTeam(type, sender);
-        if (!result.isAccepted()) return plain(result, null);
-        UUID createdId = null;
-        for (UUID id : TeamAPI.getTeamsFrom(resolved).getTeamIds(type)) {
-            if (!before.contains(id)) createdId = id;
-        }
-        if (createdId != null && payload.name() != null) {
-            TeamAPI.getTeam(server, createdId).ifPresent(team -> TeamAPI.trySetTeamName(team, sender, payload.name()));
-        }
-        return plain(result, createdId);
+        TeamManager.CreateOutcome<?> outcome = TeamManager.tryCreate(type, sender, payload.name());
+        return plain(outcome.result(), outcome.team() == null ? null : outcome.team().getId());
     }
 
     private static ActionOutcome invite(MinecraftServer server, ServerPlayer sender, TeamActionPayload payload) {

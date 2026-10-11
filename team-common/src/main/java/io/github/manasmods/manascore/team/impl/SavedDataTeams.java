@@ -32,7 +32,7 @@ public class SavedDataTeams implements Teams {
         for (UUID teamId : ids) {
             if (this.data.getTeam(teamId).map(team -> team.getType() == type).orElse(false)) result.add(teamId);
         }
-        return Collections.unmodifiableSet(result);
+        return result;
     }
 
     public Map<ResourceLocation, Set<UUID>> getAllTeamIds() {
@@ -61,6 +61,6 @@ public class SavedDataTeams implements Teams {
     }
 
     public boolean isEmpty() {
-        return this.data.getTeamIdsOf(this.id).isEmpty() && !this.data.hasAnyRelation(this.id);
+        return !this.data.hasTeams(this.id) && !this.data.hasAnyRelation(this.id);
     }
 }

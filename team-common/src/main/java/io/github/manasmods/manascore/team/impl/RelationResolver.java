@@ -20,6 +20,7 @@ import java.util.UUID;
  * Folds every registered {@link TeamType} into one answer, highest priority first.
  * Both sides are resolved through {@link OwnerResolvers} once per fold; a type that
  * {@link TeamType#inheritsOwnership()} sees the root owner, the others see the entity itself.
+ * When both sides share a root owner the result is ResolvedRelation.OWNERSHIP before any type is consulted.
  * Works on both sides: it reads the entity storage of loaded entities and, on the server, the
  * saved table for owners that are offline or unloaded.
  */
@@ -54,6 +55,7 @@ public class RelationResolver {
         if (a == b || a.getUUID().equals(b.getUUID())) return ResolvedRelation.SELF;
         UUID ownerA = OwnerResolvers.resolveId(a);
         UUID ownerB = OwnerResolvers.resolveId(b);
+        if (ownerA.equals(ownerB)) return ResolvedRelation.OWNERSHIP;
         Teams ownA = teamsOf(a);
         Teams ownB = teamsOf(b);
         if (ownerA.equals(a.getUUID()) && ownerB.equals(b.getUUID()) && ownA.isEmpty() && ownB.isEmpty()) return ResolvedRelation.NEUTRAL;
