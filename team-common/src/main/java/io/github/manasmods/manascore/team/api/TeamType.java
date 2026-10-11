@@ -60,6 +60,10 @@ public abstract class TeamType<T extends Team> {
         return false;
     }
 
+    public boolean allowsNoName() {
+        return true;
+    }
+
     public LimitPolicy onLimitReached() {
         return LimitPolicy.REJECT;
     }

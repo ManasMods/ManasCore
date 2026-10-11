@@ -377,7 +377,7 @@ public final class TeamManager {
     }
 
     static TeamResult validateName(MinecraftServer server, TeamType<?> type, @Nullable UUID teamId, @Nullable String sanitized) {
-        if (sanitized == null) return TeamResult.ACCEPTED;
+        if (sanitized == null) return type.allowsNoName() ? TeamResult.ACCEPTED : TeamResult.INVALID;
         if (!type.isValidName(sanitized)) return TeamResult.INVALID;
         if (type.requiresUniqueNames() && TeamSavedData.get(server).isNameTaken(idOf(type), sanitized, teamId)) return TeamResult.NAME_TAKEN;
         return TeamResult.ACCEPTED;
@@ -1020,10 +1020,8 @@ public final class TeamManager {
             LivingEntity target = changeableTarget.get();
             if (target == null || target == entity) return EventResult.pass();
             ResolvedRelation relation = RelationResolver.resolve(entity, target);
-            if (relation.isAlly() && blocksTargeting(relation)) {
-                changeableTarget.set(null);
-                return EventResult.interruptFalse();
-            }
+            // pass, not interrupt: both loaders only apply the new target when the event passes
+            if (relation.isAlly() && blocksTargeting(relation)) changeableTarget.set(null);
             return EventResult.pass();
         });
 

@@ -40,6 +40,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
@@ -162,6 +163,9 @@ public class TeamModuleTest {
         }
         public boolean requiresUniqueNames() {
             return true;
+        }
+        public boolean allowsNoName() {
+            return false;
         }
     }
 
@@ -620,6 +624,37 @@ public class TeamModuleTest {
             boolean removed = target.getTags().removeIf(tag -> tag.startsWith(OWNER_TAG));
             reply(sender, removed ? "Owner tag removed" : "No owner tag");
             return removed;
+        }
+
+        @Execute
+        public boolean clearname(@SenderArg CommandSourceStack sender, @LiteralArg("clearname") String l, @ResourceLocationArg ResourceLocation typeId) {
+            ServerPlayer player = sender.getPlayer();
+            TeamType<?> type = type(typeId);
+            if (player == null || type == null) return false;
+            Optional<? extends Team> team = TeamAPI.getTeam(player, type);
+            if (team.isEmpty()) return false;
+            TeamResult result = TeamAPI.trySetTeamName(team.get(), player, "   ");
+            reply(sender, "Clear name: " + result.name() + ", name now " + team.get().getName());
+            return result.isAccepted();
+        }
+
+        @Execute
+        public boolean settarget(@SenderArg CommandSourceStack sender, @LiteralArg("settarget") String l,
+                                 @EntityArg(name = "mob") EntitySelector mobSel, @EntityArg(name = "target") EntitySelector targetSel) throws CommandSyntaxException {
+            Entity mob = mobSel.findSingleEntity(sender);
+            Entity target = targetSel.findSingleEntity(sender);
+            if (!(mob instanceof Mob living) || !(target instanceof LivingEntity victim)) return false;
+            living.setTarget(victim);
+            reply(sender, mob.getName().getString() + " target now " + (living.getTarget() == null ? "null" : living.getTarget().getName().getString()));
+            return true;
+        }
+
+        @Execute
+        public boolean target(@SenderArg CommandSourceStack sender, @LiteralArg("target") String l, @EntityArg(name = "mob") EntitySelector mobSel) throws CommandSyntaxException {
+            Entity mob = mobSel.findSingleEntity(sender);
+            if (!(mob instanceof Mob living)) return false;
+            reply(sender, mob.getName().getString() + " target: " + (living.getTarget() == null ? "null" : living.getTarget().getName().getString()));
+            return true;
         }
 
         @Execute
