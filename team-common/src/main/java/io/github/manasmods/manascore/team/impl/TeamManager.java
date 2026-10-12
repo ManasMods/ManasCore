@@ -772,19 +772,12 @@ public final class TeamManager {
         return tryRevokeInvite(server, team, invitee).isAccepted();
     }
 
-    public static boolean canRevokeInvite(MinecraftServer server, Team team, LivingEntity actor, UUID invitee) {
-        TeamType<Team> type = typeOf(team);
-        LivingEntity resolved = type.resolveMember(actor);
-        Optional<TeamInvite> invite = TeamSavedData.get(server).findInvite(invitee, team.getId());
-        if (invite.isPresent() && invite.get().inviter().equals(resolved.getUUID())) return true;
-        return type.canRevokeInvite(team, resolved, invitee);
-    }
-
     public static TeamResult tryRevokeInvite(Team team, LivingEntity actor, UUID invitee) {
         if (!isServer(actor, "revokeInvite")) return TeamResult.CLIENT_SIDE;
         MinecraftServer server = serverOf(actor);
         if (TeamSavedData.get(server).findInvite(invitee, team.getId()).isEmpty()) return TeamResult.NOT_FOUND;
-        if (!canRevokeInvite(server, team, actor, invitee)) return TeamResult.NOT_ALLOWED;
+        TeamType<Team> type = typeOf(team);
+        if (!type.canRevokeInvite(team, type.resolveMember(actor), invitee)) return TeamResult.NOT_ALLOWED;
         return tryRevokeInvite(server, team, invitee);
     }
 

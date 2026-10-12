@@ -329,13 +329,7 @@ public class TeamAPI {
 
     public static boolean canRevokeInvite(@NonNull Team team, @NonNull LivingEntity actor, @NonNull UUID invitee) {
         TeamType<Team> type = typeOf(team);
-        MinecraftServer server = actor.getServer();
-        if (server != null && !actor.level().isClientSide()) return TeamManager.canRevokeInvite(server, team, actor, invitee);
-        LivingEntity resolved = type.resolveMember(actor);
-        for (TeamInvite invite : ClientTeamCache.getOutgoingInvites(team.getId())) {
-            if (invite.invitee().equals(invitee) && invite.inviter().equals(resolved.getUUID())) return true;
-        }
-        return type.canRevokeInvite(team, resolved, invitee);
+        return type.canRevokeInvite(team, type.resolveMember(actor), invitee);
     }
 
     /** Determine if the actor may kick the target member, subject to {@link TeamType#canKick}. */

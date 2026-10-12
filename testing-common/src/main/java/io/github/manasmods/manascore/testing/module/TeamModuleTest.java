@@ -139,6 +139,9 @@ public class TeamModuleTest {
         public boolean blocksFriendlyFire() {
             return true;
         }
+        public boolean canRevokeInvite(FactionTeam team, LivingEntity actor, UUID invitee) {
+            return team.isOwner(actor);
+        }
         public Relation getRelation(Level level, UUID a, Teams aTeams, UUID b, Teams bTeams) {
             Set<UUID> mine = aTeams.getTeamIds(this);
             Set<UUID> theirs = bTeams.getTeamIds(this);
@@ -494,6 +497,7 @@ public class TeamModuleTest {
                 case "invite" -> TeamAPI.canInvite(team, player);
                 case "kick" -> target != null && TeamAPI.canKick(team, player, target);
                 case "promote" -> target != null && TeamAPI.canPromote(team, player, target);
+                case "revoke" -> target != null && TeamAPI.canRevokeInvite(team, player, target);
                 case "leave" -> TeamAPI.canLeave(team, player);
                 case "disband" -> TeamAPI.canDisband(team, player);
                 default -> false;

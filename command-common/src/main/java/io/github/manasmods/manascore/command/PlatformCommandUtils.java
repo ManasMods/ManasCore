@@ -19,4 +19,9 @@ public class PlatformCommandUtils {
     public static void registerPermission(Permission permission) {
         throw new AssertionError();
     }
+
+    @ExpectPlatform
+    public static void registerPermission(String permissionId, Permission.PermissionLevel level) {
+        throw new AssertionError();
+    }
 }

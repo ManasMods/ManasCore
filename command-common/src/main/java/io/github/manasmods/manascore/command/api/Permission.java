@@ -22,6 +22,8 @@ public @interface Permission {
 
     PermissionLevel permissionLevel() default PermissionLevel.OWNER;
 
+    String[] anyOf() default {};
+
     @Getter
     enum PermissionLevel {
         OWNER(4),

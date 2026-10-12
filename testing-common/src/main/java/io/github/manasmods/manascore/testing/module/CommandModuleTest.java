@@ -48,11 +48,29 @@ public class CommandModuleTest {
         CommandRegistry.registerCommand(TestCommand.class);
     }
 
-    @Command(value = "foo", subCommands = {TestSubCommand.class})
+    @Command(value = "foo", subCommands = {TestSubCommand.class, TestStaffCommand.class})
     public static class TestCommand {
         @Execute
         public boolean withPerms(@SenderArg CommandSourceStack sender) {
             sender.sendSystemMessage(RESPONSE);
+            return true;
+        }
+    }
+
+    @Command(value = "staff")
+    @Permission(value = "manascore.command.staff", anyOf = {"manascore.command.staff.alpha", "manascore.command.staff.beta"})
+    public static class TestStaffCommand {
+        @Permission(value = "manascore.command.staff.alpha", permissionLevel = Permission.PermissionLevel.GAMEMASTER)
+        @Execute
+        public boolean alpha(@SenderArg CommandSourceStack sender, @LiteralArg("alpha") String l) {
+            sender.sendSystemMessage(RESPONSE.copy().append(" alpha"));
+            return true;
+        }
+
+        @Permission(value = "manascore.command.staff.beta")
+        @Execute
+        public boolean beta(@SenderArg CommandSourceStack sender, @LiteralArg("beta") String l) {
+            sender.sendSystemMessage(RESPONSE.copy().append(" beta"));
             return true;
         }
     }

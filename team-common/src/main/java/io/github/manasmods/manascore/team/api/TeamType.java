@@ -188,6 +188,9 @@ public abstract class TeamType<T extends Team> {
 
     /** Default: anyone allowed to invite; the inviter of the invite may always revoke it. */
     public boolean canRevokeInvite(T team, LivingEntity actor, UUID invitee) {
+        for (TeamInvite invite : TeamAPI.getOutgoingInvites(actor, team)) {
+            if (invite.invitee().equals(invitee) && actor.getUUID().equals(invite.inviter())) return true;
+        }
         return this.canInvite(team, actor);
     }
 

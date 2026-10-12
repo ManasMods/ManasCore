@@ -11,6 +11,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
 import io.github.manasmods.manascore.command.api.CommandArgumentRegistrationEvent;
+import io.github.manasmods.manascore.command.api.Permission;
 import io.github.manasmods.manascore.command.api.parameter.*;
 import io.github.manasmods.manascore.command.api.parameter.coordinate.BlockPosArg;
 import io.github.manasmods.manascore.command.api.parameter.coordinate.RotationArg;
@@ -46,6 +47,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class ManasCoreCommand {
@@ -296,18 +299,23 @@ public class ManasCoreCommand {
             // Register Argument Annotations
             CommandArgumentRegistrationEvent.EVENT.invoker().register(registry, dispatcher, buildContext);
             // Register Commands
+            List<Permission> permissions = new ArrayList<>();
             CommandAnnotationHandler.COMMANDS.forEach(commandNode -> {
                 try {
                     var command = commandNode.build(registry);
                     command.forEach(dispatcher::register);
-
-                    // Register Permissions
-                    commandNode.getPermissions().forEach(PlatformCommandUtils::registerPermission);
+                    permissions.addAll(commandNode.getPermissions());
                 } catch (NoSuchMethodException | InvocationTargetException | InstantiationException |
                          IllegalAccessException e) {
                     throw new RuntimeException(e);
                 }
             });
+
+            // Register Permissions, anyOf-only nodes last so their own @Permission level wins
+            permissions.forEach(PlatformCommandUtils::registerPermission);
+            for (Permission permission : permissions) {
+                for (String node : permission.anyOf()) PlatformCommandUtils.registerPermission(node, permission.permissionLevel());
+            }
         });
     }
 }

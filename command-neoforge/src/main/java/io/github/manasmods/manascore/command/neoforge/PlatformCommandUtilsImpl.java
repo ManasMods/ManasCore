@@ -8,6 +8,7 @@ package io.github.manasmods.manascore.command.neoforge;
 import io.github.manasmods.manascore.command.ManasCoreCommand;
 import io.github.manasmods.manascore.command.api.Permission;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.server.permission.PermissionAPI;
 import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
 import net.neoforged.neoforge.server.permission.nodes.PermissionTypes;
@@ -22,11 +23,20 @@ public class PlatformCommandUtilsImpl {
     public static boolean hasPermission(CommandSourceStack commandSourceStack, Permission permission) {
         if (commandSourceStack.hasPermission(permission.permissionLevel().getLevel())) return true;
         if (!commandSourceStack.isPlayer()) return true;
-        return PermissionAPI.getPermission(Objects.requireNonNull(commandSourceStack.getPlayer()), PERMISSIONS.get(permission.value()));
+        ServerPlayer player = Objects.requireNonNull(commandSourceStack.getPlayer());
+        if (PermissionAPI.getPermission(player, PERMISSIONS.get(permission.value()))) return true;
+        for (String node : permission.anyOf()) {
+            PermissionNode<Boolean> permissionNode = PERMISSIONS.get(node);
+            if (permissionNode != null && PermissionAPI.getPermission(player, permissionNode)) return true;
+        }
+        return false;
     }
 
     public static void registerPermission(Permission permission) {
-        var permissionId = permission.value();
+        registerPermission(permission.value(), permission.permissionLevel());
+    }
+
+    public static void registerPermission(String permissionId, Permission.PermissionLevel level) {
         if (PERMISSIONS.containsKey(permissionId)) {
             ManasCoreCommand.LOG.info("Permission with id {} already exists. Skipped registering.", permissionId);
             return;
@@ -35,7 +45,7 @@ public class PlatformCommandUtilsImpl {
         var nodeName = permissionId.substring(permissionId.indexOf('.') + 1);
         PERMISSIONS.put(permissionId, new PermissionNode<>(modId, nodeName, PermissionTypes.BOOLEAN, (player, playerUUID, context) -> {
             if (player == null) return true;
-            return player.hasPermissions(permission.permissionLevel().getLevel());
+            return player.hasPermissions(level.getLevel());
         }));
     }
 }

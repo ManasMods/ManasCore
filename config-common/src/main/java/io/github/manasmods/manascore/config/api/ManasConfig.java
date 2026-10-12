@@ -7,6 +7,7 @@ import com.electronwill.nightconfig.toml.TomlParser;
 import io.github.manasmods.manascore.config.ManasCoreConfig;
 import lombok.Getter;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.io.File;
 import java.io.StringReader;
@@ -37,11 +38,24 @@ public abstract class ManasConfig {
         return Paths.get("config", this.getFileName() + ".toml");
     }
 
+    public String getModId() {
+        String fileName = this.getFileName();
+        int slash = fileName.indexOf('/');
+        return slash < 0 ? fileName : fileName.substring(0, slash);
+    }
+
     /**
      * Loads the config file from disk or creates a new one if it doesn't exist.
      */
     public void load() {
-        Path path = getConfigPath();
+        CommentedFileConfig parsed = this.read();
+        this.applyToFields(parsed);
+        this.commit(parsed);
+    }
+
+    @ApiStatus.Internal
+    public CommentedFileConfig read() {
+        Path path = this.getConfigPath();
         File file = path.toFile();
         if (!file.exists()) {
             try {
@@ -52,10 +66,15 @@ public abstract class ManasConfig {
             }
         }
 
-        config = CommentedFileConfig.builder(path).sync().build();
-        config.load();
-        applyToFields();
-        save();
+        CommentedFileConfig parsed = CommentedFileConfig.builder(path).sync().build();
+        parsed.load();
+        return parsed;
+    }
+
+    @ApiStatus.Internal
+    public void commit(CommentedFileConfig parsed) {
+        this.config = parsed;
+        this.save();
     }
 
     /**
@@ -67,7 +86,7 @@ public abstract class ManasConfig {
         try {
             Config parsedConfig = parser.parse(new StringReader(tomlData));
             config.putAll(parsedConfig);
-            applyToFields();
+            this.applyToFields(config);
         } catch (Exception e) {
             ManasCoreConfig.LOG.error("Error parsing TOML data: " + e.getMessage(), e);
         }
@@ -84,11 +103,12 @@ public abstract class ManasConfig {
     /**
      * Reads values from the TOML config and applies them to fields.
      */
-    private void applyToFields() {
+    @ApiStatus.Internal
+    public void applyToFields(Config source) {
         for (Field field : this.getClass().getDeclaredFields()) {
             try {
                 field.setAccessible(true);
-                Object value = config.getOrElse(field.getName(), field.get(this));
+                Object value = source.getOrElse(field.getName(), field.get(this));
                 if (value instanceof Config configSub && field.get(this) instanceof ManasSubConfig sub) {
                     sub.applySubConfigFields(configSub);
                     field.set(this, sub);
