@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. ManasMods
+ * Copyright (c) 2025. ManasMods
  * GNU General Public License 3
  */
 
@@ -9,15 +9,21 @@ import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.ChatEvent;
 import dev.architectury.event.events.common.EntityEvent;
 import dev.architectury.event.events.common.PlayerEvent;
+import io.github.manasmods.manascore.attribute.api.AttributeEvents;
+import io.github.manasmods.manascore.skill.ManasCoreSkill;
+import io.github.manasmods.manascore.skill.api.SkillEvents;
 import io.github.manasmods.manascore.storage.api.Storage;
 import io.github.manasmods.manascore.storage.api.StorageEvents;
 import io.github.manasmods.manascore.storage.api.StorageHolder;
 import io.github.manasmods.manascore.storage.api.StorageKey;
 import io.github.manasmods.manascore.testing.ModuleConstants;
+import io.github.manasmods.manascore.testing.configs.TestConfig;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
 
@@ -63,7 +69,29 @@ public class StorageModuleTest {
         });
         // Register event listeners that print the storage on client side and server side
         ChatEvent.RECEIVED.register((player, component) -> {
-            if (player != null) printTestStorage(player);
+            if (player != null) {
+                printTestStorage(player);
+                TestConfig.printTestConfig(player);
+            }
+            return EventResult.pass();
+        });
+
+        SkillEvents.ACTIVATE_SKILL.register((skillInstance, owner, keyNumber, mode) -> {
+            ManasCoreSkill.LOG.info(String.valueOf(owner.position()));
+            return EventResult.pass();
+        });
+        SkillEvents.RELEASE_SKILL.register((skillInstance, owner, keyNumber, mode, heldTicks) -> {
+            ManasCoreSkill.LOG.info(String.valueOf(owner.position()));
+            return EventResult.pass();
+        });
+
+        AttributeEvents.START_GLIDE_EVENT.register((entity, glide) -> {
+            if (entity.getItemBySlot(EquipmentSlot.HEAD).is(Items.PIGLIN_HEAD)) glide.set(true);
+            if (entity.getItemBySlot(EquipmentSlot.CHEST).is(Items.NETHERITE_CHESTPLATE)) glide.set(false);
+            return EventResult.pass();
+        });
+        AttributeEvents.CONTINUE_GLIDE_EVENT.register((entity, glide) -> {
+            if (entity.isShiftKeyDown()) glide.set(false);
             return EventResult.pass();
         });
     }
@@ -74,7 +102,7 @@ public class StorageModuleTest {
         LevelChunk chunk = level.getChunkAt(player.blockPosition());
         boolean isClientSide = level.isClientSide();
 
-        LOG.info("Storage of entity {} on {}:\n{}", player.getId(), isClientSide ? "client" : "server", player.manasCore$getStorage(ENTITY_KEY));
+        LOG.info("Storage of entity {} on {} at {}:\n{}", player.getId(), isClientSide ? "client" : "server", player.position(), player.manasCore$getStorage(ENTITY_KEY));
         LOG.info("Storage at chunk {} on {}:\n{}", chunk.getPos(), isClientSide ? "client" : "server", chunk.manasCore$getStorage(CHUNK_KEY));
         LOG.info("Storage of world {} on {}:\n{}", level.dimension().location(), isClientSide ? "client" : "server", level.manasCore$getStorage(WORLD_KEY));
     }

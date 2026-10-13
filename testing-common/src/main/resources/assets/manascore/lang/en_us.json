@@ -1,0 +1,16 @@
+{
+  "item.manascore_testing.test_item": "Test Item",
+  "item.manascore_testing.test_block_item": "Test Block Item",
+  "block.manascore_testing.test_block": "Test Block",
+  "entity.manascore_testing.test_entity": "Test Entity",
+  "effect.manascore_testing.test_mob_effect": "Test Mob Effect",
+  "effect.manascore_testing.test_mob_effect_particle": "Test Mob Effect with custom Particle",
+  "item.minecraft.lingering_potion.effect.lmao_potion": "Test Lingering Potion",
+  "item.minecraft.splash_potion.effect.lmao_potion": "Test Splash Potion",
+  "item.minecraft.potion.effect.lmao_potion": "Test Potion",
+  "item.minecraft.tipped_arrow.effect.lmao_potion": "Test Tipped Arrow",
+  "manascore.attribute.test_attribute_player": "Test Player Attribute",
+  "manascore.attribute.test_attribute_all": "Test Generic Attribute",
+  "manascore_testing.skill.test_skill": "Test Skill",
+  "manascore_testing.skill.test_skill.description": "A skill for Testing."
+}

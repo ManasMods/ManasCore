@@ -24,13 +24,21 @@ public class CombinedStorage {
     }
 
     public CompoundTag toNBT() {
+        return this.toNBT(true, true);
+    }
+
+    public CompoundTag toSyncNBT(boolean includeOwnerOnly) {
+        return this.toNBT(includeOwnerOnly, false);
+    }
+
+    private CompoundTag toNBT(boolean includeOwnerOnly, boolean includeServerOnly) {
         CompoundTag tag = new CompoundTag();
 
         ListTag entriesTag = new ListTag();
         this.storages.forEach((id, storage) -> {
             CompoundTag entryTag = new CompoundTag();
             entryTag.putString(STORAGE_ID_KEY, id.toString());
-            storage.save(entryTag);
+            if ((includeOwnerOnly || !storage.isOwnerOnly()) && (includeServerOnly || !storage.isServerOnly())) storage.save(entryTag);
             entriesTag.add(entryTag);
         });
 
@@ -85,20 +93,48 @@ public class CombinedStorage {
     }
 
     public CompoundTag createUpdatePacket(boolean clean) {
-        CompoundTag tag = new CompoundTag();
+        return this.createUpdatePacket(clean, true);
+    }
 
+    public CompoundTag createUpdatePacket(boolean clean, boolean includeOwnerOnly) {
+        return this.createUpdatePacket(clean, includeOwnerOnly, null);
+    }
+
+    public CompoundTag createUpdatePacket(boolean clean, boolean includeOwnerOnly, @Nullable ListTag sharedEntries) {
         ListTag entriesTag = new ListTag();
         this.storages.forEach((id, storage) -> {
             if (!storage.isDirty()) return;
+            if (storage.isServerOnly() || (!includeOwnerOnly && storage.isOwnerOnly())) {
+                if (clean) storage.clearDirty();
+                return;
+            }
+
             CompoundTag entryTag = new CompoundTag();
             entryTag.putString(STORAGE_ID_KEY, id.toString());
             storage.saveOutdated(entryTag);
             entriesTag.add(entryTag);
+            if (sharedEntries != null && !storage.isOwnerOnly()) sharedEntries.add(entryTag);
             if (clean) storage.clearDirty();
         });
 
-        tag.put(STORAGE_LIST_KEY, entriesTag);
+        return wrapEntries(entriesTag);
+    }
+
+    public static CompoundTag wrapEntries(ListTag entries) {
+        CompoundTag tag = new CompoundTag();
+        tag.put(STORAGE_LIST_KEY, entries);
         return tag;
+    }
+
+    public static boolean hasEntries(CompoundTag packet) {
+        return !packet.getList(STORAGE_LIST_KEY, Tag.TAG_COMPOUND).isEmpty();
+    }
+
+    public boolean hasClientStorages() {
+        for (Storage storage : this.storages.values()) {
+            if (!storage.isServerOnly()) return true;
+        }
+        return false;
     }
 
     public boolean isDirty() {
@@ -106,5 +142,11 @@ public class CombinedStorage {
             if (storage.isDirty()) return true;
         }
         return false;
+    }
+
+    public void clearDirty() {
+        for (Storage storage : this.storages.values()) {
+            storage.clearDirty();
+        }
     }
 }

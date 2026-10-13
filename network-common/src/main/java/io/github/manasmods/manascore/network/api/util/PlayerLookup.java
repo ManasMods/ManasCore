@@ -11,11 +11,9 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.chunk.ChunkSource;
 import net.minecraft.world.level.chunk.LevelChunk;
 
-import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.stream.Collectors;
+import java.util.List;
 
 @UtilityClass
 public final class PlayerLookup {
@@ -26,16 +24,21 @@ public final class PlayerLookup {
         ChunkSource manager = entity.level().getChunkSource();
         if (!(manager instanceof ServerChunkCache cache)) throw new IllegalArgumentException("Only supported on server worlds!");
         ChunkMap.TrackedEntity trackedEntity = cache.chunkMap.entityMap.get(entity.getId());
-        if (trackedEntity == null) return Collections.emptySet();
-        return trackedEntity.seenBy.stream().map(ServerPlayerConnection::getPlayer).collect(Collectors.toUnmodifiableSet());
+        if (trackedEntity == null) return new ArrayList<>();
+        List<ServerPlayer> players = new ArrayList<>(trackedEntity.seenBy.size());
+        for (ServerPlayerConnection connection : trackedEntity.seenBy) players.add(connection.getPlayer());
+        return players;
     }
 
     /**
      * Returns a collection of players tracking the entity and the entity itself (only if the entity is a {@link ServerPlayer}).
      */
     public static Collection<ServerPlayer> trackingAndSelf(@NonNull Entity entity) {
-        Deque<ServerPlayer> watchers = new ArrayDeque<>(tracking(entity));
-        if (entity instanceof ServerPlayer player) watchers.addFirst(player);
+        Collection<ServerPlayer> tracking = tracking(entity);
+        if (!(entity instanceof ServerPlayer player)) return tracking;
+        List<ServerPlayer> watchers = new ArrayList<>(tracking.size() + 1);
+        watchers.add(player);
+        watchers.addAll(tracking);
         return watchers;
     }
 

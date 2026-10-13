@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. ManasMods
+ * Copyright (c) 2025. ManasMods
  * GNU General Public License 3
  */
 
@@ -17,7 +17,11 @@ import java.util.function.BiFunction;
 public class ManasCoreCommandFabric implements ModInitializer {
     public static BiFunction<CommandSourceStack, Permission, Boolean> hasPermission = (commandSourceStack, permission) -> {
         if (!commandSourceStack.isPlayer()) return true;
-        return commandSourceStack.hasPermission(permission.permissionLevel().getLevel());
+        if (commandSourceStack.hasPermission(permission.permissionLevel().getLevel())) return true;
+        for (String node : permission.anyOf()) {
+            if (commandSourceStack.hasPermission(PlatformCommandUtilsImpl.getLevelOf(node, permission))) return true;
+        }
+        return false;
     };
 
 

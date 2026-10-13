@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "io.github.manasmods.manascore.race.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "minVersion": "0.8",
+  "client": [
+  ],
+  "mixins": [
+    "MixinServerPlayer"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

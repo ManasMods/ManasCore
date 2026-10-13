@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. ManasMods
+ * Copyright (c) 2025. ManasMods
  * GNU General Public License 3
  */
 
@@ -16,6 +16,10 @@ public final class ManasCoreCommandNeoForge {
     public ManasCoreCommandNeoForge() {
         ManasCoreCommand.init();
 
-        NeoForge.EVENT_BUS.addListener(PermissionGatherEvent.Nodes.class, event -> PlatformCommandUtilsImpl.PERMISSIONS.values().forEach(event::addNodes));
+        NeoForge.EVENT_BUS.addListener(PermissionGatherEvent.Nodes.class, event -> {
+            PlatformCommandUtilsImpl.PERMISSIONS.values().forEach(event::addNodes);
+            PlatformCommandUtilsImpl.NUMBERS.values().forEach(event::addNodes);
+            PlatformCommandUtilsImpl.gathered = true;
+        });
     }
 }

@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2024. ManasMods
+ * Copyright (c) 2025. ManasMods
  * GNU General Public License 3
  */
 
 package io.github.manasmods.manascore.storage.impl;
 
+import io.github.manasmods.manascore.network.api.util.PlayerLookup;
+import io.github.manasmods.manascore.storage.ManasCoreStorage;
 import io.github.manasmods.manascore.storage.api.*;
 import io.github.manasmods.manascore.storage.impl.network.s2c.StorageSyncPayload;
 import io.github.manasmods.manascore.storage.impl.network.s2c.SyncChunkStoragePayload;
@@ -13,6 +15,8 @@ import io.github.manasmods.manascore.storage.impl.network.s2c.SyncWorldStoragePa
 import com.mojang.datafixers.util.Pair;
 import dev.architectury.event.events.common.PlayerEvent;
 import dev.architectury.networking.NetworkManager;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -40,6 +44,7 @@ public final class StorageManager {
             ServerLevel level = player.serverLevel();
             level.manasCore$sync(player);
         });
+
         // Synchronization on respawn and dimension change
         PlayerEvent.PLAYER_RESPAWN.register((player, b, removalReason) -> {
             player.manasCore$sync(player);
@@ -53,7 +58,11 @@ public final class StorageManager {
         });
 
         // Copy storage from old player to new player
-        PlayerEvent.PLAYER_CLONE.register((oldPlayer, newPlayer, wonGame) -> newPlayer.manasCore$setCombinedStorage(oldPlayer.manasCore$getCombinedStorage()));
+        PlayerEvent.PLAYER_CLONE.register((oldPlayer, newPlayer, wonGame) -> {
+            CombinedStorage newStorage = new CombinedStorage(newPlayer);
+            newStorage.load(oldPlayer.manasCore$getCombinedStorage().toNBT());
+            newPlayer.manasCore$setCombinedStorage(newStorage);
+        });
     }
 
     public static void initialStorageFilling(StorageHolder holder) {
@@ -62,6 +71,7 @@ public final class StorageManager {
             case CHUNK -> CHUNK_STORAGE_REGISTRY.attach((LevelChunk) holder);
             case WORLD -> LEVEL_STORAGE_REGISTRY.attach((Level) holder);
         }
+        holder.manasCore$getCombinedStorage().clearDirty();
     }
 
     public static void syncTracking(StorageHolder source) {
@@ -69,22 +79,36 @@ public final class StorageManager {
     }
 
     public static void syncTracking(StorageHolder source, boolean update) {
-        NetworkManager.sendToPlayers(source.manasCore$getTrackingPlayers(), createSyncPacket(source, update));
+        if (source instanceof ServerPlayer self) {
+            CombinedStorage storage = self.manasCore$getCombinedStorage();
+            ListTag shared = new ListTag();
+            CompoundTag full = update ? storage.createUpdatePacket(true, true, shared) : storage.toSyncNBT(true);
+            CompoundTag filtered = update ? CombinedStorage.wrapEntries(shared) : storage.toSyncNBT(false);
+
+            if (!update || CombinedStorage.hasEntries(full)) NetworkManager.sendToPlayer(self, new SyncEntityStoragePayload(update, self.getId(), full));
+            if (update && shared.isEmpty()) return;
+            NetworkManager.sendToPlayers(PlayerLookup.tracking(self), new SyncEntityStoragePayload(update, self.getId(), filtered));
+            return;
+        }
+        StorageSyncPayload payload = createSyncPacket(source, update, false, update);
+        if (update && !CombinedStorage.hasEntries(payload.storageTag())) return;
+        NetworkManager.sendToPlayers(source.manasCore$getTrackingPlayers(), payload);
     }
 
     public static void syncTarget(StorageHolder source, ServerPlayer target) {
-        NetworkManager.sendToPlayer(target, createSyncPacket(source, false));
+        if (!source.manasCore$getCombinedStorage().hasClientStorages()) return;
+        NetworkManager.sendToPlayer(target, createSyncPacket(source, false, source == target, false));
     }
 
-    private static StorageSyncPayload createSyncPacket(StorageHolder source, boolean update) {
+    private static StorageSyncPayload createSyncPacket(StorageHolder source, boolean update, boolean includeOwnerOnly, boolean clean) {
         return switch (source.manasCore$getStorageType()) {
             case ENTITY -> {
                 Entity sourceEntity = (Entity) source;
                 yield new SyncEntityStoragePayload(
                         update,
                         sourceEntity.getId(),
-                        update ? sourceEntity.manasCore$getCombinedStorage().createUpdatePacket(true)
-                                : sourceEntity.manasCore$getCombinedStorage().toNBT()
+                        update ? sourceEntity.manasCore$getCombinedStorage().createUpdatePacket(clean, includeOwnerOnly)
+                                : sourceEntity.manasCore$getCombinedStorage().toSyncNBT(includeOwnerOnly)
                 );
             }
             case CHUNK -> {
@@ -92,25 +116,31 @@ public final class StorageManager {
                 yield new SyncChunkStoragePayload(
                         update,
                         sourceChunk.getPos(),
-                        update ? sourceChunk.manasCore$getCombinedStorage().createUpdatePacket(true)
-                                : sourceChunk.manasCore$getCombinedStorage().toNBT()
+                        update ? sourceChunk.manasCore$getCombinedStorage().createUpdatePacket(clean)
+                                : sourceChunk.manasCore$getCombinedStorage().toSyncNBT(true)
                 );
             }
             case WORLD -> new SyncWorldStoragePayload(
                     update,
-                    update ? source.manasCore$getCombinedStorage().createUpdatePacket(true)
-                            : source.manasCore$getCombinedStorage().toNBT()
+                    update ? source.manasCore$getCombinedStorage().createUpdatePacket(clean)
+                            : source.manasCore$getCombinedStorage().toSyncNBT(true)
             );
         };
     }
 
     @Nullable
     public static Storage constructStorageFor(StorageType type, ResourceLocation id, StorageHolder holder) {
-        return switch (type) {
-            case ENTITY -> ENTITY_STORAGE_REGISTRY.registry.get(id).getSecond().create((Entity) holder);
-            case CHUNK -> CHUNK_STORAGE_REGISTRY.registry.get(id).getSecond().create((LevelChunk) holder);
-            case WORLD -> LEVEL_STORAGE_REGISTRY.registry.get(id).getSecond().create((Level) holder);
-        };
+        try {
+            return switch (type) {
+                case ENTITY -> ENTITY_STORAGE_REGISTRY.registry.get(id).getSecond().create((Entity) holder);
+                case CHUNK -> CHUNK_STORAGE_REGISTRY.registry.get(id).getSecond().create((LevelChunk) holder);
+                case WORLD -> LEVEL_STORAGE_REGISTRY.registry.get(id).getSecond().create((Level) holder);
+            };
+        }
+        catch (Exception e) {
+            ManasCoreStorage.LOG.warn("Failed to find storage in registry {}", id.toString());
+            return null;
+        }
     }
 
     @Nullable
@@ -119,10 +149,10 @@ public final class StorageManager {
     }
 
     private static class StorageRegistryImpl<T extends StorageHolder> implements StorageEvents.StorageRegistry<T> {
-        private final Map<ResourceLocation, Pair<Predicate<T>, StorageEvents.StoraceFactory<T, ?>>> registry = new HashMap<>();
+        private final Map<ResourceLocation, Pair<Predicate<T>, StorageEvents.StorageFactory<T, ?>>> registry = new HashMap<>();
 
         @Override
-        public <S extends Storage> StorageKey<S> register(ResourceLocation id, Class<S> storageClass, Predicate<T> attachCheck, StorageEvents.StoraceFactory<T, S> factory) {
+        public <S extends Storage> StorageKey<S> register(ResourceLocation id, Class<S> storageClass, Predicate<T> attachCheck, StorageEvents.StorageFactory<T, S> factory) {
             this.registry.put(id, Pair.of(attachCheck, factory));
             return new StorageKey<>(id, storageClass);
         }

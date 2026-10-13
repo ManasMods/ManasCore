@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. ManasMods
+ * Copyright (c) 2025. ManasMods
  * GNU General Public License 3
  */
 
@@ -22,8 +22,14 @@ public @interface Permission {
 
     PermissionLevel permissionLevel() default PermissionLevel.OWNER;
 
+    String[] anyOf() default {};
+
     @Getter
     enum PermissionLevel {
+        /**
+         * Only an explicit grant passes. Operators never hold the node implicitly, which suits exemptions.
+         */
+        EXPLICIT(5),
         OWNER(4),
         ADMIN(3),
         GAMEMASTER(2),

@@ -1,0 +1,109 @@
+/*
+ * Copyright (c) 2025. ManasMods
+ * GNU General Public License 3
+ */
+
+package io.github.manasmods.manascore.skill.impl;
+
+import io.github.manasmods.manascore.skill.api.ManasSkill;
+import io.github.manasmods.manascore.skill.api.ManasSkillInstance;
+import io.github.manasmods.manascore.skill.api.SkillAPI;
+import io.github.manasmods.manascore.skill.api.SkillTarget;
+import io.github.manasmods.manascore.skill.api.Skills;
+import lombok.Getter;
+import net.minecraft.world.entity.LivingEntity;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Optional;
+
+/**
+ * This is the Registry Object for Ticking Skills when a {@link ManasSkill} is held down in specific mode.
+ */
+public class TickingSkill {
+    @Getter
+    private int duration = 0;
+    @Getter
+    private final ManasSkill skill;
+    @Getter
+    private final int mode;
+    @Getter
+    private final int keyNumber;
+    @Getter
+    @Nullable
+    private final SkillTarget target;
+    public TickingSkill(ManasSkill skill, int mode, int keyNumber) {
+        this(skill, mode, keyNumber, null);
+    }
+
+    public TickingSkill(ManasSkill skill, int mode, int keyNumber, @Nullable SkillTarget target) {
+        this.skill = skill;
+        this.mode = mode;
+        this.keyNumber = keyNumber;
+        this.target = target;
+    }
+
+    public boolean tick(Skills storage, LivingEntity entity) {
+        if (!entity.isAlive()) return false;
+        Optional<ManasSkillInstance> optional = storage.getSkill(skill);
+        if (optional.isEmpty()) return false;
+
+        ManasSkillInstance instance = optional.get();
+        if (this.reachedMaxDuration(instance, entity) || !instance.canActivateSkill(entity, this.mode)) {
+            if (instance.shouldTriggerReleaseOnHeldInterrupt(entity, this.keyNumber, this.mode))
+                storage.handleSkillRelease(instance, this.keyNumber, this.mode, true);
+            return false;
+        }
+        if (this.target != null) this.target.aim(entity);
+        boolean holding = instance.onHeld(entity, this.duration++, this.mode);
+        storage.checkAndMarkDirty(instance);
+        return holding;
+    }
+
+    public boolean reachedMaxDuration(ManasSkillInstance instance, LivingEntity entity) {
+        int maxDuration = instance.getMaxHeldTime(entity);
+        if (maxDuration == -1) return false;
+        return this.duration >= maxDuration;
+    }
+
+    public boolean matches(ManasSkill skill, int mode) {
+        return this.skill == skill && this.mode == mode;
+    }
+
+    public boolean matches(ManasSkill skill, int mode, int keyNumber) {
+        return this.skill == skill && this.mode == mode && this.keyNumber == keyNumber;
+    }
+
+    public static void addTickingSkill(LivingEntity livingEntity, ManasSkill skill, int mode, int keyNumber) {
+        addTickingSkill(livingEntity, skill, mode, keyNumber, null);
+    }
+
+    public static void addTickingSkill(LivingEntity livingEntity, ManasSkill skill, int mode, int keyNumber, @Nullable SkillTarget target) {
+        Skills storage = SkillAPI.getSkillsFrom(livingEntity);
+        for (TickingSkill tickingSkill : storage.getHeldSkills()) if (tickingSkill.matches(skill, mode)) return;
+        storage.getHeldSkills().add(new TickingSkill(skill, mode, keyNumber, target));
+    }
+
+    public static @Nullable TickingSkill getTickingSkill(LivingEntity entity, ManasSkill skill, int mode) {
+        Skills storage = SkillAPI.getSkillsFrom(entity);
+        for (TickingSkill tickingSkill : storage.getHeldSkills()) {
+            if (tickingSkill.matches(skill, mode)) return tickingSkill;
+        }
+        return null;
+    }
+
+    public static boolean isTickingSkill(LivingEntity entity, ManasSkill skill, int mode) {
+        Skills storage = SkillAPI.getSkillsFrom(entity);
+        for (TickingSkill tickingSkill : storage.getHeldSkills()) {
+            if (tickingSkill.matches(skill, mode)) return true;
+        }
+        return false;
+    }
+
+    public static boolean isTickingSkill(LivingEntity entity, ManasSkill skill) {
+        Skills storage = SkillAPI.getSkillsFrom(entity);
+        for (TickingSkill tickingSkill : storage.getHeldSkills()) {
+            if (tickingSkill.getSkill() == skill) return true;
+        }
+        return false;
+    }
+}

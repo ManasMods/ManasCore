@@ -1,0 +1,8 @@
+loom {
+    accessWidenerPath = file('src/main/resources/manascore_skill.accesswidener')
+}
+
+dependencies {
+    implementation(project(path: ":network-common", configuration: 'namedElements')) { transitive false }
+    implementation(project(path: ":storage-common", configuration: 'namedElements')) { transitive false }
+}
