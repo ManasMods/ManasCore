@@ -20,6 +20,18 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
+/**
+ * Sent from a client to the server to request a team mutation.
+ * The payload only carries intent, the server validates everything again in {@link TeamActionHandler}.
+ * <p>
+ * The payload is handled on the server only.
+ *
+ * @param action Requested {@link TeamAction}.
+ * @param typeId Registry id of the {@code TeamType}, used by the actions that need one.
+ * @param teamId Id of the affected team, if the action needs one.
+ * @param target Id of the affected entity, if the action needs one.
+ * @param name   Requested team name, if the action needs one.
+ */
 public record TeamActionPayload(TeamAction action, @Nullable ResourceLocation typeId, @Nullable UUID teamId,
                                 @Nullable UUID target, @Nullable String name) implements CustomPacketPayload {
     public static final Type<TeamActionPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "team_action"));

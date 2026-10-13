@@ -18,6 +18,15 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Sent from the server to the members of a team with the serialized team, which replaces the cached copy on the client.
+ * <p>
+ * The payload is handled on the client only.
+ *
+ * @param typeId  Registry id of the {@code TeamType} of the team.
+ * @param teamTag Serialized team, see {@code TeamSavedData#serialize}.
+ * @param names   Last known profile names of the members by entity id.
+ */
 public record SyncTeamPayload(ResourceLocation typeId, CompoundTag teamTag, Map<UUID, String> names) implements CustomPacketPayload {
     public static final Type<SyncTeamPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "sync_team"));
     public static final StreamCodec<FriendlyByteBuf, SyncTeamPayload> STREAM_CODEC = CustomPacketPayload.codec(SyncTeamPayload::encode, SyncTeamPayload::new);

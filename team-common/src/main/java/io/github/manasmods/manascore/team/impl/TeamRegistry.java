@@ -21,6 +21,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * This is the Registry for {@link TeamType}s.
+ * It also holds the built-in {@link AllyTeamType} and {@link PartyTeamType}.
+ */
 public class TeamRegistry {
     private static final RegistrarManager MANAGER = RegistrarManager.get(ModuleConstants.MOD_ID);
     private static final ResourceLocation REGISTRY_ID = ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "team_types");
@@ -37,11 +41,17 @@ public class TeamRegistry {
     private TeamRegistry() {
     }
 
+    /**
+     * Used to register the built-in team types.
+     */
     public static void init() {
         BUILTIN.register();
     }
 
-    /** All registered types, highest priority first. Cached; rebuilt when the registry size changes. */
+    /**
+     * Used to get all registered types, highest priority first.
+     * The result is cached and rebuilt when the registry size changes.
+     */
     public static List<TeamType<?>> sortedByPriority() {
         int size = TEAM_TYPES.getIds().size();
         if (size != sortedCacheSize) {

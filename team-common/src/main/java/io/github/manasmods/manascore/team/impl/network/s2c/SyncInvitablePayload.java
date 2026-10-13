@@ -18,6 +18,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Sent from the server to the requesting client as the answer to {@code TeamAction.REQUEST_INVITABLE}.
+ * It lists the players that a team may still invite.
+ * <p>
+ * The payload is handled on the client only.
+ *
+ * @param teamId  Id of the team the list belongs to.
+ * @param players Ids of the players that can be invited.
+ * @param names   Last known profile names by entity id.
+ */
 public record SyncInvitablePayload(UUID teamId, List<UUID> players, Map<UUID, String> names) implements CustomPacketPayload {
     public static final Type<SyncInvitablePayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "sync_invitable"));
     public static final StreamCodec<FriendlyByteBuf, SyncInvitablePayload> STREAM_CODEC = CustomPacketPayload.codec(SyncInvitablePayload::encode, SyncInvitablePayload::new);

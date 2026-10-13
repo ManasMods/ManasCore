@@ -25,6 +25,13 @@ import net.minecraft.world.entity.LivingEntity;
 import java.util.*;
 
 
+/**
+ * Entity storage of the team module, attached to every {@link LivingEntity}.
+ * It holds the ids of the {@code GROUP} teams of the entity, the entities it is related to and the entities that are related to it, each keyed by the id of the {@link TeamType}.
+ * <p>
+ * The {@link TeamSavedData} is the source of truth and the storage is reconciled with it when the entity joins.
+ * The storage is synced to its holder only.
+ */
 public class TeamStorage extends Storage implements Teams {
     private static final String GROUPS_KEY = "groups";
     private static final String RELATIONS_KEY = "relations";
@@ -33,6 +40,9 @@ public class TeamStorage extends Storage implements Teams {
     @Getter
     private static StorageKey<TeamStorage> key = null;
 
+    /**
+     * Used to register the storage for every {@link LivingEntity}.
+     */
     public static void init() {
         StorageEvents.RegisterStorage<Entity> listener = registry -> key = registry.register(
                 ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "team_storage"),
@@ -53,6 +63,9 @@ public class TeamStorage extends Storage implements Teams {
         super(holder);
     }
 
+    /**
+     * Used to get the {@link LivingEntity} holding this storage.
+     */
     public LivingEntity getOwner() {
         return (LivingEntity) this.holder;
     }
@@ -86,6 +99,9 @@ public class TeamStorage extends Storage implements Teams {
         return set == null ? Collections.emptySet() : Collections.unmodifiableSet(set);
     }
 
+    /**
+     * Used to get a copy of all inbound {@code RELATION} sets keyed by type id.
+     */
     public Map<ResourceLocation, Set<UUID>> getAllRelatedBy() {
         return copy(this.inbound);
     }
@@ -100,12 +116,22 @@ public class TeamStorage extends Storage implements Teams {
         return result;
     }
 
+    /**
+     * Used to add a {@code GROUP} team of the type.
+     *
+     * @return true if the team was not listed yet.
+     */
     public boolean addTeamId(ResourceLocation typeId, UUID teamId) {
         boolean changed = this.groups.computeIfAbsent(typeId, k -> new LinkedHashSet<>()).add(teamId);
         if (changed) this.markDirty();
         return changed;
     }
 
+    /**
+     * Used to remove a {@code GROUP} team of the type.
+     *
+     * @return true if the team was listed.
+     */
     public boolean removeTeamId(ResourceLocation typeId, UUID teamId) {
         Set<UUID> set = this.groups.get(typeId);
         if (set == null) return false;
@@ -115,18 +141,31 @@ public class TeamStorage extends Storage implements Teams {
         return changed;
     }
 
+    /**
+     * Used to replace the {@code GROUP} teams of the type.
+     */
     public void setTeamIds(ResourceLocation typeId, Collection<UUID> ids) {
         if (ids.isEmpty()) this.groups.remove(typeId);
         else this.groups.put(typeId, new LinkedHashSet<>(ids));
         this.markDirty();
     }
 
+    /**
+     * Used to add an entity this entity is related to under the type.
+     *
+     * @return true if the entity was not listed yet.
+     */
     public boolean addRelated(ResourceLocation typeId, UUID entityId) {
         boolean changed = this.relations.computeIfAbsent(typeId, k -> new LinkedHashSet<>()).add(entityId);
         if (changed) this.markDirty();
         return changed;
     }
 
+    /**
+     * Used to remove an entity this entity is related to under the type.
+     *
+     * @return true if the entity was listed.
+     */
     public boolean removeRelated(ResourceLocation typeId, UUID entityId) {
         Set<UUID> set = this.relations.get(typeId);
         if (set == null) return false;
@@ -136,18 +175,31 @@ public class TeamStorage extends Storage implements Teams {
         return changed;
     }
 
+    /**
+     * Used to replace the entities this entity is related to under the type.
+     */
     public void setRelated(ResourceLocation typeId, Collection<UUID> ids) {
         if (ids.isEmpty()) this.relations.remove(typeId);
         else this.relations.put(typeId, new LinkedHashSet<>(ids));
         this.markDirty();
     }
 
+    /**
+     * Used to add an entity that lists this entity under the type.
+     *
+     * @return true if the entity was not listed yet.
+     */
     public boolean addInbound(ResourceLocation typeId, UUID entityId) {
         boolean changed = this.inbound.computeIfAbsent(typeId, k -> new LinkedHashSet<>()).add(entityId);
         if (changed) this.markDirty();
         return changed;
     }
 
+    /**
+     * Used to remove an entity that lists this entity under the type.
+     *
+     * @return true if the entity was listed.
+     */
     public boolean removeInbound(ResourceLocation typeId, UUID entityId) {
         Set<UUID> set = this.inbound.get(typeId);
         if (set == null) return false;
@@ -157,12 +209,18 @@ public class TeamStorage extends Storage implements Teams {
         return changed;
     }
 
+    /**
+     * Used to replace the entities that list this entity under the type.
+     */
     public void setInbound(ResourceLocation typeId, Collection<UUID> ids) {
         if (ids.isEmpty()) this.inbound.remove(typeId);
         else this.inbound.put(typeId, new LinkedHashSet<>(ids));
         this.markDirty();
     }
 
+    /**
+     * Used to remove every team and relation from this storage.
+     */
     public void clearAll() {
         this.groups.clear();
         this.relations.clear();
@@ -181,14 +239,23 @@ public class TeamStorage extends Storage implements Teams {
     }
 
     public void load(CompoundTag data) {
+        // Remember the previous relations
         Map<ResourceLocation, Set<UUID>> before = copy(this.relations);
         Map<ResourceLocation, Set<UUID>> beforeIn = copy(this.inbound);
+
+        // Read the new sets
         readMap(data.getCompound(GROUPS_KEY), this.groups);
         readMap(data.getCompound(RELATIONS_KEY), this.relations);
         readMap(data.getCompound(INBOUND_KEY), this.inbound);
+
+        // Notify the client about changed relations
         if (this.getOwner().level().isClientSide()) this.fireRelationChanges(before, beforeIn);
     }
 
+    /**
+     * Used to fire {@link TeamEvents#CLIENT_RELATIONS_UPDATED} for every type whose relation sets changed.
+     * The event is deferred to the end of the client tick.
+     */
     private void fireRelationChanges(Map<ResourceLocation, Set<UUID>> before, Map<ResourceLocation, Set<UUID>> beforeIn) {
         if (!this.getOwner().level().isClientSide()) return;
         Set<ResourceLocation> ids = new HashSet<>();

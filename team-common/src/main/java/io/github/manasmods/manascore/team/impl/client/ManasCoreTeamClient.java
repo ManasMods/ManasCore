@@ -16,10 +16,17 @@ import net.minecraft.network.chat.Component;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Client side wiring of the team module.
+ */
 public class ManasCoreTeamClient {
     private ManasCoreTeamClient() {
     }
 
+    /**
+     * Used to clear the {@link ClientTeamCache} when the player leaves the world.
+     * It also sets up the lookup of online members and runs the deferred callbacks at the end of every client tick.
+     */
     public static void init() {
         ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(player -> ClientTeamCache.clear());
         ClientTeamCache.setOnlineResolver(ManasCoreTeamClient::resolveOnline);

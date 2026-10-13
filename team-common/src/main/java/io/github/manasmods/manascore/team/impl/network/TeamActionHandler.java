@@ -29,7 +29,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 /**
- * Server-side handler for {@link TeamActionPayload}, rate limited per sender and action.
+ * Server side handler for {@link TeamActionPayload}.
+ * <p>
+ * Requests are rate limited per sender and action by the cooldowns of the {@link TeamConfig}, then forwarded to the matching {@link TeamAPI} method, which validates them again.
+ * The sender is answered with a {@link TeamActionResultPayload}, except when the request was dropped by the rate limit.
  */
 public final class TeamActionHandler {
     private static final Map<UUID, EnumMap<TeamAction, Long>> LAST_ACTION_TICK = new ConcurrentHashMap<>();
@@ -37,10 +40,20 @@ public final class TeamActionHandler {
     private TeamActionHandler() {
     }
 
+    /**
+     * Used to forget the rate limit data of a player when they quit.
+     */
     public static void init() {
         PlayerEvent.PLAYER_QUIT.register(player -> LAST_ACTION_TICK.remove(player.getUUID()));
     }
 
+    /**
+     * Used to handle a request of a client.
+     * Nothing in the payload is trusted, every id is looked up again and every permission is checked by the {@link TeamAPI}.
+     *
+     * @param player  Sender of the request, ignored if it is not a {@link ServerPlayer}.
+     * @param payload Requested {@link TeamActionPayload}.
+     */
     public static void handle(@Nullable Player player, TeamActionPayload payload) {
         if (!(player instanceof ServerPlayer sender)) return;
         MinecraftServer server = sender.getServer();
@@ -119,6 +132,9 @@ public final class TeamActionHandler {
         return plain(result, payload.teamId());
     }
 
+    /**
+     * Used to run the action only when the team exists and the sender is one of its members.
+     */
     private static ActionOutcome withTeam(MinecraftServer server, ServerPlayer sender, TeamActionPayload payload, Function<Team, TeamResult> action) {
         UUID teamId = payload.teamId();
         if (teamId == null) return plain(TeamResult.NOT_FOUND, null);

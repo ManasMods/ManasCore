@@ -22,6 +22,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * Adjusts the {@link PlayerRenderer} for animations: it squares the body up with the head, hides the body in first person and applies the {@code body} bone.
+ */
 @Mixin(PlayerRenderer.class)
 public abstract class MixinPlayerRendererAnimation extends LivingEntityRenderer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> {
     @Unique
@@ -32,21 +35,16 @@ public abstract class MixinPlayerRendererAnimation extends LivingEntityRenderer<
     }
 
     /**
-     * Squares the body up with the head for animations declaring {@code manascore:aim_body}, so the whole
-     * player turns toward what they are looking at instead of only the listed bones.
+     * Squares the body up with the head for animations declaring {@code manascore:aim_body}, so the whole player turns toward what they are looking at instead of only the listed bones.
      * <p>
-     * First-person animations always get this, whatever they declared: the camera <em>is</em> the head, so a
-     * body left trailing behind it would swing the arms off-centre from the view they are supposed to aim
-     * along. {@code MixinPlayerModel#setupAnim} squares the body up in first person for the same reason, but
-     * it runs too late to reach this frame's {@code netHeadYaw} - doing it here is what makes that immediate.
+     * First-person animations always get this. The camera is the head, so a trailing body would swing the arms off-centre from the view.
+     * {@code MixinPlayerModel#setupAnim} does the same in first person, but it runs too late to reach the {@code netHeadYaw} of this frame.
      * <p>
-     * This has to run at {@code HEAD}, before {@code LivingEntityRenderer#render} reads {@code yBodyRot} to
-     * derive the {@code netHeadYaw} it hands to the model. Doing it later - in {@code setupAnim}, where the
-     * first-person path does the same thing - would only take effect on the following frame.
+     * This has to run at {@code HEAD}, before {@code LivingEntityRenderer#render} reads {@code yBodyRot} to derive the {@code netHeadYaw} it hands to the model.
+     * Doing it later would only take effect on the following frame.
      * <p>
-     * Yaw only, by design: the body never pitches. The bones in {@code manascore:aim_bones} carry the
-     * vertical, and because {@code netHeadYaw} is head-minus-body it collapses to zero once this has run,
-     * so those bones contribute pitch alone without needing to know this happened.
+     * Yaw only, the body never pitches. The bones in {@code manascore:aim_bones} carry the vertical, and since {@code netHeadYaw} is head yaw minus body yaw
+     * it collapses to zero after this, so those bones contribute pitch alone.
      */
     @Inject(method = "render(Lnet/minecraft/client/player/AbstractClientPlayer;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
             at = @At("HEAD"))
@@ -61,11 +59,10 @@ public abstract class MixinPlayerRendererAnimation extends LivingEntityRenderer<
     }
 
     /**
-     * Whether {@code player} is being drawn as the first-person owner of the camera - a first-person animation
-     * on the local player, in first-person camera, as part of the world render.
+     * Determine if {@code player} is drawn as the first-person owner of the camera, which is a first-person animation on the local player,
+     * in first-person camera, during the world render.
      * <p>
-     * {@link PlayerAnimationAPI#renderingLevel} is the GUI guard: the same player also gets drawn into
-     * inventory previews and HUD widgets, and those must show the whole model.
+     * {@link PlayerAnimationAPI#renderingLevel} is the GUI guard, because inventory previews and HUD widgets draw the same player and must show the whole model.
      */
     @Unique
     private boolean manascore$isFirstPerson(AbstractClientPlayer player) {
@@ -73,6 +70,9 @@ public abstract class MixinPlayerRendererAnimation extends LivingEntityRenderer<
                 && manascore$mc.options.getCameraType().isFirstPerson() && player == manascore$mc.player;
     }
 
+    /**
+     * Hides every body part but the arms while the local player is shown in first person.
+     */
     @Inject(method = "render(Lnet/minecraft/client/player/AbstractClientPlayer;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/LivingEntityRenderer;render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V"))
     private void hideBonesInFirstPerson(AbstractClientPlayer entity, float f, float g, PoseStack poseStack,
@@ -95,6 +95,11 @@ public abstract class MixinPlayerRendererAnimation extends LivingEntityRenderer<
         }
     }
 
+    /**
+     * Applies the {@code body} bone once the rotations are set up.
+     * Outside first person it is applied as a whole entity transform through {@link PlayerAnimationAPI#applyRootBone}.
+     * In first person only the scale and the yaw of the bone are applied.
+     */
     @Inject(method = "setupRotations(Lnet/minecraft/client/player/AbstractClientPlayer;Lcom/mojang/blaze3d/vertex/PoseStack;FFFF)V", at = @At("RETURN"))
     private void setupRotations(AbstractClientPlayer player, PoseStack poseStack, float f, float bodyYaw,
                                           float deltaTick, float g, CallbackInfo ci) {
@@ -103,6 +108,7 @@ public abstract class MixinPlayerRendererAnimation extends LivingEntityRenderer<
             return;
         }
 
+        // Apply body bone in first person
         PlayerAnimationAPI.PlayerAnimation animation = PlayerAnimationAPI.active_animations.get(player);
         if (animation == null) return;
         PlayerAnimationAPI.PlayerBone bone = animation.bones.get("body");

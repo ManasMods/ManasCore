@@ -18,6 +18,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * Cancels the shadow of the local player while a first-person animation is shown from their own eyes.
+ */
 @Mixin(EntityRenderDispatcher.class)
 public class MixinEntityRenderDispatcherAnimation {
 

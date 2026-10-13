@@ -16,13 +16,15 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Entity-side view of team membership. Implemented by the team storage and, on the server, by a
- * read-only view over the saved table for ids that are not loaded. Reads are safe on both sides;
- * the storage is synced to its holder only.
+ * Entity side view of team membership.
+ * It is implemented by the team storage and, on the server, by a read-only view over the saved table for ids that are not loaded.
+ * <p>
+ * Reads are safe on both sides. The storage is synced to its holder only.
  */
 public interface Teams {
     /**
      * No-op fallback used by {@link TeamAPI#getTeamsFrom} when an entity has no team storage.
+     * Reads return empty results and writes are ignored.
      */
     Teams EMPTY = new Teams() {
         public Set<UUID> getTeamIds(TeamType<?> type) {
@@ -47,24 +49,42 @@ public interface Teams {
         }
     };
 
-    /** Ids of GROUP teams of the given type this entity belongs to. Unmodifiable. */
+    /**
+     * Used to get the ids of the {@code GROUP} teams of the given type this entity belongs to.
+     * The result is unmodifiable.
+     */
     Set<UUID> getTeamIds(TeamType<?> type);
 
-    /** Copy of all GROUP memberships keyed by type id. */
+    /**
+     * Used to get a copy of all {@code GROUP} memberships keyed by type id.
+     */
     Map<ResourceLocation, Set<UUID>> getAllTeamIds();
 
-    /** Entity ids this entity is related to under the given RELATION type. Unmodifiable. */
+    /**
+     * Used to get the ids of the entities this entity is related to under the given {@code RELATION} type.
+     * The result is unmodifiable.
+     */
     Set<UUID> getRelated(TeamType<?> type);
 
-    /** Copy of all RELATION sets keyed by type id. */
+    /**
+     * Used to get a copy of all {@code RELATION} sets keyed by type id.
+     */
     Map<ResourceLocation, Set<UUID>> getAllRelated();
 
-    /** Entities that list this one under the given RELATION type. */
+    /**
+     * Used to get the ids of the entities that list this one under the given {@code RELATION} type.
+     */
     Set<UUID> getRelatedBy(TeamType<?> type);
 
+    /**
+     * Used to mark the underlying storage as dirty.
+     * Views that are not backed by a storage ignore it.
+     */
     void markDirty();
 
-    /** Determine if this entity has no team data at all. */
+    /**
+     * Determine if this entity has no team data at all.
+     */
     default boolean isEmpty() {
         return false;
     }

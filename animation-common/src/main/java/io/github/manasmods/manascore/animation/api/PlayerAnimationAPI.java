@@ -36,23 +36,28 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 /**
- * Bedrock-format player animation runtime.
- * Loader-agnostic: animation JSONs are discovered via the client {@link ResourceManager}
- * from every mod's {@code assets/<modid>/manas_animations/} directory and keyed as
- * {@code <modid>:<animation_name>}. Loaded through the resource manager (not disk walking)
- * so it works across all Architectury modules in both dev and production.
+ * This is the client side runtime for Bedrock format player animations.
+ * It is loader agnostic.
+ * <p>
+ * The animation JSONs are loaded through the client {@link ResourceManager} from the {@code assets/<modid>/manas_animations/}
+ * directory of every mod and keyed as {@code <modid>:<animation_name>}.
+ * Using the resource manager instead of walking the disk makes it work across all Architectury modules in dev and production.
+ * <p>
+ * Use {@link PlayerAnimationHelper} on the server to play an animation.
  */
 public class PlayerAnimationAPI {
     public static final Logger LOG = LoggerFactory.getLogger("ManasCore Animation");
+    /**
+     * Every loaded animation keyed as {@code <modid>:<animation_name>}.
+     */
     public static final Map<String, PlayerAnimation> animations = new Object2ObjectOpenHashMap<>();
     /**
-     * Animation currently playing on each entity. Keyed by {@link LivingEntity} rather than
-     * {@code Player} so anything drawn with a {@link net.minecraft.client.model.PlayerModel} - clones,
-     * player-like mobs - animates through the same pipeline as a player.
+     * Animation currently playing on each entity.
+     * Keyed by {@link LivingEntity} instead of {@code Player}, so everything drawn with a {@link net.minecraft.client.model.PlayerModel}
+     * (clones, player-like mobs) animates through the same pipeline as a player.
      * <p>
-     * Weakly keyed: nothing removes entries when an entity is unloaded, and with mob-shaped animation
-     * users that would grow without bound. Weak keys let an entity's state die with the entity itself,
-     * which is also what clears it on relog or dimension change, where the client rebuilds the entity.
+     * Weakly keyed, because nothing removes entries when an entity is unloaded and mob shaped users would grow it without bound.
+     * The state dies with the entity, which also clears it on relog or dimension change where the client rebuilds the entity.
      */
     public static final Map<LivingEntity, PlayerAnimation> active_animations = new WeakHashMap<>();
 
@@ -60,42 +65,43 @@ public class PlayerAnimationAPI {
     public static final Map<LivingEntity, PlayerAnimationState> states = new WeakHashMap<>();
 
     /**
-     * Set for the duration of {@code LevelRenderer#renderLevel}, so client code can tell a player being drawn
-     * into the world from the same player being drawn into a GUI widget or a HUD overlay - those run outside
-     * {@code renderLevel}, in {@code Gui#render} and screen rendering, and must show the whole model rather
-     * than the arms-only first-person pose.
+     * Set for the duration of {@code LevelRenderer#renderLevel}.
+     * Client code uses it to tell a player drawn into the world from the same player drawn into a GUI widget or a HUD overlay.
+     * Those run outside {@code renderLevel}, in {@code Gui#render} and screen rendering, and must show the whole model instead of the arms only first-person pose.
      * <p>
-     * This is what gates first-person handling, <em>not</em> {@code Minecraft#screen}: the world still renders
-     * behind an open inventory, where a screen check would wrongly report a GUI render and pop the body into
-     * view. Nothing outside {@link io.github.manasmods.manascore.animation.mixin.client.MixinLevelRendererAnimation}
-     * should write this.
+     * This gates the first-person handling and not {@code Minecraft#screen}, because the world still renders behind an open inventory
+     * and a screen check would wrongly report a GUI render.
+     * Nothing outside {@link io.github.manasmods.manascore.animation.mixin.client.MixinLevelRendererAnimation} should write this.
      */
     public static boolean renderingLevel = false;
 
     /**
-     * Reserved entry for {@code manascore:requires_animation} meaning "nothing is currently playing".
-     * Safe from collision because every real animation key is {@code <modid>:<name>}, so a bare word can
-     * never name one.
+     * Reserved entry for {@code manascore:requires_animation} that means nothing is currently playing.
+     * It cannot collide with a real animation, because every real animation key is {@code <modid>:<name>}.
      */
     public static final String NO_ANIMATION = "none";
 
+    /**
+     * Used to get the {@link PlayerAnimationState} of the {@link LivingEntity}.
+     * A new state is created if the entity has none.
+     */
     public static PlayerAnimationState state(LivingEntity entity) {
         return states.computeIfAbsent(entity, key -> new PlayerAnimationState());
     }
 
     /**
-     * Whether {@code animationKey} is allowed to start while {@code currentAnimation} is playing, per the
-     * target animation's {@code manascore:requires_animation} allowlist.
+     * Determine if {@code animationKey} can start while {@code currentAnimation} is playing, according to the
+     * {@code manascore:requires_animation} allowlist of the requested animation.
      * <p>
-     * Evaluated client-side, because that is the only side that knows what is playing - the server tracks no
-     * animation state at all, so there is nothing for this to disagree with. A blocked request is dropped
-     * silently; the caller has already sent its packet and does not find out.
+     * It is evaluated on the client, because only the client knows what is playing. The server tracks no animation state.
+     * A blocked request is dropped silently, the caller has already sent its packet and does not find out.
      * <p>
-     * Only the packet-driven {@code currentAnimation} counts as "playing". A conditional animation is the
-     * ambient fallback for when nothing is playing, so it reads as {@link #NO_ANIMATION} here.
+     * Only the packet driven {@code currentAnimation} counts as playing.
+     * A conditional animation is the ambient fallback for when nothing is playing, so it reads as {@link #NO_ANIMATION} here.
      *
-     * @param animationKey     the animation being requested
-     * @param currentAnimation the animation currently playing, or empty for none
+     * @param animationKey     Animation being requested.
+     * @param currentAnimation Animation currently playing, or empty for none.
+     * @return false will drop the request to play {@code animationKey}.
      */
     public static boolean canPlay(String animationKey, String currentAnimation) {
         PlayerAnimation animation = animations.get(animationKey);
@@ -105,14 +111,15 @@ public class PlayerAnimationAPI {
     }
 
     /**
-     * Applies the active animation's {@code body} bone to {@code poseStack} as a whole-entity transform.
-     * Call at the point the entity has just been oriented (after body-yaw rotation, before the model scale flip).
+     * Used to apply the {@code body} bone of the active animation to {@code poseStack} as a whole entity transform.
+     * Call it at the point where the entity has just been oriented (after the body yaw rotation, before the model scale flip).
      * <p>
-     * {@code body} is the rig's root rather than a {@link net.minecraft.client.model.geom.ModelPart}, so it has
-     * to land on the pose stack. Public so renderers that are not a {@code LivingEntityRenderer} (GeckoLib) can
-     * apply root motion too.
+     * {@code body} is the root of the rig and not a {@link net.minecraft.client.model.geom.ModelPart}, so it has to land on the pose stack.
+     * This is public so renderers that are not a {@code LivingEntityRenderer} (GeckoLib) can apply root motion too.
      *
-     * @return whether a root transform was applied
+     * @param entity    Affected {@link LivingEntity} playing the animation.
+     * @param poseStack Affected {@link PoseStack} to transform.
+     * @return true if a root transform was applied.
      */
     public static boolean applyRootBone(LivingEntity entity, PoseStack poseStack) {
         PlayerAnimation animation = active_animations.get(entity);
@@ -120,13 +127,16 @@ public class PlayerAnimationAPI {
         PlayerBone bone = animation.bones.get("body");
         if (bone == null) return false;
 
+        // Scale body
         float progress = state(entity).progress;
         Vec3 boneScale = PlayerBone.interpolate(bone.scales, progress, entity);
         if (boneScale != null) poseStack.scale((float) boneScale.x, (float) boneScale.y, (float) boneScale.z);
 
+        // Move body, raised by 0.75 as the rotation pivot
         Vec3 position = PlayerBone.interpolate(bone.positions, progress, entity);
         if (position != null) poseStack.translate((float) -position.x * 0.0625f, (float) (position.y * 0.0625f) + 0.75f, (float) position.z * 0.0625f);
 
+        // Rotate body
         Vec3 rotation = PlayerBone.interpolate(bone.rotations, progress, entity);
         if (rotation != null) {
             poseStack.mulPose(Axis.ZP.rotationDegrees((float) rotation.z));
@@ -134,6 +144,7 @@ public class PlayerAnimationAPI {
             poseStack.mulPose(Axis.XP.rotationDegrees((float) -rotation.x));
         }
 
+        // Undo the pivot raise
         if (position != null) poseStack.translate(0, -0.75f, 0);
         return true;
     }
@@ -141,9 +152,12 @@ public class PlayerAnimationAPI {
     private static int suppressDepth = 0;
 
     /**
-     * Runs {@code action} with ManasCore player animations disabled for any {@code PlayerModel#setupAnim} call it
-     * makes: the model gets the pure vanilla pose and no animation state is read or advanced - no progress, no
-     * sounds, no conditional evaluation. Re-entrant. Client render thread only.
+     * Used to run {@code action} with ManasCore player animations disabled for every {@code PlayerModel#setupAnim} call it makes.
+     * The model gets the pure vanilla pose and no animation state is read or advanced: no progress, no sounds, no conditional evaluation.
+     * <p>
+     * This can be nested and must only be called on the client render thread.
+     *
+     * @param action Code that poses or renders a player model without animations.
      */
     public static void withoutAnimations(Runnable action) {
         suppressDepth++;
@@ -154,25 +168,48 @@ public class PlayerAnimationAPI {
         }
     }
 
-    /** Whether the current code is running inside {@link #withoutAnimations}. */
+    /**
+     * Determine if the current code is running inside {@link #withoutAnimations}.
+     */
     public static boolean isSuppressed() {
         return suppressDepth > 0;
     }
 
+    /**
+     * Client side playback state of one {@link LivingEntity}.
+     * It is written by {@code AnimationClientHandler} when a packet arrives and advanced by {@code MixinPlayerModel} while the level renders.
+     */
     public static class PlayerAnimationState {
+        /** Key of the packet driven animation. Empty for none. */
         public String currentAnimation = "";
+        /** Key that plays automatically when {@link #currentAnimation} finishes. Empty for none. */
         public String nextAnimation = "";
+        /** Key of the conditional animation that is playing. Empty for none. */
         public String currentConditional = "";
+        /** true restarts the animation on the next pose. Cleared once applied. */
         public boolean override = false;
+        /** true shows the playing animation from the first person view of the owner. */
         public boolean firstPerson = false;
+        /** true clears the active animation on the next pose. Cleared once applied. */
         public boolean reset = false;
+        /** true once the playback has started and {@link #progress} is valid. */
         public boolean hasProgress = false;
+        /** Playback time of the animation in seconds. */
         public float progress = 0f;
+        /** Value of {@code ageInTicks} at the last advance. */
         public float lastTickTime = 0f;
+        /** Value of {@link #progress} at the last check of the sound effects. */
         public float lastAnimationProgress = 0f;
+        /** Times of the sound effects that already played in the current loop. */
         public final Set<Float> playedSounds = new HashSet<>();
     }
 
+    /**
+     * Used to load the animations of the {@code manas_animations} directory of every mod, replacing the previously loaded ones.
+     * It is called by the client resource reload listener. A resource that fails to load is logged and skipped.
+     *
+     * @param manager Affected {@link ResourceManager} to load the animation JSONs from.
+     */
     public static void loadClientSideAnimations(ResourceManager manager) {
         animations.clear();
         Map<ResourceLocation, Resource> found = manager.listResources("manas_animations",
@@ -188,6 +225,9 @@ public class PlayerAnimationAPI {
         }
     }
 
+    /**
+     * Used to parse one animation file and register its animations as {@code <modid>:<animation_name>}.
+     */
     private static void loadContent(String modId, String content) {
         try {
             JsonObject jsonObject = new Gson().fromJson(content, JsonObject.class);
@@ -202,47 +242,75 @@ public class PlayerAnimationAPI {
         }
     }
 
+    /**
+     * One animation, parsed from the JSON object of a Bedrock animation.
+     * The {@code manascore:} fields are ManasCore extensions of the format.
+     */
     public static class PlayerAnimation {
+        /** Length of the animation in seconds. */
         public final float length;
+        /** true repeats the animation when it finishes. */
         public boolean loop = false;
+        /** true keeps the last frame after the animation finished. */
         public boolean hold_on_last_frame = false;
 
-        /** Populated from {@code manascore:additive_bones}. Bones listed here add their rotation
-         *  on top of the vanilla pose instead of replacing it. Never null; empty means every bone
-         *  replaces the vanilla pose, i.e. the original behaviour. */
+        /**
+         * Populated from {@code manascore:additive_bones}.
+         * Bones listed here add their rotation on top of the vanilla pose instead of replacing it.
+         * Never null, empty means every bone replaces the vanilla pose.
+         */
         public final Set<String> additiveBones;
 
-        /** Populated from {@code manascore:aim_bones}. Bones listed here rotate to follow the
-         *  player's look direction, pivoting at the bone's own origin (the shoulder, for an arm).
-         *  Applied on top of the authored pose. Never null; empty means no bone aims. */
+        /**
+         * Populated from {@code manascore:aim_bones}.
+         * Bones listed here rotate to follow the look direction of the player, on top of the authored pose.
+         * They pivot at their own origin (the shoulder, for an arm).
+         * Never null, empty means no bone aims.
+         */
         public final Set<String> aimBones;
 
-        /** Populated from {@code manascore:aim_body}. Turns the whole entity to face where the player is
-         *  looking, horizontally only - the body never pitches. Pairs with {@link #aimBones}, which handles
-         *  the vertical: with the body squared up, {@code netHeadYaw} collapses to zero and the listed bones
-         *  contribute pitch alone. Defaults to {@code false}. */
+        /**
+         * Populated from {@code manascore:aim_body}.
+         * Turns the whole entity to face where the player is looking, horizontally only, the body never pitches.
+         * Pairs with {@link #aimBones} which handle the vertical: with the body squared up {@code netHeadYaw} collapses to zero
+         * and the listed bones contribute pitch alone.
+         * Defaults to false.
+         */
         public final boolean aimBody;
 
-        /** Populated from {@code manascore:requires_animation}. An allowlist of animation keys this one is
-         *  permitted to start from: if it is non-empty and the animation currently playing is not in it, the
-         *  play request is dropped. Use {@link #NO_ANIMATION} to permit starting from an idle player.
-         *  Never null; empty means no restriction, which is the default and the original behaviour. */
+        /**
+         * Populated from {@code manascore:requires_animation}.
+         * Allowlist of animation keys this animation can start from.
+         * If it is not empty and the playing animation is not in it, the request to play this animation is dropped.
+         * Use {@link #NO_ANIMATION} to allow starting from an idle player.
+         * Never null, empty means no restriction, which is the default.
+         */
         public final Set<String> requiresAnimation;
 
-        /** Populated from {@code manascore:suppress_attack}. Tri-state: {@code null} means the field
-         *  was absent, so callers should fall back to the bone heuristic - this is NOT the same as
-         *  {@code Boolean.FALSE}, which explicitly means "never suppress". Boxed on purpose so this
-         *  distinction can't be lost; do not "simplify" it to a primitive boolean. */
+        /**
+         * Populated from {@code manascore:suppress_attack}.
+         * Tri-state: null means the field was absent and callers fall back to the bone heuristic.
+         * That is not the same as {@code Boolean.FALSE}, which explicitly means never suppress.
+         * Boxed on purpose so the distinction cannot be lost, do not simplify it to a primitive boolean.
+         */
         public final Boolean suppressAttack;
 
-        /** Populated from {@code manascore:suppress_crouch}. Defaults to {@code true} because the
-         *  original code unconditionally cleared {@code crouching} for every active animation. */
+        /**
+         * Populated from {@code manascore:suppress_crouch}.
+         * Defaults to true, so an animation clears {@code crouching} unless it opts out.
+         */
         public final boolean suppressCrouch;
 
+        /** Bones of the animation keyed by bone name. */
         public final Map<String, PlayerBone> bones;
+        /** Sound events keyed by the time in seconds they play at. */
         public final Map<Float, String> soundEffects;
 
+        /**
+         * Used to parse an animation from its JSON object. Missing fields get the defaults documented on the fields.
+         */
         public PlayerAnimation(JsonObject animation) {
+            // Parse length and loop mode, a non boolean loop value holds the last frame
             if (animation.has("animation_length"))
                 this.length = animation.get("animation_length").getAsFloat();
             else
@@ -254,6 +322,7 @@ public class PlayerAnimationAPI {
                 else if (loopType.isJsonPrimitive())
                     this.hold_on_last_frame = true;
             }
+            // Parse additive bones
             this.additiveBones = new HashSet<>();
             if (animation.has("manascore:additive_bones")) {
                 JsonElement additiveElement = animation.get("manascore:additive_bones");
@@ -265,6 +334,7 @@ public class PlayerAnimationAPI {
                     }
                 }
             }
+            // Parse aim bones
             this.aimBones = new HashSet<>();
             if (animation.has("manascore:aim_bones")) {
                 JsonElement aimElement = animation.get("manascore:aim_bones");
@@ -276,6 +346,7 @@ public class PlayerAnimationAPI {
                     }
                 }
             }
+            // Parse aim body
             boolean parsedAimBody = false;
             if (animation.has("manascore:aim_body")) {
                 JsonElement aimBodyElement = animation.get("manascore:aim_body");
@@ -284,6 +355,7 @@ public class PlayerAnimationAPI {
                 }
             }
             this.aimBody = parsedAimBody;
+            // Parse required animations
             this.requiresAnimation = new HashSet<>();
             if (animation.has("manascore:requires_animation")) {
                 JsonElement requiresElement = animation.get("manascore:requires_animation");
@@ -295,6 +367,7 @@ public class PlayerAnimationAPI {
                     }
                 }
             }
+            // Parse suppress attack
             Boolean parsedSuppressAttack = null;
             if (animation.has("manascore:suppress_attack")) {
                 JsonElement suppressAttackElement = animation.get("manascore:suppress_attack");
@@ -303,6 +376,7 @@ public class PlayerAnimationAPI {
                 }
             }
             this.suppressAttack = parsedSuppressAttack;
+            // Parse suppress crouch
             boolean parsedSuppressCrouch = true;
             if (animation.has("manascore:suppress_crouch")) {
                 JsonElement suppressCrouchElement = animation.get("manascore:suppress_crouch");
@@ -311,6 +385,7 @@ public class PlayerAnimationAPI {
                 }
             }
             this.suppressCrouch = parsedSuppressCrouch;
+            // Parse bones
             this.bones = new HashMap<>();
             if (animation.has("bones")) {
                 JsonObject bonesObj = animation.getAsJsonObject("bones");
@@ -318,6 +393,7 @@ public class PlayerAnimationAPI {
                     this.bones.put(boneName, new PlayerBone(bonesObj.getAsJsonObject(boneName)));
                 }
             }
+            // Parse sound effects
             this.soundEffects = new HashMap<>();
             if (animation.has("sound_effects")) {
                 JsonObject soundEffectsObj = animation.getAsJsonObject("sound_effects");
@@ -336,23 +412,39 @@ public class PlayerAnimationAPI {
         }
     }
 
+    /**
+     * One bone of an animation, holding the keyframes of its rotation, position and scale.
+     * Values can be constants or Molang expressions that are evaluated for the animated {@link LivingEntity}.
+     */
     public static class PlayerBone {
+        /** Molang queries that {@link #getQueryValue} can resolve. */
         private static final List<String> MOLANG_QUERIES = List.of("query.anim_time", "query.head_x_rotation", "query.head_y_rotation", "query.body_x_rotation", "query.body_y_rotation",
                 "query.life_time", "query.health", "query.max_health", "query.is_on_ground", "query.is_in_water", "query.is_sneaking", "query.is_sprinting", "query.is_swimming",
                 "query.is_riding", "query.is_sleeping", "query.is_alive", "query.is_gliding", "query.ground_speed", "query.vertical_speed", "query.speed", "query.limb_swing",
                 "query.limb_swing_amount", "query.modified_move_speed", "query.walk_anim_speed", "query.modified_distance_moved", "query.hurt_time", "query.death_time",
                 "query.swing_progress", "query.is_using_item", "query.use_item_interval", "query.is_first_person", "query.main_hand_item_use_duration", "query.yaw_speed",
                 "query.position_delta_x", "query.position_delta_y", "query.position_delta_z");
+        /** Keyframes of the rotation in degrees. */
         public final List<Keyframe> rotations;
+        /** Keyframes of the position offset in pixels, which are 1/16 of a block. */
         public final List<Keyframe> positions;
+        /** Keyframes of the scale factor. */
         public final List<Keyframe> scales;
 
+        /**
+         * Used to parse the keyframes of a bone from its JSON object.
+         */
         public PlayerBone(JsonObject bone) {
             this.rotations = parseTransform(bone, "rotation");
             this.positions = parseTransform(bone, "position");
             this.scales = parseTransform(bone, "scale");
         }
 
+        /**
+         * One keyframe at {@code time} seconds.
+         * {@code pre} and {@code post} are the values before and after the keyframe and default to {@code value}.
+         * {@code catmullrom} interpolates from this keyframe to the next one with a Catmull-Rom spline instead of linearly.
+         */
         public static class Keyframe {
             public final float time;
             public final KeyframeValue value;
@@ -369,6 +461,10 @@ public class PlayerAnimationAPI {
             }
         }
 
+        /**
+         * Either a constant vector or a Molang expression.
+         * {@code queries} lists the Molang queries that the expression uses.
+         */
         public static class KeyframeValue {
             public final Vec3 vector;
             public final String molang;
@@ -387,11 +483,18 @@ public class PlayerAnimationAPI {
                 for (String query : MOLANG_QUERIES) if (molang.contains(query)) this.queries.add(query);
             }
 
+            /**
+             * Determine if this value is a Molang expression and not a constant vector.
+             */
             public boolean isMolang() {
                 return molang != null;
             }
         }
 
+        /**
+         * Used to parse the keyframes of one transform ({@code rotation}, {@code position} or {@code scale}) of a bone.
+         * A single value becomes one keyframe at time 0.
+         */
         private List<Keyframe> parseTransform(JsonObject bone, String key) {
             List<Keyframe> result = new ArrayList<>();
             if (!bone.has(key)) {
@@ -422,6 +525,11 @@ public class PlayerAnimationAPI {
             return result;
         }
 
+        /**
+         * Used to parse one value.
+         * An array with a string entry or a string becomes a Molang expression, anything else a constant vector.
+         * A single number is applied to all three axes.
+         */
         private KeyframeValue parseValue(JsonElement element) {
             if (element.isJsonArray()) {
                 JsonArray array = element.getAsJsonArray();
@@ -459,6 +567,16 @@ public class PlayerAnimationAPI {
             return new KeyframeValue(Vec3.ZERO);
         }
 
+        /**
+         * Used to sample the keyframes at {@code time}.
+         * It interpolates linearly between the surrounding keyframes, or with a Catmull-Rom spline when the earlier keyframe asks for it.
+         * Molang values are evaluated for the {@link LivingEntity}.
+         *
+         * @param keyframes Keyframes of one transform, in ascending time order.
+         * @param time      Playback time of the animation in seconds.
+         * @param entity    Affected {@link LivingEntity} that the Molang queries read from.
+         * @return the sampled vector, or null if there are no keyframes or {@code time} is before the first one.
+         */
         public static Vec3 interpolate(List<Keyframe> keyframes, float time, LivingEntity entity) {
             if (keyframes.isEmpty())
                 return null;
@@ -466,6 +584,7 @@ public class PlayerAnimationAPI {
                 Keyframe kf = keyframes.get(0);
                 return kf.value.isMolang() ? evalMolang(kf.value, time, entity) : kf.value.vector;
             }
+            // Find the surrounding keyframes
             Keyframe lastKf = null;
             Keyframe nextKf = null;
             int lastIdx = -1;
@@ -492,7 +611,9 @@ public class PlayerAnimationAPI {
             float alpha = (time - t1) / (t2_ - t1);
             Vec3 v1 = postVec;
             Vec3 v2 = nextKf.pre.isMolang() ? evalMolang(nextKf.pre, time, entity) : nextKf.pre.vector;
+            // Catmull-Rom spline
             if (lastKf.catmullrom) {
+                // Missing neighbours repeat the end points
                 Vec3 p0 = v1, p1 = v1, p2 = v2, p3 = v2;
                 if (lastIdx > 0) {
                     KeyframeValue kv = keyframes.get(lastIdx - 1).post;
@@ -507,9 +628,14 @@ public class PlayerAnimationAPI {
                         0.5 * ((2 * p1.y) + (-p0.y + p2.y) * t + (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 + (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3),
                         0.5 * ((2 * p1.z) + (-p0.z + p2.z) * t + (2 * p0.z - 5 * p1.z + 4 * p2.z - p3.z) * t2 + (-p0.z + 3 * p1.z - 3 * p2.z + p3.z) * t3));
             }
+            // Linear interpolation
             return new Vec3(v1.x + (v2.x - v1.x) * alpha, v1.y + (v2.y - v1.y) * alpha, v1.z + (v2.z - v1.z) * alpha);
         }
 
+        /**
+         * Used to evaluate a Molang expression to a vector.
+         * A single result is applied to all three axes. An expression that fails to evaluate gives zero.
+         */
         private static Vec3 evalMolang(KeyframeValue value, float time, LivingEntity entity) {
             String expr = preprocessMolangQueries(value, time, entity);
             try {
@@ -526,11 +652,17 @@ public class PlayerAnimationAPI {
             }
         }
 
+        /**
+         * Used to evaluate a scalar Molang expression.
+         * It supports numbers, {@code + - * /}, negation and the {@code math.} functions sin, cos, tan (in degrees), abs, sqrt, pow, min, max and clamp.
+         * Anything it cannot evaluate, and a division by zero, gives 0.
+         */
         private static float evalFloat(String expr, float time, LivingEntity entity) {
             if (expr == null || expr.isEmpty())
                 return 0.0f;
             expr = expr.trim().replace(" ", "");
             String lower = expr.toLowerCase();
+            // Math functions
             if (lower.startsWith("math.sin(") && lower.endsWith(")")) {
                 return (float) Math.sin(Math.toRadians(evalFloat(expr.substring(9, expr.length() - 1), time, entity)));
             }
@@ -593,6 +725,7 @@ public class PlayerAnimationAPI {
                     return Math.max(min, Math.min(max, val));
                 }
             }
+            // Add and subtract, split at the last operator outside of brackets
             int depth = 0;
             for (int i = expr.length() - 1; i >= 0; i--) {
                 char c = expr.charAt(i);
@@ -604,6 +737,7 @@ public class PlayerAnimationAPI {
                     if (c == '+') {
                         return evalFloat(expr.substring(0, i), time, entity) + evalFloat(expr.substring(i + 1), time, entity);
                     } else if (c == '-' && i > 0) {
+                        // A minus after another operator or an exponent marker is a sign and not a subtraction
                         char prev = expr.charAt(i - 1);
                         boolean isOperator = prev != '+' && prev != '-' && prev != '*' && prev != '/' && prev != '(' && prev != 'E' && prev != 'e';
                         if (isOperator) {
@@ -612,6 +746,7 @@ public class PlayerAnimationAPI {
                     }
                 }
             }
+            // Multiply and divide
             depth = 0;
             for (int i = expr.length() - 1; i >= 0; i--) {
                 char c = expr.charAt(i);
@@ -629,9 +764,11 @@ public class PlayerAnimationAPI {
                     }
                 }
             }
+            // Negation
             if (expr.startsWith("-")) {
                 return -evalFloat(expr.substring(1), time, entity);
             }
+            // Number
             try {
                 return Float.parseFloat(expr);
             } catch (NumberFormatException e) {
@@ -639,12 +776,19 @@ public class PlayerAnimationAPI {
             }
         }
 
+        /**
+         * Used to replace the Molang queries of the value with their current values for the {@link LivingEntity}.
+         */
         private static String preprocessMolangQueries(KeyframeValue value, float time, LivingEntity entity) {
             String resolved = value.molang;
             for (String query : value.queries) resolved = resolved.replace(query, getQueryValue(query, time, entity));
             return resolved;
         }
 
+        /**
+         * Used to get the current value of a Molang query as text.
+         * Boolean queries give 1.0 or 0.0 and an unknown query is returned unchanged.
+         */
         private static String getQueryValue(String query, float time, LivingEntity entity) {
             Minecraft minecraft = Minecraft.getInstance();
             Vec3 movement = entity.getDeltaMovement();
@@ -685,10 +829,16 @@ public class PlayerAnimationAPI {
             };
         }
 
+        /**
+         * Used to format a value for a Molang expression with a dot as decimal separator in every locale.
+         */
         private static String format(float value) {
             return String.format(Locale.ROOT, "%.6f", value);
         }
 
+        /**
+         * Used to get the index of the first comma that is not inside brackets, or -1 if there is none.
+         */
         private static int findTopLevelComma(String expr) {
             int depth = 0;
             for (int i = 0; i < expr.length(); i++) {

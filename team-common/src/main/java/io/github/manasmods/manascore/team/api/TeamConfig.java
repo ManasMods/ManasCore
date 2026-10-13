@@ -11,12 +11,19 @@ import io.github.manasmods.manascore.config.api.ManasConfig;
 import io.github.manasmods.manascore.config.api.ManasSubConfig;
 import io.github.manasmods.manascore.config.api.SyncToClient;
 
+/**
+ * This is the config of the team module, stored as {@code manascore/team}.
+ * It is synced to clients.
+ */
 @SyncToClient
 public class TeamConfig extends ManasConfig {
     public String getFileName() {
         return "manascore/team";
     }
 
+    /**
+     * Used to get the loaded {@link TeamConfig}.
+     */
     public static TeamConfig get() {
         return ConfigRegistry.getConfig(TeamConfig.class);
     }
@@ -28,6 +35,9 @@ public class TeamConfig extends ManasConfig {
 
     @Comment("Settings between an owned entity (pet, summon, minion) and its owner, and between two entities of the same owner.")
     public OwnershipConfig ownership = new OwnershipConfig();
+    /**
+     * Settings between an owned entity (pet, summon, minion) and its owner, and between two entities of the same owner.
+     */
     public static class OwnershipConfig extends ManasSubConfig {
         @Comment("An owner and its owned entities cannot damage each other.")
         public boolean blocksFriendlyFire = false;
@@ -37,6 +47,9 @@ public class TeamConfig extends ManasConfig {
 
     @Comment("Settings of the built-in ally relation.")
     public AllyConfig ally = new AllyConfig();
+    /**
+     * Settings of the built-in ally relation.
+     */
     public static class AllyConfig extends ManasSubConfig {
         @Comment("Allies cannot damage each other.")
         public boolean blocksFriendlyFire = false;
@@ -46,6 +59,9 @@ public class TeamConfig extends ManasConfig {
 
     @Comment("Settings of the built-in party team.")
     public PartyConfig party = new PartyConfig();
+    /**
+     * Settings of the built-in party team.
+     */
     public static class PartyConfig extends ManasSubConfig {
         @Comment("Party members cannot damage each other.")
         public boolean blocksFriendlyFire = false;

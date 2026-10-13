@@ -18,7 +18,10 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Read-only {@link Teams} view of one id over {@link TeamSavedData}, for owners that are offline or not loaded. Server only. {@link #markDirty()} is a no-op.
+ * Read-only {@link Teams} view of one id over the {@link TeamSavedData}.
+ * It is used for owners that are offline or not loaded.
+ * <p>
+ * Server only. {@link #markDirty()} does nothing.
  */
 @RequiredArgsConstructor
 public class SavedDataTeams implements Teams {

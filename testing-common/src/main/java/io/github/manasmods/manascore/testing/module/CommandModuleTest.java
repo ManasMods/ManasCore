@@ -28,6 +28,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -45,10 +46,14 @@ public class CommandModuleTest {
             registry.registerEnum(TestEnum.class);
         });
 
+        PermissionAPI.registerPermission("manascore.test.permission", Permission.PermissionLevel.GAMEMASTER);
+        PermissionAPI.registerPermission("manascore.test.exempt", Permission.PermissionLevel.EXPLICIT);
+        PermissionAPI.registerPermission("manascore.command.test", Permission.PermissionLevel.GAMEMASTER);
+        PermissionAPI.registerNumber("manascore.test.bonus", 0);
         CommandRegistry.registerCommand(TestCommand.class);
     }
 
-    @Command(value = "foo", subCommands = {TestSubCommand.class, TestStaffCommand.class})
+    @Command(value = "foo", subCommands = {TestSubCommand.class, TestStaffCommand.class, TestPermissionCommand.class})
     public static class TestCommand {
         @Execute
         public boolean withPerms(@SenderArg CommandSourceStack sender) {
@@ -71,6 +76,19 @@ public class CommandModuleTest {
         @Execute
         public boolean beta(@SenderArg CommandSourceStack sender, @LiteralArg("beta") String l) {
             sender.sendSystemMessage(RESPONSE.copy().append(" beta"));
+            return true;
+        }
+    }
+
+    @Command(value = "permission")
+    public static class TestPermissionCommand {
+        @Execute
+        public boolean check(@SenderArg ServerPlayer player) {
+            player.sendSystemMessage(Component.literal("manascore.test.permission: " + PermissionAPI.hasPermission(player, "manascore.test.permission")
+                    + "\nmanascore.test.exempt: " + PermissionAPI.hasPermission(player, "manascore.test.exempt")
+                    + "\nmanascore.command.test: " + PermissionAPI.hasPermission(player, "manascore.command.test")
+                    + "\nmanascore.test.bonus: " + PermissionAPI.getNumber(player, "manascore.test.bonus")
+                    + "\nmanascore.test.unknown: " + PermissionAPI.hasPermission(player, "manascore.test.unknown") + " / " + PermissionAPI.getNumber(player, "manascore.test.unknown")));
             return true;
         }
     }

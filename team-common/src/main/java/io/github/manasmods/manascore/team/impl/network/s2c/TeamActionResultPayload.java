@@ -20,6 +20,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
+/**
+ * Sent from the server to a client as the answer to a {@code TeamActionPayload}.
+ * <p>
+ * The payload is handled on the client only.
+ *
+ * @param action Requested {@link TeamAction}.
+ * @param teamId Id of the affected team, null if there is none.
+ * @param result {@link TeamResult} of the request.
+ */
 public record TeamActionResultPayload(TeamAction action, @Nullable UUID teamId, TeamResult result) implements CustomPacketPayload {
     public static final Type<TeamActionResultPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "team_action_result"));
     public static final StreamCodec<FriendlyByteBuf, TeamActionResultPayload> STREAM_CODEC = CustomPacketPayload.codec(TeamActionResultPayload::encode, TeamActionResultPayload::new);

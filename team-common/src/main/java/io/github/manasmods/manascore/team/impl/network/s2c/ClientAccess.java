@@ -13,6 +13,10 @@ import io.github.manasmods.manascore.team.impl.TeamRegistry;
 import io.github.manasmods.manascore.team.impl.TeamSavedData;
 import io.github.manasmods.manascore.team.impl.client.ClientTeamCache;
 
+/**
+ * Applies the s2c team payloads on the client.
+ * The handlers update the {@code ClientTeamCache} where needed and fire the matching client events of {@link TeamEvents}.
+ */
 class ClientAccess {
     static void handle(SyncTeamPayload packet) {
         TeamType<?> type = TeamRegistry.TEAM_TYPES.get(packet.typeId());

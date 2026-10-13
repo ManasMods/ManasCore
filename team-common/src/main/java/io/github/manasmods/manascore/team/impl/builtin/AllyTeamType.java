@@ -9,8 +9,10 @@ import io.github.manasmods.manascore.team.api.*;
 import io.github.manasmods.manascore.team.api.template.TeamShape;
 
 /**
- * One-way personal alliance. A tamed or owned entity counts as its root owner through the
- * registered {@link OwnerResolver}s.
+ * Built-in {@code RELATION} type for a one-way personal alliance.
+ * A tamed or owned entity counts as its root owner through the registered {@link OwnerResolver}s.
+ * <p>
+ * Friendly fire and targeting follow {@link TeamConfig.AllyConfig}.
  */
 public class AllyTeamType extends TeamType<Team> {
     public TeamShape getShape() {

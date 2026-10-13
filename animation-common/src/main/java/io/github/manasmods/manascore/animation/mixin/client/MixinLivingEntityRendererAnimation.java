@@ -24,21 +24,21 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * Adjusts the {@link LivingEntityRenderer} for animations: it drops the render layers in first person and applies the root bone to entities that are not a player.
+ */
 @Mixin(LivingEntityRenderer.class)
 public abstract class MixinLivingEntityRendererAnimation<T extends LivingEntity, M extends EntityModel<T>> {
     @Unique
     private final Minecraft manascore$mc = Minecraft.getInstance();
 
     /**
-     * Drops every render layer but the held item while a first-person animation plays, so the view shows bare
-     * arms the way vanilla's hand overlay does.
+     * Drops every render layer but the held item while a first-person animation plays, so the view shows bare arms like the vanilla hand overlay.
      * <p>
-     * {@code PlayerRenderer} hiding the body's {@link net.minecraft.client.model.geom.ModelPart}s is not enough:
-     * armour, elytra, cape and the rest build their own models and set their own visibility, so they keep
-     * drawing around a body that is no longer there - a breastplate floating in front of the camera.
+     * Hiding the body's {@link net.minecraft.client.model.geom.ModelPart}s in {@code PlayerRenderer} is not enough, because armour, elytra, cape and the other layers
+     * build their own models with their own visibility. They would keep drawing around the missing body.
      * <p>
-     * {@link ItemInHandLayer} is the exception because that layer is where held items come from once
-     * {@code ItemInHandRenderer} has been cancelled for the animation.
+     * {@link ItemInHandLayer} is kept, because held items come from that layer once {@code ItemInHandRenderer} is cancelled for the animation.
      */
     @WrapOperation(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/layers/RenderLayer;render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/Entity;FFFFFF)V"))
@@ -51,13 +51,14 @@ public abstract class MixinLivingEntityRendererAnimation<T extends LivingEntity,
     }
 
     /**
-     * Applies the animation's {@code body} bone as a whole-entity transform, for everything that is not a
-     * player, at the point vanilla finishes orienting the entity. See {@link PlayerAnimationAPI#applyRootBone}.
+     * Applies the {@code body} bone of the animation as a whole entity transform for everything that is not a player,
+     * at the point where vanilla finishes orienting the entity.
      * <p>
-     * Players are excluded because {@code MixinPlayerRendererAnimation} already does this at the return of
-     * {@code PlayerRenderer#setupRotations}, which calls this method as its super - without the guard a player
-     * would get the root bone applied twice. That mixin also carries the first-person branches, which nothing
-     * reaching this method can be in.
+     * Players are skipped, because {@code MixinPlayerRendererAnimation} applies it at the return of {@code PlayerRenderer#setupRotations},
+     * which calls this method as its super. Without the guard a player would get the root bone twice.
+     * That mixin also handles the first-person branches, which never reach this method.
+     *
+     * @see PlayerAnimationAPI#applyRootBone
      */
     @Inject(method = "setupRotations(Lnet/minecraft/world/entity/LivingEntity;Lcom/mojang/blaze3d/vertex/PoseStack;FFFF)V", at = @At("RETURN"))
     private void manascore$applyRootBone(T entity, PoseStack poseStack, float bob, float yBodyRot, float partialTick,
@@ -67,8 +68,8 @@ public abstract class MixinLivingEntityRendererAnimation<T extends LivingEntity,
     }
 
     /**
-     * Whether {@code entity} is the local player being drawn into the world from their own eyes with a
-     * first-person animation playing - the same condition the player renderer hides the body under.
+     * Determine if {@code entity} is the local player drawn into the world from their own eyes with a first-person animation playing.
+     * This is the same condition the player renderer hides the body under.
      */
     @Unique
     private boolean manascore$hidesLayers(Entity entity) {

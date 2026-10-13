@@ -19,8 +19,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Registry of {@link OwnerResolver}s and the owner chain walk used by relation checks.
- * Works on both sides: the built-in fallback reads {@link OwnableEntity#getOwnerUUID()}, which is
- * synced entity data, and loaded lookups go through the level's entity map.
+ * <p>
+ * Works on both sides: the built-in fallback reads {@link OwnableEntity#getOwnerUUID()}, which is synced entity data, and loaded lookups go through the level's entity map.
  */
 public class OwnerResolvers {
     public static final int MAX_DEPTH = 8;
@@ -30,10 +30,19 @@ public class OwnerResolvers {
     private OwnerResolvers() {
     }
 
+    /**
+     * Used to register an {@link OwnerResolver}.
+     *
+     * @see io.github.manasmods.manascore.team.api.TeamAPI#registerOwnerResolver(OwnerResolver)
+     */
     public static void register(OwnerResolver resolver) {
         RESOLVERS.add(resolver);
     }
 
+    /**
+     * Used to get the owner id of the entity.
+     * Resolvers are asked in registration order, the vanilla fallback last.
+     */
     @Nullable
     private static UUID ownerOf(LivingEntity entity) {
         for (OwnerResolver resolver : RESOLVERS) {
@@ -44,13 +53,16 @@ public class OwnerResolvers {
     }
 
     /**
-     * Root owner id of the entity: the chain is followed while the owner is loaded, up to
-     * {@link #MAX_DEPTH} steps, and stops on a cycle. The last id reached is returned, so an
-     * unloaded or offline owner still resolves. An entity without an owner resolves to itself.
+     * Used to get the root owner id of the entity.
+     * The chain is followed while the owner is loaded, up to {@link #MAX_DEPTH} steps, and stops on a cycle.
+     * The last id reached is returned, so an unloaded or offline owner still resolves.
+     * An entity without an owner resolves to itself.
      */
     public static UUID resolveId(LivingEntity entity) {
         UUID first = ownerOf(entity);
         if (first == null || first.equals(entity.getUUID())) return entity.getUUID();
+
+        // Follow the owner chain
         UUID[] seen = new UUID[MAX_DEPTH + 1];
         seen[0] = entity.getUUID();
         seen[1] = first;
@@ -66,7 +78,9 @@ public class OwnerResolvers {
         return current;
     }
 
-    /** Loaded entity behind {@link #resolveId(LivingEntity)}, or the entity itself when the owner is not loaded. */
+    /**
+     * Used to get the loaded entity behind {@link #resolveId(LivingEntity)}, or the entity itself when the owner is not loaded.
+     */
     public static LivingEntity resolveEntity(LivingEntity entity) {
         UUID id = resolveId(entity);
         if (id.equals(entity.getUUID())) return entity;
@@ -74,7 +88,9 @@ public class OwnerResolvers {
         return loaded == null ? entity : loaded;
     }
 
-    /** Loaded living entity for the id: this level first, then on the server every other level. */
+    /**
+     * Used to find the loaded living entity of the id: this level first, then on the server every other level.
+     */
     @Nullable
     public static LivingEntity findLoaded(Level level, UUID id) {
         Entity entity = level.getEntities().get(id);

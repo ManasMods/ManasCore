@@ -9,6 +9,10 @@ import io.github.manasmods.manascore.animation.ManasCoreAnimation;
 import io.github.manasmods.manascore.animation.ModuleConstants;
 import net.neoforged.fml.common.Mod;
 
+/**
+ * This is the NeoForge entry point of the animation module.
+ * It calls {@link ManasCoreAnimation#init()}.
+ */
 @Mod(ModuleConstants.MOD_ID)
 public final class ManasCoreAnimationNeoForge {
     public ManasCoreAnimationNeoForge() {

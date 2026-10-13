@@ -6,7 +6,9 @@
 package io.github.manasmods.manascore.team.api.template;
 
 /**
- * Client-to-server team mutation kinds, carried by {@code TeamActionPayload}.
+ * Kinds of team mutations that a client can request from the server, carried by {@code TeamActionPayload}.
+ * <p>
+ * The server answers every request with a {@link TeamResult}, which the client receives through {@link TeamEvents#CLIENT_ACTION_RESULT}.
  */
 public enum TeamAction {
     CREATE,
@@ -20,6 +22,9 @@ public enum TeamAction {
     DECLINE_INVITE,
     ADD_RELATION,
     REMOVE_RELATION,
+    /**
+     * Asks for the list of players that a team may still invite.
+     */
     REQUEST_INVITABLE,
     REVOKE_INVITE
 }

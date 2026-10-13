@@ -10,6 +10,9 @@ import io.github.manasmods.manascore.team.ModuleConstants;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 
+/**
+ * NeoForge entry point of the team module.
+ */
 @Mod(ModuleConstants.MOD_ID)
 public final class ManasCoreTeamNeoForge {
     public ManasCoreTeamNeoForge(IEventBus modEventBus) {

@@ -24,8 +24,11 @@ import java.util.*;
 
 
 /**
- * Server-global team table. Lives on the overworld so it is shared by every dimension.
+ * Server global team table, which holds every {@link Team}, invite, {@code RELATION} set and last known name.
+ * It lives on the overworld so it is shared by every dimension.
+ * <p>
  * Invites are persisted and expire on overworld game time.
+ * Teams of a type that is not registered are kept untouched until the type is registered again.
  */
 public class TeamSavedData extends SavedData {
     private static final String FILE_NAME = "manascore_teams";
@@ -57,11 +60,11 @@ public class TeamSavedData extends SavedData {
     private final Map<ResourceLocation, Map<String, Set<UUID>>> namesByType = new HashMap<>();
 
     /**
-     * The LOADING flag makes the storage module's DataFixTypes mixin skip datafixing this
-     * tag, the same way ManasCore world storage is loaded.
+     * Used to get the {@link TeamSavedData} of the server.
      */
     public static TeamSavedData get(MinecraftServer server) {
         try {
+            // The LOADING flag makes the storage module skip datafixing this tag, like it does for ManasCore world storage
             StoragePersistentState.LOADING.set(true);
             return server.overworld().getDataStorage().computeIfAbsent(FACTORY, FILE_NAME);
         } finally {
@@ -69,14 +72,23 @@ public class TeamSavedData extends SavedData {
         }
     }
 
+    /**
+     * Used to get the team with the id.
+     */
     public Optional<Team> getTeam(UUID id) {
         return Optional.ofNullable(this.teams.get(id));
     }
 
+    /**
+     * Used to get a copy of every team.
+     */
     public Collection<Team> getTeams() {
         return new ArrayList<>(this.teams.values());
     }
 
+    /**
+     * Used to add or replace a team and index its members and name.
+     */
     public void putTeam(Team team) {
         this.teams.put(team.getId(), team);
         this.indexMember(team.getId(), team.getOwner());
@@ -85,6 +97,9 @@ public class TeamSavedData extends SavedData {
         this.setDirty();
     }
 
+    /**
+     * Used to remove a team and its indexes.
+     */
     public void removeTeam(UUID id) {
         Team team = this.teams.remove(id);
         if (team == null) return;
@@ -95,22 +110,32 @@ public class TeamSavedData extends SavedData {
     }
 
     /**
-     * Every team id {@code member} belongs to, as owner or member. Not persisted; rebuilt on load.
+     * Used to get every team id that {@code member} belongs to, as owner or member.
+     * The index is not persisted and rebuilt on load.
      */
     public Set<UUID> getTeamIdsOf(UUID member) {
         Set<UUID> ids = this.memberTeams.get(member);
         return ids == null ? new LinkedHashSet<>() : new LinkedHashSet<>(ids);
     }
 
+    /**
+     * Determine if {@code member} belongs to any team.
+     */
     public boolean hasTeams(UUID member) {
         Set<UUID> ids = this.memberTeams.get(member);
         return ids != null && !ids.isEmpty();
     }
 
+    /**
+     * Used to add a team to the member index.
+     */
     public void indexMember(UUID teamId, UUID member) {
         this.memberTeams.computeIfAbsent(member, k -> new LinkedHashSet<>()).add(teamId);
     }
 
+    /**
+     * Used to remove a team from the member index.
+     */
     public void unindexMember(UUID teamId, UUID member) {
         Set<UUID> ids = this.memberTeams.get(member);
         if (ids == null) return;
@@ -118,6 +143,9 @@ public class TeamSavedData extends SavedData {
         if (ids.isEmpty()) this.memberTeams.remove(member);
     }
 
+    /**
+     * Used to get the id of the team of the type with the name, ignoring case.
+     */
     @Nullable
     public UUID getTeamByName(ResourceLocation typeId, String name) {
         Map<String, Set<UUID>> byName = this.namesByType.get(typeId);
@@ -127,6 +155,9 @@ public class TeamSavedData extends SavedData {
         return ids == null || ids.isEmpty() ? null : ids.iterator().next();
     }
 
+    /**
+     * Determine if a team of the type other than {@code exceptTeamId} already uses the name, ignoring case.
+     */
     public boolean isNameTaken(ResourceLocation typeId, String name, @Nullable UUID exceptTeamId) {
         Map<String, Set<UUID>> byName = this.namesByType.get(typeId);
         if (byName == null) return false;
@@ -139,6 +170,9 @@ public class TeamSavedData extends SavedData {
         return false;
     }
 
+    /**
+     * Used to add the name of the team to the name index.
+     */
     public void indexName(Team team) {
         ResourceLocation typeId = team.getType().getId();
         if (typeId == null || team.getName() == null) return;
@@ -146,6 +180,9 @@ public class TeamSavedData extends SavedData {
         this.namesByType.computeIfAbsent(typeId, ignored -> new HashMap<>()).computeIfAbsent(key, ignored -> new LinkedHashSet<>()).add(team.getId());
     }
 
+    /**
+     * Used to remove the name of the team from the name index.
+     */
     public void unindexName(Team team) {
         ResourceLocation typeId = team.getType().getId();
         if (typeId == null || team.getName() == null) return;
@@ -159,6 +196,9 @@ public class TeamSavedData extends SavedData {
         if (byName.isEmpty()) this.namesByType.remove(typeId);
     }
 
+    /**
+     * Used to get every invite sent to the invitee.
+     */
     public List<TeamInvite> getInvitesFor(UUID invitee) {
         List<TeamInvite> result = new ArrayList<>();
         for (TeamInvite invite : this.invites) {
@@ -167,6 +207,9 @@ public class TeamSavedData extends SavedData {
         return result;
     }
 
+    /**
+     * Used to find the invite of the invitee into the team.
+     */
     public Optional<TeamInvite> findInvite(UUID invitee, UUID teamId) {
         for (TeamInvite invite : this.invites) {
             if (invite.invitee().equals(invitee) && invite.teamId().equals(teamId)) return Optional.of(invite);
@@ -175,7 +218,7 @@ public class TeamSavedData extends SavedData {
     }
 
     /**
-     * Determine what {@code entity} is related to under {@code typeId}.
+     * Used to get the ids that {@code entity} is related to under {@code typeId}.
      */
     public Set<UUID> getRelated(ResourceLocation typeId, UUID entity) {
         Map<UUID, Set<UUID>> byEntity = this.relations.get(typeId);
@@ -184,6 +227,9 @@ public class TeamSavedData extends SavedData {
         return related == null ? new LinkedHashSet<>() : new LinkedHashSet<>(related);
     }
 
+    /**
+     * Used to get the ids that {@code entity} is related to under every type, keyed by type id.
+     */
     public Map<ResourceLocation, Set<UUID>> getAllRelated(UUID entity) {
         Map<ResourceLocation, Set<UUID>> result = new LinkedHashMap<>();
         for (Map.Entry<ResourceLocation, Map<UUID, Set<UUID>>> entry : this.relations.entrySet()) {
@@ -194,8 +240,7 @@ public class TeamSavedData extends SavedData {
     }
 
     /**
-     * Determine what is related to {@code entity} under {@code typeId}, i.e. every {@code a} for
-     * which {@code addRelated(typeId, a, entity)} was called.
+     * Used to get the ids that are related to {@code entity} under {@code typeId}, which is every {@code a} for which {@code addRelated(typeId, a, entity)} was called.
      */
     public Set<UUID> getRelatedBy(ResourceLocation typeId, UUID entity) {
         Map<UUID, Set<UUID>> byEntity = this.relatedBy.get(typeId);
@@ -204,7 +249,9 @@ public class TeamSavedData extends SavedData {
         return related == null ? new LinkedHashSet<>() : new LinkedHashSet<>(related);
     }
 
-    /** Determine if {@code entity} relates to or is related by anything under any type. */
+    /**
+     * Determine if {@code entity} relates to or is related by anything under any type.
+     */
     public boolean hasAnyRelation(UUID entity) {
         for (Map<UUID, Set<UUID>> byEntity : this.relations.values()) {
             Set<UUID> set = byEntity.get(entity);
@@ -218,6 +265,9 @@ public class TeamSavedData extends SavedData {
         return false;
     }
 
+    /**
+     * Used to get the ids that are related to {@code entity} under every type, keyed by type id.
+     */
     public Map<ResourceLocation, Set<UUID>> getAllRelatedBy(UUID entity) {
         Map<ResourceLocation, Set<UUID>> result = new LinkedHashMap<>();
         for (Map.Entry<ResourceLocation, Map<UUID, Set<UUID>>> entry : this.relatedBy.entrySet()) {
@@ -227,6 +277,11 @@ public class TeamSavedData extends SavedData {
         return result;
     }
 
+    /**
+     * Used to relate {@code a} to {@code b} under {@code typeId}.
+     *
+     * @return true if the relation was new.
+     */
     public boolean addRelated(ResourceLocation typeId, UUID a, UUID b) {
         boolean changed = this.relations.computeIfAbsent(typeId, k -> new LinkedHashMap<>())
                 .computeIfAbsent(a, k -> new LinkedHashSet<>()).add(b);
@@ -238,6 +293,11 @@ public class TeamSavedData extends SavedData {
         return changed;
     }
 
+    /**
+     * Used to remove the relation of {@code a} to {@code b} under {@code typeId}.
+     *
+     * @return true if the relation existed.
+     */
     public boolean removeRelated(ResourceLocation typeId, UUID a, UUID b) {
         Map<UUID, Set<UUID>> byEntity = this.relations.get(typeId);
         if (byEntity == null) return false;
@@ -264,7 +324,7 @@ public class TeamSavedData extends SavedData {
     }
 
     /**
-     * Removes every relation involving {@code entity}, as subject and as object, across every type.
+     * Used to remove every relation involving {@code entity}, as subject and as object, across every type.
      */
     public void removeRelatedEverywhere(UUID entity) {
         boolean changed = false;
@@ -297,24 +357,37 @@ public class TeamSavedData extends SavedData {
         if (changed) this.setDirty();
     }
 
+    /**
+     * Determine if the relations of the entity were already moved out of its storage into this table.
+     */
     public boolean isRelationsMigrated(UUID entity) {
         return this.relationsMigrated.contains(entity);
     }
 
+    /**
+     * Used to mark the relations of the entity as moved out of its storage into this table.
+     */
     public void markRelationsMigrated(UUID entity) {
         if (this.relationsMigrated.add(entity)) this.setDirty();
     }
 
+    /**
+     * Used to store the last known name of an id.
+     */
     public void putName(UUID id, String name) {
         String previous = this.names.put(id, name);
         if (!name.equals(previous)) this.setDirty();
     }
 
+    /**
+     * Used to get the last known name of an id.
+     */
     public Optional<String> getName(UUID id) {
         return Optional.ofNullable(this.names.get(id));
     }
 
     public CompoundTag save(CompoundTag tag, HolderLookup.Provider provider) {
+        // Save teams
         ListTag list = new ListTag();
         for (Team team : this.teams.values()) {
             ResourceLocation typeId = team.getType().getId();
@@ -326,9 +399,13 @@ public class TeamSavedData extends SavedData {
 
         for (CompoundTag entry : this.unknownTeams) list.add(entry);
         tag.put(TEAMS_KEY, list);
+
+        // Save invites
         ListTag invites = new ListTag();
         for (TeamInvite invite : this.invites) invites.add(invite.toNBT());
         tag.put(INVITES_KEY, invites);
+
+        // Save relations and names
         tag.put(RELATIONS_KEY, this.saveRelations());
 
         ListTag migrated = new ListTag();
@@ -359,6 +436,7 @@ public class TeamSavedData extends SavedData {
     }
 
     private static TeamSavedData load(CompoundTag tag, HolderLookup.Provider provider) {
+        // Load teams
         TeamSavedData data = new TeamSavedData();
         for (Tag t : tag.getList(TEAMS_KEY, Tag.TAG_COMPOUND)) {
             CompoundTag entry = (CompoundTag) t;
@@ -376,7 +454,8 @@ public class TeamSavedData extends SavedData {
             data.teams.put(team.getId(), team);
         }
 
-        // Expired invites are kept here, the 20 tick expireInvites sweep drops them once a server is running
+        // Load invites
+        // Expired ones stay, the expireInvites sweep drops them once a server is running
         for (Tag element : tag.getList(INVITES_KEY, Tag.TAG_COMPOUND)) {
             CompoundTag entry = (CompoundTag) element;
             if (!(entry.hasUUID("team") && entry.hasUUID("inviter") && entry.hasUUID("invitee") && entry.contains("type", Tag.TAG_STRING) && entry.contains("expires", Tag.TAG_LONG))) continue;
@@ -387,9 +466,12 @@ public class TeamSavedData extends SavedData {
             data.invites.add(invite);
         }
 
+        // Load relations and names
         loadRelations(tag.getCompound(RELATIONS_KEY), data.relations);
         for (Tag t : tag.getList(RELATIONS_MIGRATED_KEY, Tag.TAG_INT_ARRAY)) data.relationsMigrated.add(NbtUtils.loadUUID(t));
         loadNames(tag.getCompound(NAMES_KEY), data.names);
+
+        // Rebuild indexes
         data.rebuildRelatedBy();
         data.rebuildMemberIndex();
         data.rebuildNameIndex();
@@ -458,6 +540,9 @@ public class TeamSavedData extends SavedData {
         }
     }
 
+    /**
+     * Used to create a team of the type from an entry written by {@link #serialize(Team)}.
+     */
     public static Team deserialize(TeamType<?> type, CompoundTag entry) {
         CompoundTag body = entry.getCompound(DATA_KEY);
         UUID id = entry.getUUID(ID_KEY);
@@ -467,6 +552,11 @@ public class TeamSavedData extends SavedData {
         return team;
     }
 
+    /**
+     * Used to write a team with its id into an entry that is saved and synced to clients.
+     *
+     * @see #deserialize(TeamType, CompoundTag)
+     */
     public static CompoundTag serialize(Team team) {
         CompoundTag entry = new CompoundTag();
         entry.putUUID(ID_KEY, team.getId());
@@ -501,7 +591,7 @@ public class TeamSavedData extends SavedData {
     }
 
     /**
-     * Drops last-known names of entities not in {@code keep}.
+     * Used to drop the last known names of entities that are not in {@code keep}.
      */
     public void pruneNames(Set<UUID> keep) {
         boolean changed = false;

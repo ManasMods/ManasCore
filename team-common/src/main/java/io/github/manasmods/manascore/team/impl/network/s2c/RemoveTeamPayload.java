@@ -16,6 +16,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
+/**
+ * Sent from the server to a client to drop a team it is no longer part of.
+ * <p>
+ * The payload is handled on the client only.
+ *
+ * @param teamId Id of the removed team.
+ */
 public record RemoveTeamPayload(UUID teamId) implements CustomPacketPayload {
     public static final Type<RemoveTeamPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "remove_team"));
     public static final StreamCodec<FriendlyByteBuf, RemoveTeamPayload> STREAM_CODEC = CustomPacketPayload.codec(RemoveTeamPayload::encode, RemoveTeamPayload::new);

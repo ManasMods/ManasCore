@@ -15,7 +15,15 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 
+/**
+ * This is the entry point of the animation module.
+ * The loader specific entry classes call {@link #init()} once on startup.
+ */
 public class ManasCoreAnimation {
+    /**
+     * Used to initialize the animation module.
+     * Registers the animation packet through {@link ManasAnimationNetwork#init()} and, on the client, the animation reload listener.
+     */
     public static void init() {
         ManasAnimationNetwork.init();
         if (Platform.getEnvironment() == Env.CLIENT) registerClientAnimationLoader();

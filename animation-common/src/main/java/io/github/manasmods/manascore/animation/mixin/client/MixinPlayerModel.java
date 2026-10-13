@@ -26,19 +26,29 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Map;
 
+/**
+ * Poses the {@link PlayerModel} from the active animation of the entity and advances its playback.
+ * This covers every entity drawn with a player model, not only players.
+ */
 @Mixin(PlayerModel.class)
 public abstract class MixinPlayerModel<T extends LivingEntity> {
     @Unique
     private final Minecraft manascore$mc = Minecraft.getInstance();
 
+    /**
+     * Resets the model to the vanilla pivots before vanilla {@code setupAnim} runs, and clears the attack swing or the crouch when the active animation suppresses them.
+     * Does nothing inside {@link PlayerAnimationAPI#withoutAnimations}.
+     */
     @Inject(method = "setupAnim*", at = @At(value = "HEAD"))
     public void setupPivot(T entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
         if (PlayerAnimationAPI.isSuppressed()) return;
         PlayerModel<T> model = (PlayerModel<T>) (Object) this;
+        // Reset model pose
         manascore$resetModelPose(model);
 
         PlayerAnimationAPI.PlayerAnimation animation = PlayerAnimationAPI.active_animations.get(entityIn);
         if (animation == null) return;
+        // Suppress attack swing and crouch
         boolean armsOrTorso = manascore$suppressesVanillaArm(animation, "left_arm")
                 || manascore$suppressesVanillaArm(animation, "right_arm")
                 || manascore$suppressesVanillaArm(animation, "torso");
@@ -47,29 +57,30 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
     }
 
     /**
-     * Whether this render is the local player seeing themselves from their own eyes - the one case where the
-     * body is the camera rather than something being looked at.
+     * Determine if this render is the local player seeing themselves from their own eyes, which is the one case where the body is the camera.
      * <p>
-     * {@link PlayerAnimationAPI#renderingLevel} is what keeps GUI previews and HUD widgets out: they draw the
-     * same player, from the same camera type, and must get the ordinary third-person treatment.
+     * {@link PlayerAnimationAPI#renderingLevel} keeps GUI previews and HUD widgets out, because they draw the same player
+     * from the same camera type and need the ordinary third-person treatment.
      */
     @Unique
     private boolean manascore$renderingOwnView(LivingEntity entity) {
         return PlayerAnimationAPI.renderingLevel && manascore$mc.options.getCameraType().isFirstPerson() && entity == manascore$mc.player;
     }
 
+    /**
+     * Determine if the animation replaces the vanilla pose of the bone, which is when it animates the bone without listing it as additive.
+     */
     @Unique
     private boolean manascore$suppressesVanillaArm(PlayerAnimationAPI.PlayerAnimation animation, String boneName) {
         return animation.bones.get(boneName) != null && !animation.additiveBones.contains(boneName);
     }
 
     /**
-     * Poses the model from the entity's animation and, during the level pass only, advances its playback.
+     * Poses the model from the animation of the entity and, during the level pass only, advances its playback.
      * <p>
-     * Progress, sounds and end-of-animation transitions are driven solely by {@link PlayerAnimationAPI#renderingLevel}
-     * renders. The same entity is often drawn again in the same frame outside the level pass - inventory preview,
-     * GUI widgets - with a different partial tick, and advancing there too made progress jitter or run backwards
-     * and replayed sounds. Those renders read the stored progress and leave it alone.
+     * Progress, sounds and end of animation transitions only advance while {@link PlayerAnimationAPI#renderingLevel} is set.
+     * The same entity is often drawn again in that frame outside the level pass (inventory preview, GUI widgets) with a different partial tick.
+     * Advancing there would make the progress jitter and replay sounds, so those renders read the stored progress and leave it alone.
      */
     @Inject(method = "setupAnim*", at = @At(value = "TAIL"))
     public void setupAnim(T entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
@@ -80,6 +91,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
         PlayerAnimationAPI.PlayerAnimationState data = PlayerAnimationAPI.state(entityIn);
         String playingAnimation = data.currentAnimation;
         boolean overrideAnimation = data.override;
+        // Apply pending reset
         if (data.reset) {
             data.reset = false;
             data.lastAnimationProgress = 0f;
@@ -87,6 +99,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
             PlayerAnimationAPI.active_animations.put(entityIn, null);
         }
 
+        // Fall back to conditional animation
         if (playingAnimation.isEmpty()) {
             ConditionalAnimations.ConditionalAnimation conditional = ConditionalAnimations.evaluate(entityIn);
             String conditionalKey = conditional == null ? "" : conditional.key();
@@ -104,12 +117,14 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
             data.currentConditional = "";
         }
 
+        // Square the body up with the head in first person
         boolean firstPerson = data.firstPerson && manascore$renderingOwnView(entityIn);
         if (firstPerson) {
             entityIn.yBodyRotO = entityIn.yHeadRotO;
             entityIn.yBodyRot = entityIn.yHeadRot;
         }
 
+        // Restart on override
         if (overrideAnimation) {
             data.override = false;
             data.hasProgress = false;
@@ -119,6 +134,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
             PlayerAnimationAPI.active_animations.put(entityIn, null);
         }
 
+        // Resolve animation
         PlayerAnimationAPI.PlayerAnimation animation = PlayerAnimationAPI.active_animations.get(entityIn);
         if (animation == null) {
             animation = PlayerAnimationAPI.animations.get(playingAnimation);
@@ -129,6 +145,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
             PlayerAnimationAPI.active_animations.put(entityIn, animation);
         }
 
+        // Update progress
         boolean advance = PlayerAnimationAPI.renderingLevel;
         float animationProgress;
         float lastAnimationProgress = data.lastAnimationProgress;
@@ -148,9 +165,11 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
             animationProgress += deltaTime;
             data.progress = animationProgress;
             data.lastTickTime = ageInTicks;
+            // End of animation
             if (animationProgress >= animation.length) {
                 if (!animation.hold_on_last_frame && !animation.loop) {
 
+                    // Play next animation
                     if (!data.nextAnimation.isEmpty()
                             && PlayerAnimationAPI.canPlay(data.nextAnimation, data.currentAnimation)) {
                         data.currentAnimation = data.nextAnimation;
@@ -161,6 +180,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
                         PlayerAnimationAPI.active_animations.put(entityIn, null);
                         animationProgress = animation.length;
                     } else {
+                        // Reset animation
                         data.currentAnimation = "";
                         data.nextAnimation = "";
                         data.hasProgress = false;
@@ -181,12 +201,14 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
             }
         }
 
+        // Play sound effects
         if (advance && !animation.soundEffects.isEmpty()) {
             for (Map.Entry<Float, String> soundEntry : animation.soundEffects.entrySet()) {
                 float soundTime = soundEntry.getKey();
                 String soundId = soundEntry.getValue();
                 if (data.playedSounds.contains(soundTime)) continue;
                 boolean shouldPlay;
+                // The progress wraps around when the animation looped
                 if (lastAnimationProgress <= animationProgress) shouldPlay = lastAnimationProgress <= soundTime && animationProgress >= soundTime;
                 else shouldPlay = lastAnimationProgress <= soundTime || animationProgress >= soundTime;
                 if (shouldPlay && entityIn.level() instanceof ClientLevel clientLevel) {
@@ -197,6 +219,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
             data.lastAnimationProgress = animationProgress;
         }
 
+        // Apply bones, third person animations are skipped for the own view
         if (!data.firstPerson && manascore$renderingOwnView(entityIn)) return;
         for (Map.Entry<String, PlayerAnimationAPI.PlayerBone> entry : animation.bones.entrySet()) {
             String boneName = entry.getKey();
@@ -205,6 +228,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
             if (modelPart == null) continue;
             boolean firstPersonArms = firstPerson && (boneName.equals("right_arm") || boneName.equals("left_arm"));
 
+            // Rotate bone
             Vec3 rotation = PlayerAnimationAPI.PlayerBone.interpolate(bone.rotations, animationProgress, entityIn);
             if (rotation != null) {
                 if (animation.additiveBones.contains(boneName)) {
@@ -218,10 +242,12 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
                 }
             }
 
+            // Aim bone
             if (animation.aimBones.contains(boneName) && !firstPersonArms) {
                 manascore$applyAim(modelPart, netHeadYaw, headPitch);
             }
 
+            // Move bone
             Vec3 position = PlayerAnimationAPI.PlayerBone.interpolate(bone.positions, animationProgress, entityIn);
             if (position != null) {
                 modelPart.x += (float) position.x;
@@ -229,6 +255,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
                 modelPart.z += (float) position.z;
             }
 
+            // Scale bone
             Vec3 scale = PlayerAnimationAPI.PlayerBone.interpolate(bone.scales, animationProgress, entityIn);
             if (scale != null) {
                 modelPart.xScale = (float) scale.x;
@@ -236,11 +263,13 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
                 modelPart.zScale = (float) scale.z;
             }
 
+            // Follow the pitch of the view with first person arms
             if (firstPersonArms) {
                 float frameBuffer = 0.09f;
                 float timeLeft = animation.length - animationProgress;
                 float fpWeight = 1.0f;
                 boolean rightArm = boneName.equals("right_arm");
+                // Fade out in the last frames of a non looping animation
                 if (!animation.loop && timeLeft < frameBuffer) {
                     fpWeight = Math.max(0f, timeLeft / frameBuffer);
                 }
@@ -264,6 +293,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
             }
         }
 
+        // Sync overlay layers
         model.leftPants.copyFrom(model.leftLeg);
         model.rightPants.copyFrom(model.rightLeg);
         model.leftSleeve.copyFrom(model.leftArm);
@@ -273,26 +303,24 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
     }
 
     /**
-     * Swings an aim bone onto the entity's look direction, carrying its authored pose rigidly so the bone
-     * keeps its shape and pivots at its own origin - the shoulder, for an arm.
+     * Swings an aim bone onto the look direction of the entity. The authored pose is carried rigidly, so the bone keeps its shape and pivots at its own origin (the shoulder, for an arm).
      * <p>
-     * The view angles must be composed as an <em>outer</em> rotation, not added into {@code xRot}/{@code yRot}.
-     * {@link ModelPart#translateAndRotate} rebuilds rotation as {@code Rz * Ry * Rx} with Z outermost, so for a
-     * bone with authored roll an added angle lands inside that roll and tilts the entire aiming plane. Vanilla
-     * gets away with the addition on the head only because the head's base {@code yRot} and {@code zRot} are
-     * both zero.
+     * The view angles are composed as an <em>outer</em> rotation instead of being added into {@code xRot} and {@code yRot}.
+     * {@link ModelPart#translateAndRotate} rebuilds the rotation as {@code Rz * Ry * Rx} with Z outermost, so an added angle would land inside the authored roll and tilt the whole aiming plane.
+     * Vanilla can add on the head only because the base {@code yRot} and {@code zRot} of the head are zero.
      * <p>
-     * {@code netHeadYaw} is head yaw minus body yaw, so it is the yaw the body has <em>not</em> already taken
-     * care of. With {@code manascore:aim_body} squaring the body up it collapses to zero and this contributes
-     * pitch alone; without it, or while the body is still catching up, it closes the remaining gap. Writing
-     * both terms is correct either way - do not reduce this to pitch only.
+     * {@code netHeadYaw} is head yaw minus body yaw, so it is the yaw the body has not covered yet.
+     * With {@code manascore:aim_body} it collapses to zero and this contributes pitch alone, otherwise it closes the remaining gap.
+     * Both terms are written on purpose, do not reduce this to pitch only.
      */
     @Unique
     private void manascore$applyAim(ModelPart modelPart, float netHeadYaw, float headPitch) {
+        // Compose the view rotation outside the authored pose
         float toRadians = (float) Math.PI / 180F;
         Quaternionf composed = new Quaternionf()
                 .rotationYXZ(netHeadYaw * toRadians, headPitch * toRadians, 0f)
                 .mul(new Quaternionf().rotationZYX(modelPart.zRot, modelPart.yRot, modelPart.xRot));
+        // Convert back to euler angles
         float x = composed.x, y = composed.y, z = composed.z, w = composed.w;
         float sinY = Mth.clamp(-2f * (x * z - y * w), -1f, 1f);
         modelPart.yRot = (float) Math.asin(sinY);
@@ -300,11 +328,15 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
             modelPart.xRot = (float) Math.atan2(2f * (y * z + x * w), 1f - 2f * (x * x + y * y));
             modelPart.zRot = (float) Math.atan2(2f * (x * y + z * w), 1f - 2f * (y * y + z * z));
         } else {
+            // Gimbal lock
             modelPart.xRot = (float) Math.atan2(-2f * (y * z - x * w), 1f - 2f * (x * x + z * z));
             modelPart.zRot = 0f;
         }
     }
 
+    /**
+     * Resets the pivots, rotations and scales that animations can change back to their vanilla values.
+     */
     @Unique
     private void manascore$resetModelPose(PlayerModel<T> model) {
         model.leftLeg.setPos(1.9F, 12.0F, 0.0F);
@@ -346,6 +378,10 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
         model.leftLeg.zScale = ModelPart.DEFAULT_SCALE;
     }
 
+    /**
+     * Used to get the {@link ModelPart} of a bone name.
+     * Returns null for bones that are not model parts, like {@code body}, {@code right_item} and {@code left_item}.
+     */
     @Unique
     private ModelPart manascore$getModelPart(PlayerModel<T> model, String boneName) {
         return switch (boneName) {

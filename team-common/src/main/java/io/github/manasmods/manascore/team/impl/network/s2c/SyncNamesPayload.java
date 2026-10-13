@@ -17,6 +17,13 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Sent from the server to a client with the last known profile names of entities it may need to display, for example the targets of a relation.
+ * <p>
+ * The payload is handled on the client only.
+ *
+ * @param names Last known profile names by entity id.
+ */
 public record SyncNamesPayload(Map<UUID, String> names) implements CustomPacketPayload {
     public static final Type<SyncNamesPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "sync_names"));
     public static final StreamCodec<FriendlyByteBuf, SyncNamesPayload> STREAM_CODEC = CustomPacketPayload.codec(SyncNamesPayload::encode, SyncNamesPayload::new);

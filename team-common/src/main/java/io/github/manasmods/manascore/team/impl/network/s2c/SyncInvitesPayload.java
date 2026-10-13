@@ -19,6 +19,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Sent from the server to a player with the invites sent to them and the invites sent by the teams they belong to.
+ * <p>
+ * The payload is handled on the client only.
+ *
+ * @param incoming Pending {@link TeamInvite}s with the player as invitee.
+ * @param outgoing Pending {@link TeamInvite}s of the teams the player belongs to.
+ * @param names    Last known profile names by entity id.
+ */
 public record SyncInvitesPayload(List<TeamInvite> incoming, List<TeamInvite> outgoing, Map<UUID, String> names) implements CustomPacketPayload {
     public static final Type<SyncInvitesPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(ModuleConstants.MOD_ID, "sync_invites"));
     public static final StreamCodec<FriendlyByteBuf, SyncInvitesPayload> STREAM_CODEC = CustomPacketPayload.codec(SyncInvitesPayload::encode, SyncInvitesPayload::new);

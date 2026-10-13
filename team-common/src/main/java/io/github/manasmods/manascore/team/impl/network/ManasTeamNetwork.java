@@ -17,7 +17,14 @@ import io.github.manasmods.manascore.team.impl.network.s2c.SyncNamesPayload;
 import io.github.manasmods.manascore.team.impl.network.s2c.SyncTeamPayload;
 import io.github.manasmods.manascore.team.impl.network.s2c.TeamActionResultPayload;
 
+/**
+ * Registers the payloads of the team module and the server side handler for client requests.
+ */
 public class ManasTeamNetwork {
+    /**
+     * Used to register every s2c and c2s payload of the team module.
+     * The client side wiring is only set up on the client.
+     */
     public static void init() {
         NetworkUtils.registerS2CPayload(SyncTeamPayload.TYPE, SyncTeamPayload.STREAM_CODEC, SyncTeamPayload::handle);
         NetworkUtils.registerS2CPayload(RemoveTeamPayload.TYPE, RemoveTeamPayload.STREAM_CODEC, RemoveTeamPayload::handle);

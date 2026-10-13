@@ -11,6 +11,10 @@ import java.util.UUID;
 
 /**
  * Snapshot of a team member's identity for display purposes.
+ *
+ * @param id     Id of the member.
+ * @param name   Profile name of the member, the last known one if the member is offline.
+ * @param online true if the member is currently connected.
  */
 public record MemberInfo(UUID id, Component name, boolean online) {
 }

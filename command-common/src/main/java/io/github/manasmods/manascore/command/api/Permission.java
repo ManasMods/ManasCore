@@ -26,6 +26,10 @@ public @interface Permission {
 
     @Getter
     enum PermissionLevel {
+        /**
+         * Only an explicit grant passes. Operators never hold the node implicitly, which suits exemptions.
+         */
+        EXPLICIT(5),
         OWNER(4),
         ADMIN(3),
         GAMEMASTER(2),

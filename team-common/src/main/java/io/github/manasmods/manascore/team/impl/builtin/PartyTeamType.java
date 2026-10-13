@@ -9,7 +9,12 @@ import io.github.manasmods.manascore.team.api.*;
 import io.github.manasmods.manascore.team.api.template.TeamShape;
 import net.minecraft.world.entity.LivingEntity;
 
-/** One party per entity, invite-only, members never hurt or target each other. */
+/**
+ * Built-in {@code GROUP} type for a party.
+ * An entity is in one party at most and joining needs an invite.
+ * <p>
+ * Friendly fire, targeting, invite timeout, size and invite rights follow {@link TeamConfig.PartyConfig}.
+ */
 public class PartyTeamType extends TeamType<Team> {
     public TeamShape getShape() {
         return TeamShape.GROUP;

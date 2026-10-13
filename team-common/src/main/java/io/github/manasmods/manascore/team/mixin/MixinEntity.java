@@ -15,9 +15,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Makes {@link Entity#isAlliedTo(Entity)} team-aware, one-way.
+ * Makes {@link Entity#isAlliedTo(Entity)} team aware, one way.
+ * <p>
  * {@code x.isAlliedTo(y)} is true when x considers y an ally: vanilla scoreboard teams first, then {@link TeamAPI#isAllied(LivingEntity, LivingEntity)} in that direction.
- * Call it actor-first ({@code attacker.isAlliedTo(victim)}); the reverse call protects the victim only because the victim allied the attacker.
+ * Call it actor first ({@code attacker.isAlliedTo(victim)}), the reverse call protects the victim only because the victim allied the attacker.
  */
 @Mixin(Entity.class)
 public abstract class MixinEntity {
@@ -28,6 +29,8 @@ public abstract class MixinEntity {
     void isAlliedTo(Entity entity, CallbackInfoReturnable<Boolean> cir) {
         if (cir.getReturnValueZ()) return;
         if (!((Entity) (Object) this instanceof LivingEntity self) || !(entity instanceof LivingEntity target)) return;
+
+        // Guard against re-entrant checks
         if (manascore$resolving.get()) return;
         manascore$resolving.set(true);
         try {

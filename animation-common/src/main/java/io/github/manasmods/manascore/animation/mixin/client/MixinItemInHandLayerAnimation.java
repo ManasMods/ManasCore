@@ -24,15 +24,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * Lets an animation pose the held item independently of the arm holding it, through the reserved bone names
  * {@code right_item} and {@code left_item}.
  * <p>
- * Without this the item is welded to the arm: {@code ItemInHandLayer} calls {@code translateToHand}, which is
- * just {@code getArm(arm).translateAndRotate(poseStack)}, so the item inherits the arm's rotation, position and
- * scale and nothing else. That is usually what you want, but it makes a sword spinning in the hand, or an item
- * drifting away from the palm, impossible to author.
+ * Without this the item only inherits the transform of the arm, because {@code ItemInHandLayer} just calls {@code translateToHand}.
  * <p>
- * These bones are not {@link net.minecraft.client.model.geom.ModelPart}s, so they are invisible to
- * {@code MixinPlayerModel} - {@code manascore$getModelPart} returns null for them and the bone loop skips them.
- * They are applied here as pose stack transforms instead, which also means they compose on top of whatever the
- * arm is doing, including {@code aim_bones}.
+ * These bones are not {@link net.minecraft.client.model.geom.ModelPart}s, so {@code MixinPlayerModel} skips them
+ * ({@code manascore$getModelPart} returns null for them). They are applied here as pose stack transforms instead,
+ * on top of whatever the arm is doing, including {@code aim_bones}.
  */
 @Mixin(ItemInHandLayer.class)
 public abstract class MixinItemInHandLayerAnimation {
@@ -44,6 +40,7 @@ public abstract class MixinItemInHandLayerAnimation {
                                            HumanoidArm arm, PoseStack poseStack, MultiBufferSource bufferSource,
                                            int light, CallbackInfo ci) {
         if (stack.isEmpty()) return;
+        // Find item bone
         PlayerAnimationAPI.PlayerAnimation animation = PlayerAnimationAPI.active_animations.get(entity);
         if (animation == null) return;
 
@@ -51,10 +48,12 @@ public abstract class MixinItemInHandLayerAnimation {
         PlayerAnimationAPI.PlayerBone bone = animation.bones.get(boneName);
         if (bone == null) return;
 
+        // Move item
         float animationProgress = PlayerAnimationAPI.state(entity).progress;
         Vec3 position = PlayerAnimationAPI.PlayerBone.interpolate(bone.positions, animationProgress, entity);
         if (position != null) poseStack.translate((float) position.x * 0.0625f, (float) -position.y * 0.0625f, (float) position.z * 0.0625f);
 
+        // Rotate item
         Vec3 rotation = PlayerAnimationAPI.PlayerBone.interpolate(bone.rotations, animationProgress, entity);
         if (rotation != null) {
             poseStack.mulPose(Axis.ZP.rotationDegrees((float) rotation.z));
@@ -62,6 +61,7 @@ public abstract class MixinItemInHandLayerAnimation {
             poseStack.mulPose(Axis.XP.rotationDegrees((float) rotation.x));
         }
 
+        // Scale item
         Vec3 scale = PlayerAnimationAPI.PlayerBone.interpolate(bone.scales, animationProgress, entity);
         if (scale != null) poseStack.scale((float) scale.x, (float) scale.y, (float) scale.z);
     }
