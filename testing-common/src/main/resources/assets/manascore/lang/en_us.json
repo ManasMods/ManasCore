@@ -1,4 +1,6 @@
 {
+  "manascore.testing.cinematic.title": "Cinematic Test",
+  "manascore.testing.cinematic.subtitle": "ManasCore",
   "item.manascore_testing.test_item": "Test Item",
   "item.manascore_testing.test_block_item": "Test Block Item",
   "block.manascore_testing.test_block": "Test Block",

@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "package": "io.github.manasmods.manascore.cinematic.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "minVersion": "0.8",
+  "client": [
+    "MixinCamera",
+    "MixinGameRenderer",
+    "MixinGui",
+    "MixinKeyboardInput",
+    "MixinMouseHandler"
+  ],
+  "mixins": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

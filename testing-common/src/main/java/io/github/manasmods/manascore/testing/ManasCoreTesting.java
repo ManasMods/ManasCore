@@ -7,6 +7,7 @@ package io.github.manasmods.manascore.testing;
 
 import dev.architectury.platform.Platform;
 import io.github.manasmods.manascore.testing.client.ManasCoreTestingClient;
+import io.github.manasmods.manascore.testing.module.CinematicModuleTest;
 import io.github.manasmods.manascore.testing.module.CommandModuleTest;
 import io.github.manasmods.manascore.testing.module.ConfigModuleTest;
 import io.github.manasmods.manascore.testing.module.SkillModuleTest;
@@ -29,6 +30,7 @@ public final class ManasCoreTesting {
         CommandModuleTest.init();
         TeamModuleTest.init();
         SkillModuleTest.init();
+        CinematicModuleTest.init();
 
         if (Platform.getEnv() == EnvType.CLIENT) {
             ManasCoreTestingClient.init();
