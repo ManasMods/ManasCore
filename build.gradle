@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2024-2025. ManasMods
- * GNU General Public License 3
+ * GNU Lesser General Public License 3
  */
 
 plugins {
@@ -219,8 +219,8 @@ subprojects {
 
                         licenses {
                             license {
-                                name = "GNU General Public License 3"
-                                url = "https://www.gnu.org/licenses/gpl-3.0.html"
+                                name = "GNU Lesser General Public License 3"
+                                url = "https://www.gnu.org/licenses/lgpl-3.0.html"
                             }
                         }
 
@@ -267,7 +267,7 @@ subprojects {
                         mod_name             : "$mod_display_name - ${project.module_name.capitalize()}",
                         architectury_version : architectury_api_version,
                         minecraft_version    : minecraft_version,
-                        license              : "GPLv3"
+                        license              : "LGPL-3.0-or-later"
                 ]
 
                 placeholders.forEach { key, value ->
@@ -285,7 +285,7 @@ subprojects {
                         architectury_version : architectury_api_version,
                         minecraft_version    : minecraft_version,
                         fabric_loader_version: fabric_loader_version,
-                        license              : "GPLv3"
+                        license              : "LGPL-3.0-or-later"
                 ]
 
                 placeholders.forEach { key, value ->

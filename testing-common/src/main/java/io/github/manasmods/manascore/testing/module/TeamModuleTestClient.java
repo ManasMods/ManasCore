@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2025. ManasMods
- * GNU General Public License 3
+ * Copyright (c) 2026. ManasMods
+ * GNU Lesser General Public License 3
  */
 
 package io.github.manasmods.manascore.testing.module;

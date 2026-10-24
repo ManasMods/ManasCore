@@ -1,7 +1,7 @@
 <component name="CopyrightManager">
   <copyright>
     <option name="allowReplaceRegexp" value="Copyright \(c\) \d{4}\. ManasMods" />
-    <option name="notice" value="Copyright (c) &amp;#36;originalComment.match(&quot;Copyright \(c\) (\d+)&quot;, 1, &quot;-&quot;, &quot;&amp;#36;today.year&quot;)&amp;#36;today.year. ManasMods&#10;GNU General Public License 3" />
-    <option name="myName" value="ManasMods - GPLv3" />
+    <option name="notice" value="Copyright (c) &amp;#36;originalComment.match(&quot;Copyright \(c\) (\d+)&quot;, 1, &quot;-&quot;, &quot;&amp;#36;today.year&quot;)&amp;#36;today.year. ManasMods&#10;GNU Lesser General Public License 3" />
+    <option name="myName" value="ManasMods - LGPLv3" />
   </copyright>
 </component>
