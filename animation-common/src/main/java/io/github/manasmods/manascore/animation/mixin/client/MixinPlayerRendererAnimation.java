@@ -66,8 +66,8 @@ public abstract class MixinPlayerRendererAnimation extends LivingEntityRenderer<
      */
     @Unique
     private boolean manascore$isFirstPerson(AbstractClientPlayer player) {
-        return PlayerAnimationAPI.state(player).firstPerson && PlayerAnimationAPI.renderingLevel
-                && manascore$mc.options.getCameraType().isFirstPerson() && player == manascore$mc.player;
+        return PlayerAnimationAPI.isFirstPersonActive(player) && PlayerAnimationAPI.renderingLevel
+                && manascore$mc.options.getCameraType().isFirstPerson();
     }
 
     /**

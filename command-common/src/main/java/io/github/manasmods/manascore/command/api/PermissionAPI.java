@@ -12,7 +12,7 @@ public class PermissionAPI {
     /**
      * Used to register a true or false permission node, like {@code manasrealms.exempt.tax}.
      * An operator at {@code level} holds the node even without a permissions mod.
-     * On NeoForge such an operator always passes and a permissions mod cannot deny them. On Fabric a permissions mod can.
+     * A permissions mod can still deny the node, even for an operator.
      * Use {@link Permission.PermissionLevel#EXPLICIT} for a node operators never hold implicitly.
      * <p>
      * Call it during mod init, before the server starts.

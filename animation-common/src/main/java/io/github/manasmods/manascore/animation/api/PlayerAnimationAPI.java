@@ -5,6 +5,7 @@
 
 package io.github.manasmods.manascore.animation.api;
 
+import com.google.common.collect.MapMaker;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -33,7 +34,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.WeakHashMap;
 
 /**
  * This is the client side runtime for Bedrock format player animations.
@@ -57,23 +57,29 @@ public class PlayerAnimationAPI {
      * (clones, player-like mobs) animates through the same pipeline as a player.
      * <p>
      * Weakly keyed, because nothing removes entries when an entity is unloaded and mob shaped users would grow it without bound.
-     * The state dies with the entity, which also clears it on relog or dimension change where the client rebuilds the entity.
+     * Keys compare by identity, not {@code Entity#equals}, which compares entity ids: a respawned or dimension changed player
+     * is a new entity with the old id and would otherwise inherit the dead one's animation. Null values are not allowed.
      */
-    public static final Map<LivingEntity, PlayerAnimation> active_animations = new WeakHashMap<>();
+    public static final Map<LivingEntity, PlayerAnimation> active_animations = new MapMaker().weakKeys().makeMap();
 
-    /** Client-side per-entity playback state. Weakly keyed for the same reason as {@link #active_animations}. */
-    public static final Map<LivingEntity, PlayerAnimationState> states = new WeakHashMap<>();
+    /** Client-side per-entity playback state. Keyed the same way as {@link #active_animations}. */
+    public static final Map<LivingEntity, PlayerAnimationState> states = new MapMaker().weakKeys().makeMap();
 
     /**
      * Set for the duration of {@code LevelRenderer#renderLevel}.
      * Client code uses it to tell a player drawn into the world from the same player drawn into a GUI widget or a HUD overlay.
      * Those run outside {@code renderLevel}, in {@code Gui#render} and screen rendering, and must show the whole model instead of the arms only first-person pose.
      * <p>
-     * This gates the first-person handling and not {@code Minecraft#screen}, because the world still renders behind an open inventory
-     * and a screen check would wrongly report a GUI render.
+     * This tells the two draws apart, {@code Minecraft#screen} can not, because the world still renders behind an open screen.
      * Nothing outside {@link io.github.manasmods.manascore.animation.mixin.client.MixinLevelRendererAnimation} should write this.
      */
     public static boolean renderingLevel = false;
+
+    public static boolean isFirstPersonActive(LivingEntity entity) {
+        Minecraft mc = Minecraft.getInstance();
+        // An open screen shows the vanilla hands instead
+        return entity == mc.player && mc.screen == null && state(entity).firstPerson;
+    }
 
     /**
      * Reserved entry for {@code manascore:requires_animation} that means nothing is currently playing.

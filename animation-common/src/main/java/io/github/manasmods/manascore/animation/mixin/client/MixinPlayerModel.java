@@ -76,11 +76,12 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
     }
 
     /**
-     * Poses the model from the animation of the entity and, during the level pass only, advances its playback.
+     * Poses the model from the animation of the entity and advances its playback.
      * <p>
-     * Progress, sounds and end of animation transitions only advance while {@link PlayerAnimationAPI#renderingLevel} is set.
-     * The same entity is often drawn again in that frame outside the level pass (inventory preview, GUI widgets) with a different partial tick.
-     * Advancing there would make the progress jitter and replay sounds, so those renders read the stored progress and leave it alone.
+     * Progress runs on the entity tick count plus the partial tick of the frame, not on {@code ageInTicks}.
+     * The same entity is often posed several times a frame (world, first-person hands, inventory preview) with different partial ticks,
+     * so the caller's {@code ageInTicks} would make the progress jitter. With one clock every call of a frame lands on the same progress,
+     * and whichever call comes first advances it.
      */
     @Inject(method = "setupAnim*", at = @At(value = "TAIL"))
     public void setupAnim(T entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
@@ -96,7 +97,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
             data.reset = false;
             data.lastAnimationProgress = 0f;
             data.playedSounds.clear();
-            PlayerAnimationAPI.active_animations.put(entityIn, null);
+            PlayerAnimationAPI.active_animations.remove(entityIn);
         }
 
         // Fall back to conditional animation
@@ -109,7 +110,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
                 data.lastAnimationProgress = 0f;
                 data.playedSounds.clear();
                 data.firstPerson = conditional != null && conditional.firstPerson();
-                PlayerAnimationAPI.active_animations.put(entityIn, null);
+                PlayerAnimationAPI.active_animations.remove(entityIn);
             }
             if (conditional == null) return;
             playingAnimation = conditionalKey;
@@ -118,7 +119,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
         }
 
         // Square the body up with the head in first person
-        boolean firstPerson = data.firstPerson && manascore$renderingOwnView(entityIn);
+        boolean firstPerson = PlayerAnimationAPI.isFirstPersonActive(entityIn) && manascore$renderingOwnView(entityIn);
         if (firstPerson) {
             entityIn.yBodyRotO = entityIn.yHeadRotO;
             entityIn.yBodyRot = entityIn.yHeadRot;
@@ -130,8 +131,8 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
             data.hasProgress = false;
             data.lastAnimationProgress = 0f;
             data.playedSounds.clear();
-            firstPerson = data.firstPerson && manascore$renderingOwnView(entityIn);
-            PlayerAnimationAPI.active_animations.put(entityIn, null);
+            firstPerson = PlayerAnimationAPI.isFirstPersonActive(entityIn) && manascore$renderingOwnView(entityIn);
+            PlayerAnimationAPI.active_animations.remove(entityIn);
         }
 
         // Resolve animation
@@ -146,25 +147,23 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
         }
 
         // Update progress
-        boolean advance = PlayerAnimationAPI.renderingLevel;
+        float time = entityIn.tickCount + this.manascore$mc.getTimer().getGameTimeDeltaPartialTick(false);
         float animationProgress;
         float lastAnimationProgress = data.lastAnimationProgress;
-        if (!advance) {
-            animationProgress = data.hasProgress ? data.progress : 0f;
-        } else if (!data.hasProgress) {
+        if (!data.hasProgress) {
             animationProgress = 0f;
             data.hasProgress = true;
             data.progress = animationProgress;
-            data.lastTickTime = ageInTicks;
+            data.lastTickTime = time;
             data.lastAnimationProgress = 0f;
 
         } else {
             animationProgress = data.progress;
             float lastTickTime = data.lastTickTime;
-            float deltaTime = Math.max(0f, (ageInTicks - lastTickTime) / 20f);
+            float deltaTime = Math.max(0f, (time - lastTickTime) / 20f);
             animationProgress += deltaTime;
             data.progress = animationProgress;
-            data.lastTickTime = ageInTicks;
+            data.lastTickTime = time;
             // End of animation
             if (animationProgress >= animation.length) {
                 if (!animation.hold_on_last_frame && !animation.loop) {
@@ -177,7 +176,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
                         data.hasProgress = false;
                         data.lastAnimationProgress = 0f;
                         data.playedSounds.clear();
-                        PlayerAnimationAPI.active_animations.put(entityIn, null);
+                        PlayerAnimationAPI.active_animations.remove(entityIn);
                         animationProgress = animation.length;
                     } else {
                         // Reset animation
@@ -188,7 +187,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
                         data.playedSounds.clear();
                         data.reset = true;
                         data.firstPerson = false;
-                        PlayerAnimationAPI.active_animations.put(entityIn, null);
+                        PlayerAnimationAPI.active_animations.remove(entityIn);
                         animationProgress = animation.length;
                     }
                 } else if (animation.hold_on_last_frame) {
@@ -202,7 +201,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
         }
 
         // Play sound effects
-        if (advance && !animation.soundEffects.isEmpty()) {
+        if (!animation.soundEffects.isEmpty()) {
             for (Map.Entry<Float, String> soundEntry : animation.soundEffects.entrySet()) {
                 float soundTime = soundEntry.getKey();
                 String soundId = soundEntry.getValue();
@@ -220,7 +219,7 @@ public abstract class MixinPlayerModel<T extends LivingEntity> {
         }
 
         // Apply bones, third person animations are skipped for the own view
-        if (!data.firstPerson && manascore$renderingOwnView(entityIn)) return;
+        if (!PlayerAnimationAPI.isFirstPersonActive(entityIn) && manascore$renderingOwnView(entityIn)) return;
         for (Map.Entry<String, PlayerAnimationAPI.PlayerBone> entry : animation.bones.entrySet()) {
             String boneName = entry.getKey();
             PlayerAnimationAPI.PlayerBone bone = entry.getValue();

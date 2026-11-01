@@ -9,14 +9,12 @@ import io.github.manasmods.manascore.animation.api.PlayerAnimationAPI;
 import io.github.manasmods.manascore.animation.mixin.accessor.AccessorCamera;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.world.entity.player.Player;
 import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -26,9 +24,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  */
 @Mixin(LevelRenderer.class)
 public abstract class MixinLevelRendererAnimation {
-    @Unique
-    private final Minecraft manascore$mc = Minecraft.getInstance();
-
     /**
      * Marks the world render, so the animation module can tell a player drawn into the level from one drawn into a GUI widget or a HUD overlay.
      * Those run after this method returns, in {@code Gui#render} and screen rendering, and must not get the first-person treatment.
@@ -55,8 +50,7 @@ public abstract class MixinLevelRendererAnimation {
      */
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;isDetached()Z"))
     private void fakeThirdPersonMode(DeltaTracker deltaTracker, boolean bl, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f matrix4f, Matrix4f matrix4f2, CallbackInfo ci) {
-        if (camera.getEntity() instanceof Player player && PlayerAnimationAPI.state(player).firstPerson
-                && manascore$mc.player == player) ((AccessorCamera) camera).setDetached(true);
+        if (camera.getEntity() instanceof Player player && PlayerAnimationAPI.isFirstPersonActive(player)) ((AccessorCamera) camera).setDetached(true);
     }
 
     /**

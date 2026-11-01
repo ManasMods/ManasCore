@@ -28,7 +28,7 @@ public class MixinEntityRenderDispatcherAnimation {
     private static void renderShadow(PoseStack poseStack, MultiBufferSource bufferSource, Entity entity,
                                                float opacity, float tickDelta, LevelReader world, float radius, CallbackInfo ci) {
         Minecraft mc = Minecraft.getInstance();
-        if (entity instanceof Player player && mc.options.getCameraType().isFirstPerson() && player == mc.player
-                && PlayerAnimationAPI.renderingLevel && PlayerAnimationAPI.state(player).firstPerson) ci.cancel();
+        if (entity instanceof Player player && mc.options.getCameraType().isFirstPerson()
+                && PlayerAnimationAPI.renderingLevel && PlayerAnimationAPI.isFirstPersonActive(player)) ci.cancel();
     }
 }

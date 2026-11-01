@@ -7,6 +7,10 @@ loom {
     accessWidenerPath = project(":animation-common").loom.accessWidenerPath
 }
 
+dependencies {
+    implementation project(path: ":config-common", configuration: 'transformProductionNeoForge')
+}
+
 remapJar {
     atAccessWideners.add("${project.mod_id}.accesswidener")
 }

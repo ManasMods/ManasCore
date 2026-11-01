@@ -7,6 +7,8 @@ package io.github.manasmods.manascore.command.neoforge;
 
 import io.github.manasmods.manascore.command.ManasCoreCommand;
 import io.github.manasmods.manascore.command.api.Permission;
+import io.github.manasmods.manascore.command.internal.IPermissionSource;
+import io.github.manasmods.manascore.command.internal.PermissionCheck;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.level.ServerPlayer;
@@ -14,10 +16,10 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.server.permission.PermissionAPI;
 import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
 import net.neoforged.neoforge.server.permission.nodes.PermissionTypes;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class PlatformCommandUtilsImpl {
     public static final Map<String, PermissionNode<Boolean>> PERMISSIONS = new HashMap<>();
@@ -25,16 +27,32 @@ public class PlatformCommandUtilsImpl {
     public static boolean gathered = false;
 
     public static boolean hasPermission(CommandSourceStack commandSourceStack, Permission permission) {
-        if (commandSourceStack.hasPermission(permission.permissionLevel().getLevel())) return true;
-        if (!commandSourceStack.isPlayer()) return true;
-        ServerPlayer player = Objects.requireNonNull(commandSourceStack.getPlayer());
-        PermissionNode<Boolean> main = PERMISSIONS.get(permission.value());
-        if (main != null && PermissionAPI.getPermission(player, main)) return true;
-        for (String node : permission.anyOf()) {
-            PermissionNode<Boolean> permissionNode = PERMISSIONS.get(node);
-            if (permissionNode != null && PermissionAPI.getPermission(player, permissionNode)) return true;
-        }
-        return false;
+        return PermissionCheck.isAllowed(new IPermissionSource() {
+            public boolean isPlayer() {
+                return commandSourceStack.isPlayer();
+            }
+
+            public boolean isOwnCommand() {
+                return PermissionCheck.isOwnCommand(commandSourceStack);
+            }
+
+            public boolean hasLevel(int level) {
+                return commandSourceStack.hasPermission(level);
+            }
+
+            public boolean hasOwnLevel(int level) {
+                ServerPlayer player = commandSourceStack.getPlayer();
+                return player != null && player.hasPermissions(level);
+            }
+
+            public @Nullable Boolean getValue(String node) {
+                ServerPlayer player = commandSourceStack.getPlayer();
+                PermissionNode<Boolean> permissionNode = PERMISSIONS.get(node);
+                if (permissionNode == null || player == null) return null;
+                if (!PermissionAPI.getRegisteredNodes().contains(permissionNode)) return permissionNode.getDefaultResolver().resolve(player, player.getUUID());
+                return PermissionAPI.getPermission(player, permissionNode);
+            }
+        }, permission);
     }
 
     public static void registerPermission(Permission permission) {
@@ -78,8 +96,7 @@ public class PlatformCommandUtilsImpl {
     public static boolean hasPermission(Player player, String permissionId) {
         PermissionNode<Boolean> node = PERMISSIONS.get(permissionId);
         if (node == null || !(player instanceof ServerPlayer serverPlayer)) return false;
-        if (node.getDefaultResolver().resolve(serverPlayer, serverPlayer.getUUID())) return true;
-        if (!PermissionAPI.getRegisteredNodes().contains(node)) return false;
+        if (!PermissionAPI.getRegisteredNodes().contains(node)) return node.getDefaultResolver().resolve(serverPlayer, serverPlayer.getUUID());
         return Boolean.TRUE.equals(PermissionAPI.getPermission(serverPlayer, node));
     }
 

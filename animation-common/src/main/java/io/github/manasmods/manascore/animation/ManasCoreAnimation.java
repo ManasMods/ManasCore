@@ -8,7 +8,9 @@ package io.github.manasmods.manascore.animation;
 import dev.architectury.platform.Platform;
 import dev.architectury.registry.ReloadListenerRegistry;
 import dev.architectury.utils.Env;
+import io.github.manasmods.manascore.animation.api.AnimationConfig;
 import io.github.manasmods.manascore.animation.api.PlayerAnimationAPI;
+import io.github.manasmods.manascore.config.ConfigRegistry;
 import io.github.manasmods.manascore.animation.network.ManasAnimationNetwork;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
@@ -22,11 +24,13 @@ import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 public class ManasCoreAnimation {
     /**
      * Used to initialize the animation module.
-     * Registers the animation packet through {@link ManasAnimationNetwork#init()} and, on the client, the animation reload listener.
+     * Registers the animation packet through {@link ManasAnimationNetwork#init()} and, on the client, the {@link AnimationConfig} and the animation reload listener.
      */
     public static void init() {
         ManasAnimationNetwork.init();
-        if (Platform.getEnvironment() == Env.CLIENT) registerClientAnimationLoader();
+        if (Platform.getEnvironment() != Env.CLIENT) return;
+        ConfigRegistry.registerConfig(new AnimationConfig());
+        registerClientAnimationLoader();
     }
 
     private static void registerClientAnimationLoader() {

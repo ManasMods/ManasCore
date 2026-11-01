@@ -38,17 +38,17 @@ public abstract class MixinItemInHandRendererAnimation {
     @Inject(method = "renderHandsWithItems", at = @At("HEAD"), cancellable = true)
     private void renderHandsWithItems(float partialTicks, PoseStack poseStack, MultiBufferSource.BufferSource bufferSource,
                                       LocalPlayer localPlayer, int light, CallbackInfo ci) {
-        if (localPlayer == null || manascore$mc.player != localPlayer || manascore$mc.screen != null) return;
+        if (localPlayer == null || manascore$mc.player != localPlayer) return;
         if (manascore$dispatcher == null) manascore$dispatcher = manascore$mc.getEntityRenderDispatcher();
 
-        // Pose player model
+        // The world pass only draws the player while first person is active, so drive the animation here otherwise
         PlayerAnimationAPI.PlayerAnimationState state = PlayerAnimationAPI.state(localPlayer);
-        if (!state.currentAnimation.isEmpty() && (!state.firstPerson || state.reset)) {
+        boolean firstPerson = PlayerAnimationAPI.isFirstPersonActive(localPlayer);
+        if (!state.currentAnimation.isEmpty() && (!firstPerson || state.reset)) {
             PlayerModel<AbstractClientPlayer> model = ((PlayerRenderer) manascore$dispatcher.getRenderer(localPlayer)).getModel();
             model.setupAnim(localPlayer, 0.0F, 0.0F, (float) localPlayer.tickCount + partialTicks, 0.0F, 0.0F);
         }
 
-        // Cancel vanilla hands
-        if (state.firstPerson) ci.cancel();
+        if (firstPerson) ci.cancel();
     }
 }

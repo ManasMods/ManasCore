@@ -27,7 +27,8 @@
     "minecraft": "~${minecraft_version}",
     "java": ">=21",
     "architectury": ">=${architectury_version}",
-    "fabric-api": "*"
+    "fabric-api": "*",
+    "manascore_config": ">=${version}"
   },
   "suggests": {
   }

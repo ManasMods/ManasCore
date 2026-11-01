@@ -7,14 +7,19 @@ package io.github.manasmods.manascore.animation.mixin.client;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import io.github.manasmods.manascore.animation.api.AnimationConfig;
 import io.github.manasmods.manascore.animation.api.PlayerAnimationAPI;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -73,8 +78,35 @@ public abstract class MixinLivingEntityRendererAnimation<T extends LivingEntity,
      */
     @Unique
     private boolean manascore$hidesLayers(Entity entity) {
-        return entity == manascore$mc.player && PlayerAnimationAPI.renderingLevel
-                && manascore$mc.options.getCameraType().isFirstPerson()
-                && entity instanceof Player player && PlayerAnimationAPI.state(player).firstPerson;
+        return entity instanceof Player player && PlayerAnimationAPI.renderingLevel
+                && manascore$mc.options.getCameraType().isFirstPerson() && PlayerAnimationAPI.isFirstPersonActive(player);
+    }
+
+    @WrapOperation(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/LivingEntityRenderer;getRenderType(Lnet/minecraft/world/entity/LivingEntity;ZZZ)Lnet/minecraft/client/renderer/RenderType;"))
+    private RenderType manascore$fadeFirstPersonRenderType(LivingEntityRenderer<T, M> renderer, T entity, boolean bodyVisible, boolean translucent,
+                                                          boolean glowing, Operation<RenderType> original) {
+        RenderType type = original.call(renderer, entity, bodyVisible, translucent, glowing);
+        if (type == null || !this.manascore$isFaded(entity)) return type;
+        return RenderType.itemEntityTranslucentCull(renderer.getTextureLocation(entity));
+    }
+
+    @WrapOperation(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/EntityModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;III)V"))
+    private void manascore$fadeFirstPersonColor(EntityModel<T> model, PoseStack poseStack, VertexConsumer consumer, int light, int overlay, int color,
+                                                Operation<Void> original, @Local(argsOnly = true) LivingEntity entity) {
+        if (this.manascore$isFaded(entity)) color = (int) ((color >>> 24) * this.manascore$getOpacity()) << 24 | color & 0xFFFFFF;
+        original.call(model, poseStack, consumer, light, overlay, color);
+    }
+
+    @Unique
+    private boolean manascore$isFaded(LivingEntity entity) {
+        return this.manascore$getOpacity() < 1.0F && this.manascore$hidesLayers(entity);
+    }
+
+    @Unique
+    private float manascore$getOpacity() {
+        AnimationConfig config = AnimationConfig.get();
+        return config == null ? 1.0F : Mth.clamp(config.firstPersonOpacity, 0.0F, 1.0F);
     }
 }

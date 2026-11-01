@@ -8,5 +8,6 @@ loom {
 }
 
 dependencies {
+    implementation(project(path: ":config-common", configuration: 'namedElements')) { transitive false }
     implementation(project(path: ":network-common", configuration: 'namedElements')) { transitive false }
 }
