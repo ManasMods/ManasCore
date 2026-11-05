@@ -11,7 +11,8 @@
     "client.MixinLevelRendererAnimation",
     "client.MixinLivingEntityRendererAnimation",
     "client.MixinPlayerModel",
-    "client.MixinPlayerRendererAnimation"
+    "client.MixinPlayerRendererAnimation",
+    "client.MixinSkeletonModel"
   ],
   "mixins": [],
   "injectors": {
