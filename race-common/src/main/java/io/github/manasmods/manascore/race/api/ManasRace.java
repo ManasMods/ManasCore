@@ -332,6 +332,14 @@ public class ManasRace {
         return Pair.of(Level.OVERWORLD, Blocks.AIR.defaultBlockState());
     }
 
+    public @Nullable Float getEyeHeightMultiplier(ManasRaceInstance instance, LivingEntity entity) {
+        return null;
+    }
+
+    public @Nullable Float getShadowMultiplier(ManasRaceInstance instance, LivingEntity entity) {
+        return null;
+    }
+
     /**
      * Returns a list of all {@link ManasSkill} that {@link LivingEntity} gains on changing to this Race.
      *

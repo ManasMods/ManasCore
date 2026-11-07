@@ -15,6 +15,7 @@ import net.minecraft.world.entity.LivingEntity;
 public interface RaceEvents {
     Event<Runnable> POST_INIT = EventFactory.createLoop();
     Event<SetRaceEvent> SET_RACE = EventFactory.createEventResult();
+    Event<RaceChangedEvent> RACE_CHANGED = EventFactory.createEventResult();
     Event<RaceTickEvent> RACE_PRE_TICK = EventFactory.createEventResult();
     Event<RaceUpdateCooldownEvent> RACE_UPDATE_COOLDOWN = EventFactory.createEventResult();
     Event<RacePostTickEvent> RACE_POST_TICK = EventFactory.createLoop();
@@ -24,6 +25,11 @@ public interface RaceEvents {
     @FunctionalInterface
     interface SetRaceEvent {
         EventResult set(ManasRaceInstance instance, LivingEntity owner, ManasRaceInstance newInstance, boolean evolution, Changeable<Boolean> teleportToSpawn, Changeable<MutableComponent> raceMessage);
+    }
+
+    @FunctionalInterface
+    interface RaceChangedEvent {
+        void change(ManasRaceInstance instance, LivingEntity owner, ManasRaceInstance newInstance, boolean evolution, boolean teleportToSpawn);
     }
 
     @FunctionalInterface

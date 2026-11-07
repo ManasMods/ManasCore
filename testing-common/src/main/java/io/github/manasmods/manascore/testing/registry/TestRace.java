@@ -122,6 +122,14 @@ public class TestRace extends ManasRace {
         return Pair.of(Level.NETHER, Blocks.NETHERRACK.defaultBlockState());
     }
 
+    public @Nullable Float getEyeHeightMultiplier(ManasRaceInstance instance, LivingEntity entity) {
+        return 0.5F;
+    }
+
+    public @Nullable Float getShadowMultiplier(ManasRaceInstance instance, LivingEntity entity) {
+        return 2F;
+    }
+
     public List<ManasSkill> getIntrinsicSkills(ManasRaceInstance instance, LivingEntity entity) {
         List<ManasSkill> list = new ArrayList<>();
         list.add(RegistryTest.TEST_SKILL.get());

@@ -431,6 +431,14 @@ public class ManasRaceInstance {
         return this.getRace().getRespawnDimension(this, player);
     }
 
+    public @Nullable Float getEyeHeightMultiplier(LivingEntity entity) {
+        return this.getRace().getEyeHeightMultiplier(this, entity);
+    }
+
+    public @Nullable Float getShadowMultiplier(LivingEntity entity) {
+        return this.getRace().getShadowMultiplier(this, entity);
+    }
+
     /**
      * Returns a list of all {@link ManasSkill} that {@link LivingEntity} gains on changing to this Instance.
      * </p>

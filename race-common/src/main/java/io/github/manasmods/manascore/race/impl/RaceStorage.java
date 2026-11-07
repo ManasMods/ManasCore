@@ -172,8 +172,10 @@ public class RaceStorage extends Storage implements Races {
 
         race.learnIntrinsicSkills(owner);
         this.raceInstance = race;
+        owner.refreshDimensions();
 
         if (teleport.get() && getOwner() instanceof ServerPlayer player) SpawnPointHelper.teleportToNewSpawn(player);
+        RaceEvents.RACE_CHANGED.invoker().change(instance, getOwner(), race, evolution, teleport.get());
         markDirty();
         return true;
     }
@@ -188,6 +190,7 @@ public class RaceStorage extends Storage implements Races {
     public void load(CompoundTag data) {
         if (!data.contains(RACE_KEY)) return;
         this.raceInstance = ManasRaceInstance.fromNBT(data.getCompound(RACE_KEY));
+        this.getOwner().refreshDimensions();
     }
 
     public void saveOutdated(CompoundTag data) {
