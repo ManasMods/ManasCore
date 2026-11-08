@@ -1,7 +1,6 @@
 package io.github.manasmods.manascore.config;
 
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
-import com.electronwill.nightconfig.toml.TomlWriter;
 import io.github.manasmods.manascore.config.api.ConfigReloadResult;
 import io.github.manasmods.manascore.config.api.ManasConfig;
 import io.github.manasmods.manascore.config.api.ManasSubConfig;
@@ -132,7 +131,9 @@ public class ConfigRegistry {
     }
 
     /**
-     * Serializes all syncable configs into a map for server-to-client transmission.
+     * Serializes all syncable configs into a map for server-to-client transmission, from the values the server runs.
+     * Nothing is read from disk, so a broken file can never stop a player from joining, and a hand edit reaches
+     * clients once {@link #reloadConfigs()} applies it.
      * <p>
      * @return A map containing serialized TOML configs.
      */
@@ -140,14 +141,13 @@ public class ConfigRegistry {
         Map<String, String> configData = new HashMap<>();
         CONFIGS.forEach((clazz, config) -> {
             if (!clazz.isAnnotationPresent(SyncToClient.class)) return;
-            config.load();
-            configData.put(clazz.getSimpleName(), (new TomlWriter()).writeToString(config.getConfig()));
+            putSyncData(configData, clazz, config);
         });
         return configData;
     }
 
     /**
-     * Serializes a specific config for syncing.
+     * Serializes a specific config for syncing, from the values the server runs.
      * <p>
      * @param  configClass The class of the config to sync.
      * @return A map containing the serialized TOML data for the requested config.
@@ -156,11 +156,17 @@ public class ConfigRegistry {
         Map<String, String> configData = new HashMap<>();
         if (!CONFIGS.containsKey(configClass)) return configData;
         if (!configClass.isAnnotationPresent(SyncToClient.class)) return configData;
-
-        ManasConfig config = CONFIGS.get(configClass);
-        config.load();
-        configData.put(configClass.getSimpleName(), (new TomlWriter()).writeToString(config.getConfig()));
+        putSyncData(configData, configClass, CONFIGS.get(configClass));
         return configData;
+    }
+
+    // A config that cannot be written is left out, so it never stops the others or a player joining
+    private static void putSyncData(Map<String, String> configData, Class<? extends ManasConfig> configClass, ManasConfig config) {
+        try {
+            configData.put(configClass.getSimpleName(), config.writeToString());
+        } catch (Exception e) {
+            ManasCoreConfig.LOG.error("Failed to write config " + configClass.getSimpleName() + " for syncing: " + e.getMessage(), e);
+        }
     }
 
     private static class FieldValue {

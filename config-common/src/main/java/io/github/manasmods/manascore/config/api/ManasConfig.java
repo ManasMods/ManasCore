@@ -4,6 +4,7 @@ import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.toml.TomlParser;
+import com.electronwill.nightconfig.toml.TomlWriter;
 import io.github.manasmods.manascore.config.ManasCoreConfig;
 import lombok.Getter;
 import net.minecraft.resources.ResourceLocation;
@@ -90,6 +91,16 @@ public abstract class ManasConfig {
         } catch (Exception e) {
             ManasCoreConfig.LOG.error("Error parsing TOML data: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Writes the values the class fields hold right now as a TOML-formatted string, for syncing to clients.
+     * Nothing is read from or written to the file.
+     */
+    @ApiStatus.Internal
+    public String writeToString() {
+        this.saveFromFields();
+        return new TomlWriter().writeToString(this.config);
     }
 
     /**
