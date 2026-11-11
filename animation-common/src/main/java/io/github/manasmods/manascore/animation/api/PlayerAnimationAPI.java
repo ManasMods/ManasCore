@@ -19,6 +19,7 @@ import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.client.Minecraft;
@@ -79,6 +80,16 @@ public class PlayerAnimationAPI {
         Minecraft mc = Minecraft.getInstance();
         // An open screen shows the vanilla hands instead
         return entity == mc.player && mc.screen == null && state(entity).firstPerson;
+    }
+
+    public static boolean isDrawingFirstPersonView(Entity entity) {
+        return entity instanceof LivingEntity living && renderingLevel && Minecraft.getInstance().options.getCameraType().isFirstPerson() && isFirstPersonActive(living);
+    }
+
+    public static float getFirstPersonOpacity(Entity entity) {
+        AnimationConfig config = AnimationConfig.get();
+        if (config == null || !isDrawingFirstPersonView(entity)) return 1.0F;
+        return Mth.clamp(config.firstPersonOpacity, 0.0F, 1.0F);
     }
 
     /**

@@ -18,6 +18,6 @@ public class AnimationConfig extends ManasConfig {
         return ConfigRegistry.getConfig(AnimationConfig.class);
     }
 
-    @Comment("Opacity of your own arms during a first-person animation, from 0 (invisible) to 1 (solid). Held items stay solid.")
+    @Comment("Opacity of your own arms and held items during a first-person animation, from 0 (invisible) to 1 (solid).")
     public float firstPersonOpacity = 0.5F;
 }

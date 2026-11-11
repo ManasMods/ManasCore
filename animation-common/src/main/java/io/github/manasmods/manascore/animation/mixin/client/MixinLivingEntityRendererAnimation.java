@@ -10,16 +10,13 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import io.github.manasmods.manascore.animation.api.AnimationConfig;
 import io.github.manasmods.manascore.animation.api.PlayerAnimationAPI;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -34,9 +31,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  */
 @Mixin(LivingEntityRenderer.class)
 public abstract class MixinLivingEntityRendererAnimation<T extends LivingEntity, M extends EntityModel<T>> {
-    @Unique
-    private final Minecraft manascore$mc = Minecraft.getInstance();
-
     /**
      * Drops every render layer but the held item while a first-person animation plays, so the view shows bare arms like the vanilla hand overlay.
      * <p>
@@ -78,8 +72,7 @@ public abstract class MixinLivingEntityRendererAnimation<T extends LivingEntity,
      */
     @Unique
     private boolean manascore$hidesLayers(Entity entity) {
-        return entity instanceof Player player && PlayerAnimationAPI.renderingLevel
-                && manascore$mc.options.getCameraType().isFirstPerson() && PlayerAnimationAPI.isFirstPersonActive(player);
+        return PlayerAnimationAPI.isDrawingFirstPersonView(entity);
     }
 
     @WrapOperation(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
@@ -87,7 +80,7 @@ public abstract class MixinLivingEntityRendererAnimation<T extends LivingEntity,
     private RenderType manascore$fadeFirstPersonRenderType(LivingEntityRenderer<T, M> renderer, T entity, boolean bodyVisible, boolean translucent,
                                                           boolean glowing, Operation<RenderType> original) {
         RenderType type = original.call(renderer, entity, bodyVisible, translucent, glowing);
-        if (type == null || !this.manascore$isFaded(entity)) return type;
+        if (type == null || PlayerAnimationAPI.getFirstPersonOpacity(entity) >= 1.0F) return type;
         return RenderType.itemEntityTranslucentCull(renderer.getTextureLocation(entity));
     }
 
@@ -95,18 +88,8 @@ public abstract class MixinLivingEntityRendererAnimation<T extends LivingEntity,
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/EntityModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;III)V"))
     private void manascore$fadeFirstPersonColor(EntityModel<T> model, PoseStack poseStack, VertexConsumer consumer, int light, int overlay, int color,
                                                 Operation<Void> original, @Local(argsOnly = true) LivingEntity entity) {
-        if (this.manascore$isFaded(entity)) color = (int) ((color >>> 24) * this.manascore$getOpacity()) << 24 | color & 0xFFFFFF;
+        float opacity = PlayerAnimationAPI.getFirstPersonOpacity(entity);
+        if (opacity < 1.0F) color = (int) ((color >>> 24) * opacity) << 24 | color & 0xFFFFFF;
         original.call(model, poseStack, consumer, light, overlay, color);
-    }
-
-    @Unique
-    private boolean manascore$isFaded(LivingEntity entity) {
-        return this.manascore$getOpacity() < 1.0F && this.manascore$hidesLayers(entity);
-    }
-
-    @Unique
-    private float manascore$getOpacity() {
-        AnimationConfig config = AnimationConfig.get();
-        return config == null ? 1.0F : Mth.clamp(config.firstPersonOpacity, 0.0F, 1.0F);
     }
 }
